@@ -13,7 +13,7 @@ import lombok.*;
 public class Comment extends BaseModel{
 
     @Lob
-    @Column(nullable = false)
+    @Column(nullable = false, length = 200)
     private String body;
 
     @ManyToOne(fetch = FetchType.LAZY)

@@ -14,6 +14,6 @@ public class AnswerSubmitRequestDTO {
 
     @NotBlank(message = "Answer is required")
     @Schema(description = "The main content of the answer, explaining the solution or providing information")
-    @Size(min = 20, max = 500, message = "Describe question in 20 to 500 characters")
+    @Size(min = 150, max = 1500, message = "Describe question in 200 to 1500 characters")
     private String body;
 }

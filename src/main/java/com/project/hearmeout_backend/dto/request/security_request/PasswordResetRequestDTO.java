@@ -15,7 +15,7 @@ import org.hibernate.validator.constraints.Length;
 public class PasswordResetRequestDTO {
 
     @NotBlank(message = "Password is required")
-    @Length(min = 8, message = "Password must be 8 character long")
+    @Length(min = 8, max = 20, message = "Password must be within 8 and 20 character long")
     @Schema(description = "The new password to set for the account")
     private String newPassword;
 

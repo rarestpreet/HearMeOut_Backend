@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -79,30 +80,32 @@ public class UserServiceImpl {
     @Transactional
     public void updateUserDetails(UserProfileModificationRequestDTO requestDTO, Long currUserId)
             throws UserNotFoundException, UserAlreadyExistException, EmailAlreadyExistException {
-        if (currUserId == null || currUserId.equals(requestDTO.getUserId())) {
-            throw new InvalidOperationException("You are not allowed to perform this operation (user update)");
-        }
-
         User currUser = checkAndGetUserByUserId(currUserId);
 
-        if (!currUser.getUsername().equals(requestDTO.getUsername()) &&
-                !currUser.getEmail().equals(requestDTO.getEmail()) &&
-                userRepo.existsByUsernameOrEmail(requestDTO.getUsername(), requestDTO.getEmail())) {
-            throw new UserAlreadyExistException("Username is already taken");
+        if (!Objects.equals(currUser.getEmail(), requestDTO.getEmail())) {
+            if (!userRepo.existsByEmail(requestDTO.getEmail())) {
+                currUser.setEmail(requestDTO.getEmail());
+                currUser.setAccountVerified(false);
+            } else {
+                throw new UserAlreadyExistException("User already exist with email: " + requestDTO.getEmail());
+            }
         }
 
-        currUser.setUsername(requestDTO.getUsername());
-        currUser.setEmail(requestDTO.getEmail());
-        currUser.setAccountVerified(false);
+        if (!Objects.equals(currUser.getUsername(), requestDTO.getUsername())) {
+            if (!userRepo.existsByUsername(requestDTO.getUsername())) {
+                currUser.setUsername(requestDTO.getUsername());
+            } else {
+                throw new UserAlreadyExistException("User already exist with username: " + requestDTO.getUsername());
+            }
+        }
 
         userRepo.save(currUser);
     }
 
     @Transactional
-    public void terminateUserAccount(Long userId)
+    public void terminateUserAccount(Long currUserId)
             throws UserNotFoundException {
-        User currUser = checkAndGetUserByUserId(userId);
-
+        User currUser = checkAndGetUserByUserId(currUserId);
 
         /*
         update logic for account delete

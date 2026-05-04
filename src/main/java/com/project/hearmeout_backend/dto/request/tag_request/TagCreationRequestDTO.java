@@ -18,7 +18,7 @@ public class TagCreationRequestDTO {
     String name;
 
     @NotNull(message = "info about tag is required")
-    @Size(max = 50, message = "only brief info about tag (<50 char)")
+    @Size(max = 100, message = "only brief info about tag (<100 char)")
     @Schema(description = "A brief description explaining when to use this tag")
     String description;
 }

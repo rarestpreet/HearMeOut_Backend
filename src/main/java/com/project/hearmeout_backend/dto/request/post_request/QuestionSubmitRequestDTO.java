@@ -16,12 +16,12 @@ import java.util.List;
 public class QuestionSubmitRequestDTO {
 
     @NotBlank(message = "Question title is required")
-    @Size(min = 15, max = 150, message = "Question must be 15 to 150 characters long")
+    @Size(min = 50, max = 150, message = "Question must be 15 to 150 characters long")
     @Schema(description = "A concise summary of the question being asked")
     private String title;
 
     @NotBlank(message = "Description is required")
-    @Size(min = 50, max = 500, message = "Describe question in 50 to 500 characters")
+    @Size(min = 200, max = 2000, message = "Describe question in 50 to 500 characters")
     @Schema(description = "The detailed content of the question, providing context and specifics")
     private String body;
 

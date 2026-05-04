@@ -15,12 +15,12 @@ import org.hibernate.validator.constraints.Length;
 public class RegisterRequestDTO {
 
     @NotBlank(message = "Username is required")
-    @Length(max = 20, message = "Username must be less than 20 character")
+    @Length(min = 5, max = 20, message = "Username must be less than 20 character")
     @Schema(description = "The unique username chosen by the user")
     private String username;
 
     @NotBlank(message = "Password is required")
-    @Length(min = 8, message = "Password must be 8 character long")
+    @Length(min = 8, max = 20, message = "Password must be within 8 and 20 character long")
     @Schema(description = "The password for the new account")
     private String password;
 
