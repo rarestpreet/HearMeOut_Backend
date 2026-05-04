@@ -117,7 +117,6 @@ public class SecurityServiceImpl {
         }
 
         registeredUser.setPassword(passwordEncoder.encode(passwordResetRequestDTO.getNewPassword()));
-        registeredUser.setAccountVerified(false);
         registeredUser.setPasswordChangeOtp(null);
         registeredUser.setPasswordOtpExpireAt(null);
 

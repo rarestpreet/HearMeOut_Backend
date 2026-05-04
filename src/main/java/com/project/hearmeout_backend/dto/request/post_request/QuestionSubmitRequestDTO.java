@@ -26,7 +26,7 @@ public class QuestionSubmitRequestDTO {
     private String body;
 
     @NotEmpty(message = "At least one tag is required")
-    @Size(min = 1, max = 10, message = "Must contain 1 to 10 tags")
+    @Size(min = 1, max = 5, message = "Must contain 1 to 10 tags")
     @Schema(description = "A list of tag IDs categorizing the question")
     private List<Long> tagIds;
 }

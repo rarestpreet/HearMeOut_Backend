@@ -70,11 +70,15 @@ public class PostServiceImpl {
         Post parent = checkAndGetPost(postId);
 
         if (Objects.equals(userId, parent.getAuthor().getId())) {
-            throw new InvalidOperationException("Invalid action: you cannot answer your own questions.");
+            throw new InvalidOperationException("You cannot answer your own questions.");
         }
 
-        if (parent.getPostType().equals(PostType.ANSWER)) {
-            throw new InvalidOperationException("Invalid action: you can only answer questions.");
+        if (Objects.equals(parent.getPostType(),PostType.ANSWER)) {
+            throw new InvalidOperationException("You can only answer questions.");
+        }
+
+        if(Objects.equals(parent.getStatus(), PostStatus.CLOSED)){
+            throw new InvalidOperationException("Question is already closed.");
         }
 
         User author = userServiceImpl.checkAndGetUserByUserId(userId);
