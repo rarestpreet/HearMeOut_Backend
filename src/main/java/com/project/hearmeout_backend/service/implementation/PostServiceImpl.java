@@ -238,6 +238,7 @@ public class PostServiceImpl {
         question.setTitle(questionSubmitRequestDTO.getTitle());
         question.setBody(questionSubmitRequestDTO.getBody());
         question.setTags(tags);
+        question.markUpdatedAt();
 
         postRepo.save(question);
     }
@@ -259,6 +260,7 @@ public class PostServiceImpl {
         }
 
         answer.setBody(answerSubmitRequestDTO.getBody());
+        answer.markUpdatedAt();
 
         postRepo.save(answer);
     }

@@ -27,7 +27,15 @@ public abstract class BaseModel {
     @Column(updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
-    @LastModifiedDate
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    @PrePersist
+    public void onCreate(){
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void markUpdatedAt(){
+        this.updatedAt = LocalDateTime.now();
+    }
 }

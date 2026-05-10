@@ -29,4 +29,6 @@ public class TagServiceImpl {
     public void createNewTag(TagCreationRequestDTO tag) {
         tagRepository.save(TagMapper.toTagEntity(tag));
     }
+
+    // method to update info of a tag and remove tag
 }

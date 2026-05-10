@@ -75,6 +75,7 @@ public class CommentServiceImpl {
         }
 
         comment.setBody(body);
+        comment.markUpdatedAt();
 
         commentRepo.save(comment);
     }

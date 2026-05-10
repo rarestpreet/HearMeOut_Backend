@@ -99,6 +99,8 @@ public class UserServiceImpl {
             }
         }
 
+        currUser.markUpdatedAt();
+
         userRepo.save(currUser);
     }
 
