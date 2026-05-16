@@ -6,7 +6,6 @@ import com.project.hearmeout_backend.dto.response.user_response.UserCommentRespo
 import com.project.hearmeout_backend.dto.response.user_response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.dto.response.user_response.UserQuestionResponseDTO;
 import com.project.hearmeout_backend.exception.EmailAlreadyExistException;
-import com.project.hearmeout_backend.exception.InvalidOperationException;
 import com.project.hearmeout_backend.exception.UserAlreadyExistException;
 import com.project.hearmeout_backend.exception.UserNotFoundException;
 import com.project.hearmeout_backend.model.User;

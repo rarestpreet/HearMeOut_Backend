@@ -19,7 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -47,11 +48,22 @@ public class VoteServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        currUser = User.builder().username("currUser").reputation(10).build();
+        currUser = User.builder()
+                .username("currUser")
+                .reputation(10)
+                .build();
         currUser.setId(1L);
-        author = User.builder().username("author").reputation(20).build();
+
+        author = User.builder()
+                .username("author")
+                .reputation(20)
+                .build();
         author.setId(2L);
-        post = Post.builder().author(author).score(5).build();
+
+        post = Post.builder()
+                .author(author)
+                .score(5)
+                .build();
         post.setId(100L);
 
         voteRequestDTO = new VoteRequestDTO();
@@ -61,22 +73,32 @@ public class VoteServiceImplTest {
     @Test
     void handleVote_SelfPost() {
         // Arrange
-        author.setId(currUser.getId()); // User is trying to vote on their own post
+        author.setId(currUser.getId());
         voteRequestDTO.setVoteType(VoteType.UPVOTE);
 
-        when(voteRepo.findByPostIdAndUserId(100L, 1L)).thenReturn(Optional.empty());
-        when(userServiceImpl.checkAndGetUserByUserId(1L)).thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L)).thenReturn(post);
+        when(voteRepo.findByPostIdAndUserId(100L, 1L))
+                .thenReturn(Optional.empty());
+        when(userServiceImpl.checkAndGetUserByUserId(1L))
+                .thenReturn(currUser);
+        when(postServiceImpl.checkAndGetPost(100L))
+                .thenReturn(post);
 
         // Act & Assert
         InvalidOperationException exception = assertThrows(InvalidOperationException.class, () -> {
             voteService.handleVote(voteRequestDTO, 1L);
         });
 
-        assertEquals("Invalid action: you cannot vote your own posts.", exception.getMessage());
-        verify(voteRepo, never()).save(any());
-        verify(userRepo, never()).save(any());
-        verify(postRepo, never()).save(any());
+        assertEquals(
+                "Invalid action: you cannot vote your own posts.",
+                exception.getMessage()
+        );
+
+        verify(voteRepo, never())
+                .save(any());
+        verify(userRepo, never())
+                .save(any());
+        verify(postRepo, never())
+                .save(any());
     }
 
     @Test
@@ -84,30 +106,57 @@ public class VoteServiceImplTest {
         // Arrange
         voteRequestDTO.setVoteType(VoteType.UPVOTE);
 
-        when(voteRepo.findByPostIdAndUserId(100L, 1L)).thenReturn(Optional.empty());
-        when(userServiceImpl.checkAndGetUserByUserId(1L)).thenReturn(currUser); // For currUser
-        when(postServiceImpl.checkAndGetPost(100L)).thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L)).thenReturn(author); // For author
+        when(voteRepo.findByPostIdAndUserId(100L, 1L))
+                .thenReturn(Optional.empty());
+        when(userServiceImpl.checkAndGetUserByUserId(1L))
+                .thenReturn(currUser);
+        when(postServiceImpl.checkAndGetPost(100L))
+                .thenReturn(post);
+        when(userServiceImpl.checkAndGetUserByUserId(2L))
+                .thenReturn(author);
 
         // Act
         voteService.handleVote(voteRequestDTO, 1L);
 
         // Assert
-        assertEquals(21, author.getReputation()); // 20 + 1
-        assertEquals(6, post.getScore()); // 5 + 1
-        assertEquals(11, currUser.getReputation()); // 10 + 1
+        assertEquals(
+                21,
+                author.getReputation()
+        );
+        assertEquals(
+                6,
+                post.getScore()
+        );
+        assertEquals(
+                11,
+                currUser.getReputation()
+        );
 
-        verify(userRepo).save(author);
-        verify(postRepo).save(post);
-        verify(userRepo).save(currUser);
+        verify(userRepo)
+                .save(author);
+        verify(postRepo)
+                .save(post);
+        verify(userRepo)
+                .save(currUser);
 
         // Since VoteMapper.toVoteEntity is used, we need to capture the saved vote to verify
         ArgumentCaptor<Vote> voteCaptor = ArgumentCaptor.forClass(Vote.class);
-        verify(voteRepo).save(voteCaptor.capture());
+        verify(voteRepo).
+                save(voteCaptor.capture());
         Vote savedVote = voteCaptor.getValue();
-        assertEquals(VoteType.UPVOTE, savedVote.getVoteType());
-        assertEquals(currUser, savedVote.getUser());
-        assertEquals(post, savedVote.getPost());
+
+        assertEquals(
+                VoteType.UPVOTE,
+                savedVote.getVoteType()
+        );
+        assertEquals(
+                currUser,
+                savedVote.getUser()
+        );
+        assertEquals(
+                post,
+                savedVote.getPost()
+        );
     }
 
     @Test
@@ -115,74 +164,136 @@ public class VoteServiceImplTest {
         // Arrange
         voteRequestDTO.setVoteType(VoteType.DOWNVOTE);
 
-        when(voteRepo.findByPostIdAndUserId(100L, 1L)).thenReturn(Optional.empty());
-        when(userServiceImpl.checkAndGetUserByUserId(1L)).thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L)).thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L)).thenReturn(author);
+        when(voteRepo.findByPostIdAndUserId(100L, 1L))
+                .thenReturn(Optional.empty());
+        when(userServiceImpl.checkAndGetUserByUserId(1L))
+                .thenReturn(currUser);
+        when(postServiceImpl.checkAndGetPost(100L))
+                .thenReturn(post);
+        when(userServiceImpl.checkAndGetUserByUserId(2L))
+                .thenReturn(author);
 
         // Act
         voteService.handleVote(voteRequestDTO, 1L);
 
         // Assert
-        assertEquals(19, author.getReputation()); // 20 - 1
-        assertEquals(4, post.getScore()); // 5 - 1
-        assertEquals(11, currUser.getReputation()); // 10 + 1 (voter still gains 1 rep)
+        assertEquals(
+                19,
+                author.getReputation()
+        );
+        assertEquals(
+                4,
+                post.getScore()
+        );
+        assertEquals(
+                11,
+                currUser.getReputation()
+        );
 
-        verify(userRepo).save(author);
-        verify(postRepo).save(post);
-        verify(userRepo).save(currUser);
-        verify(voteRepo).save(any(Vote.class));
+        verify(userRepo)
+                .save(author);
+        verify(postRepo)
+                .save(post);
+        verify(userRepo)
+                .save(currUser);
+        verify(voteRepo)
+                .save(any(Vote.class));
     }
 
     @Test
     void handleVote_ExistingVoteRemoved() {
         // Arrange
         voteRequestDTO.setVoteType(VoteType.UPVOTE);
-        Vote existingVote = Vote.builder().user(currUser).post(post).voteType(VoteType.UPVOTE).build();
+        Vote existingVote = Vote.builder()
+                .user(currUser)
+                .post(post)
+                .voteType(VoteType.UPVOTE)
+                .build();
 
-        when(voteRepo.findByPostIdAndUserId(100L, 1L)).thenReturn(Optional.of(existingVote));
-        when(userServiceImpl.checkAndGetUserByUserId(1L)).thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L)).thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L)).thenReturn(author);
+        when(voteRepo.findByPostIdAndUserId(100L, 1L))
+                .thenReturn(Optional.of(existingVote));
+        when(userServiceImpl.checkAndGetUserByUserId(1L))
+                .thenReturn(currUser);
+        when(postServiceImpl.checkAndGetPost(100L))
+                .thenReturn(post);
+        when(userServiceImpl.checkAndGetUserByUserId(2L))
+                .thenReturn(author);
 
         // Act
         voteService.handleVote(voteRequestDTO, 1L);
 
         // Assert
-        assertEquals(19, author.getReputation()); // 20 - 1
-        assertEquals(4, post.getScore()); // 5 - 1
-        assertEquals(9, currUser.getReputation()); // 10 - 1
+        assertEquals(
+                19,
+                author.getReputation()
+        );
+        assertEquals(
+                4,
+                post.getScore()
+        );
+        assertEquals(
+                9,
+                currUser.getReputation()
+        );
 
-        verify(userRepo).save(author);
-        verify(postRepo).save(post);
-        verify(userRepo).save(currUser);
-        verify(voteRepo).removeVoteByPostIdAndUserId(100L, 1L);
+        verify(userRepo)
+                .save(author);
+        verify(postRepo)
+                .save(post);
+        verify(userRepo)
+                .save(currUser);
+        verify(voteRepo)
+                .removeVoteByPostIdAndUserId(100L, 1L);
     }
 
     @Test
     void handleVote_ExistingVoteChanged() {
         // Arrange
         voteRequestDTO.setVoteType(VoteType.UPVOTE);
-        Vote existingVote = Vote.builder().user(currUser).post(post).voteType(VoteType.DOWNVOTE).build();
+        Vote existingVote = Vote.builder()
+                .user(currUser)
+                .post(post)
+                .voteType(VoteType.DOWNVOTE)
+                .build();
 
-        when(voteRepo.findByPostIdAndUserId(100L, 1L)).thenReturn(Optional.of(existingVote));
-        when(userServiceImpl.checkAndGetUserByUserId(1L)).thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L)).thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L)).thenReturn(author);
+        when(voteRepo.findByPostIdAndUserId(100L, 1L))
+                .thenReturn(Optional.of(existingVote));
+        when(userServiceImpl.checkAndGetUserByUserId(1L))
+                .thenReturn(currUser);
+        when(postServiceImpl.checkAndGetPost(100L))
+                .thenReturn(post);
+        when(userServiceImpl.checkAndGetUserByUserId(2L))
+                .thenReturn(author);
 
         // Act
         voteService.handleVote(voteRequestDTO, 1L);
 
         // Assert
-        assertEquals(22, author.getReputation()); // 20 + 2
-        assertEquals(7, post.getScore()); // 5 + 2
-        assertEquals(10, currUser.getReputation()); // Unchanged
+        assertEquals(
+                22,
+                author.getReputation()
+        );
+        assertEquals(
+                7,
+                post.getScore()
+        );
+        assertEquals(
+                10,
+                currUser.getReputation()
+        );
 
-        assertEquals(VoteType.UPVOTE, existingVote.getVoteType());
+        assertEquals(
+                VoteType.UPVOTE,
+                existingVote.getVoteType()
+        );
 
-        verify(voteRepo).save(existingVote);
-        verify(postRepo).save(post);
-        verify(userRepo).save(author);
-        verify(userRepo, never()).save(currUser);
+        verify(voteRepo)
+                .save(existingVote);
+        verify(postRepo)
+                .save(post);
+        verify(userRepo)
+                .save(author);
+        verify(userRepo, never())
+                .save(currUser);
     }
 }

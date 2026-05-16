@@ -26,8 +26,10 @@ public class HomeServiceImpl {
     private final UserRepository userRepo;
 
     @Transactional(readOnly = true)
-    public List<FeedQuestionResponseDTO> generateFeed(int page, Long userId) {
-        Pageable pageable = PageRequest.of(page, 10);
+    public List<FeedQuestionResponseDTO> generateFeed(int pageNum, Long userId) {
+        Pageable pageable = PageRequest.of(
+                Math.max(pageNum, 0), 10
+        );
         List<FeedQuestionResponseDTO> feedPosts;
 
         if (userId != null)

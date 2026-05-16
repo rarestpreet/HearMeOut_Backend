@@ -30,8 +30,6 @@ public class TagServiceImplTest {
 
     @InjectMocks
     private TagServiceImpl tagService;
-    private int start;
-    private int end;
 
     @Test
     public void createTag() {
@@ -44,37 +42,76 @@ public class TagServiceImplTest {
         tagService.createNewTag(tagDTO);
 
         //Assert
-        // Since TagMapper.toTagEntity is used, we need to capture the saved tag to verify
         ArgumentCaptor<Tag> tagCaptor = ArgumentCaptor.forClass(Tag.class);
-        verify(tagRepo).save(tagCaptor.capture());
+        verify(tagRepo)
+                .save(tagCaptor.capture());
         Tag savedTag = tagCaptor.getValue();
-        assertEquals(tagDTO.getName(), savedTag.getName());
-        assertEquals(tagDTO.getDescription(), savedTag.getDescription());
+
+        assertEquals(
+                tagDTO.getName(),
+                savedTag.getName()
+        );
+        assertEquals(
+                tagDTO.getDescription(),
+                savedTag.getDescription()
+        );
     }
 
     @ParameterizedTest
     @ValueSource(
-            ints = {0, 1, 2}
+            ints = {0, 1, 2, -3}
     )
     void getTags(int pageNum) {
         // Arrange
         List<TagResponseDTO> tagList = List.of(
-                TagResponseDTO.builder().tagId(1L).name("Test1").build(),
-                TagResponseDTO.builder().tagId(2L).name("Test2").build(),
-                TagResponseDTO.builder().tagId(3L).name("Test3").build(),
-                TagResponseDTO.builder().tagId(4L).name("Test4").build(),
-                TagResponseDTO.builder().tagId(5L).name("Test5").build(),
-                TagResponseDTO.builder().tagId(6L).name("Test6").build(),
-                TagResponseDTO.builder().tagId(7L).name("Test7").build(),
-                TagResponseDTO.builder().tagId(8L).name("Test8").build(),
-                TagResponseDTO.builder().tagId(9L).name("Test9").build(),
-                TagResponseDTO.builder().tagId(10L).name("Test10").build(),
-                TagResponseDTO.builder().tagId(11L).name("Test11").build()
+                TagResponseDTO.builder()
+                        .tagId(1L)
+                        .name("Test1")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(2L)
+                        .name("Test2")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(3L)
+                        .name("Test3")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(4L)
+                        .name("Test4")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(5L)
+                        .name("Test5")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(6L)
+                        .name("Test6")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(7L)
+                        .name("Test7")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(8L)
+                        .name("Test8")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(9L)
+                        .name("Test9")
+                        .build(),
+                TagResponseDTO.builder().tagId(10L).name("Test10")
+                        .build(),
+                TagResponseDTO.builder()
+                        .tagId(11L)
+                        .name("Test11")
+                        .build()
         );
 
+        pageNum = Math.max(0, pageNum);
         Pageable pageable = PageRequest.of(pageNum, 10);
         int start = pageNum * 10;
-        int end = Math.min((start + 10), tagList.size()); //handle cases when start >= list.size() - 10
+        int end = Math.min((start + 10), tagList.size());
 
         if (start < tagList.size()) {
             when(tagRepo.findAllTagsDTO(pageable))
@@ -89,21 +126,29 @@ public class TagServiceImplTest {
                 tagService.getAllTags(pageNum);
 
         // Assert
-        verify(tagRepo).findAllTagsDTO(pageable);
+        verify(tagRepo)
+                .findAllTagsDTO(pageable);
 
         assertNotNull(result);
 
         if (start < tagList.size()) {
-            /*
-                pageNum = 0 -> (end - start = 10) -> list will have 10 element with the first always being with id start
-                pageNum = 1 -> (end - start < 10) -> list will have less than 10 element with the first always being with id start
-                pageNum = 2 -> empty list
-             */
-            assertEquals(result.size(), end - start);
-            assertEquals(tagList.subList(start, end), result);
-            assertEquals(tagList.get(start).getTagId(), result.getFirst().getTagId());
+            assertEquals(
+                    result.size(),
+                    end - start
+            );
+            assertEquals(
+                    tagList.subList(start, end),
+                    result
+            );
+            assertEquals(
+                    tagList.get(start).getTagId(),
+                    result.getFirst().getTagId()
+            );
         } else {
-            assertEquals(0, result.size(), result.toString());
+            assertEquals(
+                    0,
+                    result.size()
+            );
         }
     }
 }

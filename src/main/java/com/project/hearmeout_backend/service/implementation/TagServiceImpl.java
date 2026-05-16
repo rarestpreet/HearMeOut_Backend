@@ -16,18 +16,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TagServiceImpl {
 
-    private final TagRepository tagRepository;
+    private final TagRepository tagRepo;
 
     @Transactional(readOnly = true)
     public List<TagResponseDTO> getAllTags(int pageNum) {
-        Pageable pageable = PageRequest.of(pageNum, 10);
+        Pageable pageable = PageRequest.of(
+                Math.max(pageNum, 0), 10
+        );
 
-        return tagRepository.findAllTagsDTO(pageable);
+        return tagRepo.findAllTagsDTO(pageable);
     }
 
     @Transactional
     public void createNewTag(TagCreationRequestDTO tag) {
-        tagRepository.save(TagMapper.toTagEntity(tag));
+        tagRepo.save(TagMapper.toTagEntity(tag));
     }
 
     // method to update info of a tag and remove tag

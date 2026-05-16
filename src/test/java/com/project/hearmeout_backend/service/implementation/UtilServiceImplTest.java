@@ -58,25 +58,36 @@ public class UtilServiceImplTest {
     public void handlePasswordResetOtp(String email) {
         //Arrange
         User registeredUser = userList.get(email);
-        when(userService.checkAndGetUserByEmail(email)).thenReturn(userList.get(email));
+        when(userService.checkAndGetUserByEmail(email))
+                .thenReturn(userList.get(email));
 
         if (registeredUser == null || userList.get(email) == null) {
-            assertThrows(NullPointerException.class,
-                    () -> utilServiceImpl.handlePasswordResetOtp(email)
+            assertThrows(NullPointerException.class, () ->
+                    utilServiceImpl.handlePasswordResetOtp(email)
             );
             return;
         }
 
-        doReturn(otp).when(utilServiceImpl).generateOtp();
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedOtp");
+        doReturn(otp).
+                when(utilServiceImpl).generateOtp();
+        when(passwordEncoder.encode(anyString()))
+                .thenReturn("encodedOtp");
 
         //Act
         Integer generatedOtp = utilServiceImpl.handlePasswordResetOtp(email);
 
         //Assert
-        assertEquals(otp, generatedOtp);
-        assertTrue(System.currentTimeMillis() < registeredUser.getPasswordOtpExpireAt());
-        assertEquals(passwordEncoder.encode(otp.toString()), registeredUser.getPasswordChangeOtp());
+        assertEquals(
+                otp,
+                generatedOtp
+        );
+        assertTrue(
+                System.currentTimeMillis() < registeredUser.getPasswordOtpExpireAt()
+        );
+        assertEquals(
+                passwordEncoder.encode(otp.toString()),
+                registeredUser.getPasswordChangeOtp()
+        );
 
         verify(userRepo).save(registeredUser);
     }
@@ -92,26 +103,38 @@ public class UtilServiceImplTest {
     public void handleAccountVerificationOtp(String email) {
         //Arrange
         User registeredUser = userList.get(email);
-        when(userService.checkAndGetUserByEmail(email)).thenReturn(userList.get(email));
+        when(userService.checkAndGetUserByEmail(email))
+                .thenReturn(userList.get(email));
 
         if (registeredUser == null || userList.get(email) == null) {
-            assertThrows(NullPointerException.class,
-                    () -> utilServiceImpl.handleAccountVerificationOtp(email)
+            assertThrows(NullPointerException.class, () ->
+                    utilServiceImpl.handleAccountVerificationOtp(email)
             );
             return;
         }
 
-        doReturn(otp).when(utilServiceImpl).generateOtp();
-        when(passwordEncoder.encode(anyString())).thenReturn("encodedOtp");
+        doReturn(otp)
+                .when(utilServiceImpl).generateOtp();
+        when(passwordEncoder.encode(anyString()))
+                .thenReturn("encodedOtp");
 
         //Act
         Integer generatedOtp = utilServiceImpl.handleAccountVerificationOtp(email);
 
         //Assert
-        assertEquals(otp, generatedOtp);
-        assertTrue(System.currentTimeMillis() < registeredUser.getEmailVerifyOtpExpireAt());
-        assertEquals(passwordEncoder.encode(otp.toString()), registeredUser.getEmailVerifyOtp());
+        assertEquals(
+                otp,
+                generatedOtp
+        );
+        assertTrue(
+                System.currentTimeMillis() < registeredUser.getEmailVerifyOtpExpireAt()
+        );
+        assertEquals(
+                passwordEncoder.encode(otp.toString()),
+                registeredUser.getEmailVerifyOtp()
+        );
 
-        verify(userRepo).save(registeredUser);
+        verify(userRepo)
+                .save(registeredUser);
     }
 }
