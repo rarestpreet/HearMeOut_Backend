@@ -30,9 +30,9 @@ public class VoteServiceImplTest {
     @Mock
     private VoteRepository voteRepo;
     @Mock
-    private UserServiceImpl userServiceImpl;
+    private UserServiceImpl userService;
     @Mock
-    private PostServiceImpl postServiceImpl;
+    private PostServiceImpl postService;
     @Mock
     private UserRepository userRepo;
     @Mock
@@ -78,9 +78,9 @@ public class VoteServiceImplTest {
 
         when(voteRepo.findByPostIdAndUserId(100L, 1L))
                 .thenReturn(Optional.empty());
-        when(userServiceImpl.checkAndGetUserByUserId(1L))
+        when(userService.checkAndGetUserByUserId(1L))
                 .thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L))
+        when(postService.checkAndGetPost(100L))
                 .thenReturn(post);
 
         // Act & Assert
@@ -108,11 +108,11 @@ public class VoteServiceImplTest {
 
         when(voteRepo.findByPostIdAndUserId(100L, 1L))
                 .thenReturn(Optional.empty());
-        when(userServiceImpl.checkAndGetUserByUserId(1L))
+        when(userService.checkAndGetUserByUserId(1L))
                 .thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L))
+        when(postService.checkAndGetPost(100L))
                 .thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L))
+        when(userService.checkAndGetUserByUserId(2L))
                 .thenReturn(author);
 
         // Act
@@ -166,11 +166,11 @@ public class VoteServiceImplTest {
 
         when(voteRepo.findByPostIdAndUserId(100L, 1L))
                 .thenReturn(Optional.empty());
-        when(userServiceImpl.checkAndGetUserByUserId(1L))
+        when(userService.checkAndGetUserByUserId(1L))
                 .thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L))
+        when(postService.checkAndGetPost(100L))
                 .thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L))
+        when(userService.checkAndGetUserByUserId(2L))
                 .thenReturn(author);
 
         // Act
@@ -201,7 +201,7 @@ public class VoteServiceImplTest {
     }
 
     @Test
-    void handleVote_ExistingVoteRemoved() {
+    void handleVote_ExistingVoteRemoved_Upvote() {
         // Arrange
         voteRequestDTO.setVoteType(VoteType.UPVOTE);
         Vote existingVote = Vote.builder()
@@ -212,11 +212,11 @@ public class VoteServiceImplTest {
 
         when(voteRepo.findByPostIdAndUserId(100L, 1L))
                 .thenReturn(Optional.of(existingVote));
-        when(userServiceImpl.checkAndGetUserByUserId(1L))
+        when(userService.checkAndGetUserByUserId(1L))
                 .thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L))
+        when(postService.checkAndGetPost(100L))
                 .thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L))
+        when(userService.checkAndGetUserByUserId(2L))
                 .thenReturn(author);
 
         // Act
@@ -247,7 +247,53 @@ public class VoteServiceImplTest {
     }
 
     @Test
-    void handleVote_ExistingVoteChanged() {
+    void handleVote_ExistingVoteRemoved_Downvote() {
+        // Arrange
+        voteRequestDTO.setVoteType(VoteType.DOWNVOTE);
+        Vote existingVote = Vote.builder()
+                .user(currUser)
+                .post(post)
+                .voteType(VoteType.DOWNVOTE)
+                .build();
+
+        when(voteRepo.findByPostIdAndUserId(100L, 1L))
+                .thenReturn(Optional.of(existingVote));
+        when(userService.checkAndGetUserByUserId(1L))
+                .thenReturn(currUser);
+        when(postService.checkAndGetPost(100L))
+                .thenReturn(post);
+        when(userService.checkAndGetUserByUserId(2L))
+                .thenReturn(author);
+
+        // Act
+        voteService.handleVote(voteRequestDTO, 1L);
+
+        // Assert
+        assertEquals(
+                21,
+                author.getReputation()
+        );
+        assertEquals(
+                6,
+                post.getScore()
+        );
+        assertEquals(
+                9,
+                currUser.getReputation()
+        );
+
+        verify(userRepo)
+                .save(author);
+        verify(postRepo)
+                .save(post);
+        verify(userRepo)
+                .save(currUser);
+        verify(voteRepo)
+                .removeVoteByPostIdAndUserId(100L, 1L);
+    }
+
+    @Test
+    void handleVote_ExistingVoteChanged_Upvote() {
         // Arrange
         voteRequestDTO.setVoteType(VoteType.UPVOTE);
         Vote existingVote = Vote.builder()
@@ -258,11 +304,11 @@ public class VoteServiceImplTest {
 
         when(voteRepo.findByPostIdAndUserId(100L, 1L))
                 .thenReturn(Optional.of(existingVote));
-        when(userServiceImpl.checkAndGetUserByUserId(1L))
+        when(userService.checkAndGetUserByUserId(1L))
                 .thenReturn(currUser);
-        when(postServiceImpl.checkAndGetPost(100L))
+        when(postService.checkAndGetPost(100L))
                 .thenReturn(post);
-        when(userServiceImpl.checkAndGetUserByUserId(2L))
+        when(userService.checkAndGetUserByUserId(2L))
                 .thenReturn(author);
 
         // Act
@@ -284,6 +330,56 @@ public class VoteServiceImplTest {
 
         assertEquals(
                 VoteType.UPVOTE,
+                existingVote.getVoteType()
+        );
+
+        verify(voteRepo)
+                .save(existingVote);
+        verify(postRepo)
+                .save(post);
+        verify(userRepo)
+                .save(author);
+        verify(userRepo, never())
+                .save(currUser);
+    }
+
+    @Test
+    public void handleVote_ExistingVoteChanged_Downvote() {
+        //Arrange
+        voteRequestDTO.setVoteType(VoteType.DOWNVOTE);
+        Vote existingVote = Vote.builder()
+                .user(currUser)
+                .post(post)
+                .voteType(VoteType.UPVOTE)
+                .build();
+
+        when(voteRepo.findByPostIdAndUserId(100L, 1L))
+                .thenReturn(Optional.of(existingVote));
+        when(userService.checkAndGetUserByUserId(1L))
+                .thenReturn(currUser);
+        when(postService.checkAndGetPost(100L))
+                .thenReturn(post);
+        when(userService.checkAndGetUserByUserId(2L))
+                .thenReturn(author);
+
+        //Act
+        voteService.handleVote(voteRequestDTO, 1L);
+
+        //Assert
+        assertEquals(
+                18,
+                author.getReputation()
+        );
+        assertEquals(
+                3,
+                post.getScore()
+        );
+        assertEquals(
+                10,
+                currUser.getReputation()
+        );
+        assertEquals(
+                VoteType.DOWNVOTE,
                 existingVote.getVoteType()
         );
 
