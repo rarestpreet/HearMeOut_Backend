@@ -1,14 +1,17 @@
 package com.project.hearmeout_backend.service.implementation;
 
-import com.project.hearmeout_backend.dto.request.vote_request.VoteRequestDTO;
-import com.project.hearmeout_backend.exception.InvalidOperationException;
-import com.project.hearmeout_backend.model.Post;
-import com.project.hearmeout_backend.model.User;
-import com.project.hearmeout_backend.model.Vote;
-import com.project.hearmeout_backend.model.enums.VoteType;
-import com.project.hearmeout_backend.repository.PostRepository;
-import com.project.hearmeout_backend.repository.UserRepository;
-import com.project.hearmeout_backend.repository.VoteRepository;
+import com.project.hearmeout_backend.interaction_service.dto.request.VoteRequestDTO;
+import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
+import com.project.hearmeout_backend.post_service.model.Post;
+import com.project.hearmeout_backend.user_service.model.User;
+import com.project.hearmeout_backend.interaction_service.model.Vote;
+import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
+import com.project.hearmeout_backend.interaction_service.service.implementation.VoteServiceImpl;
+import com.project.hearmeout_backend.post_service.repository.PostRepository;
+import com.project.hearmeout_backend.post_service.service.implementation.PostServiceImpl;
+import com.project.hearmeout_backend.user_service.repository.UserRepository;
+import com.project.hearmeout_backend.interaction_service.repository.VoteRepository;
+import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

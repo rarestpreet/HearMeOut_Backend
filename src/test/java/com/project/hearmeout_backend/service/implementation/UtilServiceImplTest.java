@@ -1,7 +1,9 @@
 package com.project.hearmeout_backend.service.implementation;
 
-import com.project.hearmeout_backend.model.User;
-import com.project.hearmeout_backend.repository.UserRepository;
+import com.project.hearmeout_backend.user_service.model.User;
+import com.project.hearmeout_backend.authentication_service.service.implementation.UtilServiceImpl;
+import com.project.hearmeout_backend.user_service.repository.UserRepository;
+import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,7 +34,7 @@ public class UtilServiceImplTest {
 
     @Spy
     @InjectMocks
-    private UtilServiceImpl utilServiceImpl;
+    private UtilServiceImpl utilService;
 
     private Map<String, User> userList;
     private Integer otp;
@@ -63,18 +65,18 @@ public class UtilServiceImplTest {
 
         if (registeredUser == null || userList.get(email) == null) {
             assertThrows(NullPointerException.class, () ->
-                    utilServiceImpl.handlePasswordResetOtp(email)
+                    utilService.handlePasswordResetOtp(email)
             );
             return;
         }
 
         doReturn(otp).
-                when(utilServiceImpl).generateOtp();
+                when(utilService).generateOtp();
         when(passwordEncoder.encode(anyString()))
                 .thenReturn("encodedOtp");
 
         //Act
-        Integer generatedOtp = utilServiceImpl.handlePasswordResetOtp(email);
+        Integer generatedOtp = utilService.handlePasswordResetOtp(email);
 
         //Assert
         assertEquals(
@@ -108,18 +110,18 @@ public class UtilServiceImplTest {
 
         if (registeredUser == null || userList.get(email) == null) {
             assertThrows(NullPointerException.class, () ->
-                    utilServiceImpl.handleAccountVerificationOtp(email)
+                    utilService.handleAccountVerificationOtp(email)
             );
             return;
         }
 
         doReturn(otp)
-                .when(utilServiceImpl).generateOtp();
+                .when(utilService).generateOtp();
         when(passwordEncoder.encode(anyString()))
                 .thenReturn("encodedOtp");
 
         //Act
-        Integer generatedOtp = utilServiceImpl.handleAccountVerificationOtp(email);
+        Integer generatedOtp = utilService.handleAccountVerificationOtp(email);
 
         //Assert
         assertEquals(

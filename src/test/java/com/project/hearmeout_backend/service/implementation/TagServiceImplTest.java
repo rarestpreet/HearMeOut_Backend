@@ -1,9 +1,10 @@
 package com.project.hearmeout_backend.service.implementation;
 
-import com.project.hearmeout_backend.dto.request.tag_request.TagCreationRequestDTO;
-import com.project.hearmeout_backend.dto.response.tag_response.TagResponseDTO;
-import com.project.hearmeout_backend.model.Tag;
-import com.project.hearmeout_backend.repository.TagRepository;
+import com.project.hearmeout_backend.post_service.dto.request.TagCreationRequestDTO;
+import com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO;
+import com.project.hearmeout_backend.post_service.model.Tag;
+import com.project.hearmeout_backend.post_service.repository.TagRepository;
+import com.project.hearmeout_backend.post_service.service.implementation.TagServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -100,7 +101,9 @@ public class TagServiceImplTest {
                         .tagId(9L)
                         .name("Test9")
                         .build(),
-                TagResponseDTO.builder().tagId(10L).name("Test10")
+                TagResponseDTO.builder()
+                        .tagId(10L)
+                        .name("Test10")
                         .build(),
                 TagResponseDTO.builder()
                         .tagId(11L)
@@ -110,16 +113,11 @@ public class TagServiceImplTest {
 
         pageNum = Math.max(0, pageNum);
         Pageable pageable = PageRequest.of(pageNum, 10);
-        int start = pageNum * 10;
+        int start = Math.min(pageNum * 10, tagList.size());
         int end = Math.min((start + 10), tagList.size());
 
-        if (start < tagList.size()) {
-            when(tagRepo.findAllTagsDTO(pageable))
-                    .thenReturn(tagList.subList(pageNum * 10, end));
-        } else {
-            when(tagRepo.findAllTagsDTO(pageable))
-                    .thenReturn(List.of());
-        }
+        when(tagRepo.findAllTagsDTO(pageable))
+                .thenReturn(tagList.subList(start, end));
 
         // Act
         List<TagResponseDTO> result =
@@ -129,25 +127,21 @@ public class TagServiceImplTest {
         verify(tagRepo)
                 .findAllTagsDTO(pageable);
 
-        assertNotNull(result);
-
+        assertNotNull(
+                result
+        );
+        assertEquals(
+                result.size(),
+                end - start
+        );
+        assertEquals(
+                tagList.subList(start, end),
+                result
+        );
         if (start < tagList.size()) {
-            assertEquals(
-                    result.size(),
-                    end - start
-            );
-            assertEquals(
-                    tagList.subList(start, end),
-                    result
-            );
             assertEquals(
                     tagList.get(start).getTagId(),
                     result.getFirst().getTagId()
-            );
-        } else {
-            assertEquals(
-                    0,
-                    result.size()
             );
         }
     }
