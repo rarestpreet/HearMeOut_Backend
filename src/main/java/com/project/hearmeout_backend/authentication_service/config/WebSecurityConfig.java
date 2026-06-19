@@ -47,7 +47,8 @@ public class WebSecurityConfig {
                                         "/swagger-ui.html",
                                         "/docs/**",
                                         "/mail/reset-password-otp",
-                                        "/api/auth/password-reset"
+                                        "/auth/password-reset",
+                                        "/auth/refresh-token"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )

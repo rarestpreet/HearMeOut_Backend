@@ -83,10 +83,10 @@ public class UserServiceImpl {
     }
 
     @Transactional
-    public void updateUserDetails(UserProfileModificationRequestDTO requestDTO, Long currUserId)
+    public boolean updateUserDetails(UserProfileModificationRequestDTO requestDTO, Long currUserId)
             throws UserNotFoundException, UserAlreadyExistException, EmailAlreadyExistException {
         User currUser = checkAndGetUserByUserId(currUserId);
-        boolean updated = false;
+        boolean updated = false, emailChanged = false;
 
         if (!Objects.equals(currUser.getEmail(), requestDTO.getEmail())) {
             if (!userRepo.existsByEmail(requestDTO.getEmail())) {
@@ -94,6 +94,7 @@ public class UserServiceImpl {
                 currUser.setAccountVerified(false);
 
                 updated = true;
+                emailChanged = true;
             } else {
                 throw new UserAlreadyExistException("User already exist with email: " + requestDTO.getEmail());
             }
@@ -113,6 +114,8 @@ public class UserServiceImpl {
             currUser.markUpdatedAt();
             userRepo.save(currUser);
         }
+
+        return emailChanged;
     }
 
     @Transactional

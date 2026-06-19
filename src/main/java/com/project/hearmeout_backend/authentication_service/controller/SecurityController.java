@@ -1,21 +1,20 @@
 package com.project.hearmeout_backend.authentication_service.controller;
 
-import com.project.hearmeout_backend.authentication_service.config.TokenCookieProperties;
 import com.project.hearmeout_backend.authentication_service.dto.request.AccountVerificationRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.LoginRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.RegisterRequestDTO;
+import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
+import com.project.hearmeout_backend.authentication_service.service.implementation.SecurityServiceImpl;
 import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
-import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
-import com.project.hearmeout_backend.authentication_service.service.implementation.JwtServiceImpl;
-import com.project.hearmeout_backend.authentication_service.service.implementation.SecurityServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,16 +25,14 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
-@RequestMapping("/auth/")
+@RequestMapping("auth")
 @RequiredArgsConstructor
 @Tag(name = "Authentication Management", description = "Endpoints for user registration, login, logout, and account verification")
 public class SecurityController {
 
     private final SecurityServiceImpl securityServiceImpl;
-    private final StringRedisTemplate stringRedisTemplate;
-    private final JwtServiceImpl jwtServiceImpl;
-    private final TokenCookieProperties tokenCookieProperties;
 
     @Operation(summary = "Register a new user account", description = "Registers a new user with the provided details. Fails if the username or email is already taken.")
     @PostMapping("register")
@@ -49,11 +46,15 @@ public class SecurityController {
 
     @Operation(summary = "Logout user", description = "Logs out the currently authenticated user by invalidating their session cookie.")
     @PostMapping("logout")
-    public ResponseEntity<@NonNull String> logoutUser() {
-        ResponseCookie cookie = securityServiceImpl.terminateSession();
+    @PreAuthorize("isFullyAuthenticated()")
+    public ResponseEntity<@NonNull String> logoutUser(
+            @AuthenticationPrincipal CustomUserDetails currUser,
+            HttpServletRequest request
+    ) {
+        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
                 .body("Session ended successfully");
     }
 
@@ -71,14 +72,16 @@ public class SecurityController {
     @Operation(summary = "Reset user password", description = "Resets the user's password using a valid OTP and terminates their current session.")
     @PostMapping("password-reset")
     public ResponseEntity<@NonNull String> resetPassword(
-            @Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO
+            @Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO,
+            @AuthenticationPrincipal CustomUserDetails currUser,
+            HttpServletRequest request
     ) {
         securityServiceImpl.modifyUserPassword(passwordResetRequestDTO);
 
-        ResponseCookie clearedCookie = securityServiceImpl.terminateSession();
+        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, clearedCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
                 .body("Password updated successfully");
     }
 
@@ -95,15 +98,14 @@ public class SecurityController {
                 .body("Account verified successfully");
     }
 
-    @GetMapping("/refresh-token")
-    public ResponseEntity<@NonNull String> refreshToken(
-            @AuthenticationPrincipal CustomUserDetails userDetails
-    ) {
-        List<ResponseCookie> cookies = securityServiceImpl
-                .refreshAuthenticationTokens(userDetails.getUsername(), userDetails.getUserId());
+    @GetMapping("refresh-token")
+    public ResponseEntity<@NonNull String> refreshToken(HttpServletRequest request) {
+        log.info("number of cookies {}",request.getCookies().length);
+        ResponseCookie cookie = securityServiceImpl
+                .refreshAuthenticationTokens(request.getCookies());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, cookies.get(0).toString(), cookies.get(1).toString())
+                .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body("Token refreshed successfully");
     }
 }

@@ -1,19 +1,20 @@
 package com.project.hearmeout_backend.user_service.controller;
 
+import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
+import com.project.hearmeout_backend.authentication_service.service.implementation.SecurityServiceImpl;
+import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
+import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
+import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.user_service.dto.request.UserProfileModificationRequestDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
-import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
-import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
-import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
-import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
-import com.project.hearmeout_backend.authentication_service.service.implementation.SecurityServiceImpl;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -82,14 +83,20 @@ public class UserController {
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> updateUserProfile(@PathVariable String username,
                                                              @Valid @RequestBody UserProfileModificationRequestDTO userProfileModificationRequestDTO,
-                                                             @AuthenticationPrincipal CustomUserDetails userDetails)
-            throws UserNotFoundException, EmailAlreadyExistException, UserAlreadyExistException {
-        userServiceImpl.updateUserDetails(userProfileModificationRequestDTO, userDetails.getUserId());
+                                                             @AuthenticationPrincipal CustomUserDetails currUser,
+                                                             HttpServletRequest request
+    ) throws UserNotFoundException, EmailAlreadyExistException, UserAlreadyExistException {
+        boolean emailChanged = userServiceImpl.updateUserDetails(userProfileModificationRequestDTO, currUser.getUserId());
 
-        ResponseCookie clearedCookie = securityServiceImpl.terminateSession();
+        if (emailChanged) {
+            List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
+
+            return ResponseEntity.status(HttpStatus.OK)
+                    .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
+                    .body("Details updated Successfully");
+        }
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, clearedCookie.toString())
                 .body("Details updated Successfully");
     }
 
@@ -98,14 +105,15 @@ public class UserController {
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> deleteUser(@PathVariable String username,
-                                                      @AuthenticationPrincipal CustomUserDetails userDetails)
-            throws UserNotFoundException {
-        userServiceImpl.terminateUserAccount(userDetails.getUserId());
+                                                      @AuthenticationPrincipal CustomUserDetails currUser,
+                                                      HttpServletRequest request
+    ) throws UserNotFoundException {
+        userServiceImpl.terminateUserAccount(currUser.getUserId());
 
-        ResponseCookie clearedCookie = securityServiceImpl.terminateSession();
+        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
 
         return ResponseEntity.status(HttpStatus.OK)
-                .header(HttpHeaders.SET_COOKIE, clearedCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
                 .body("Account deleted Successfully");
     }
 }

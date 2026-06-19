@@ -4,10 +4,13 @@ import com.project.hearmeout_backend.authentication_service.model.CustomUserDeta
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SecureRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -21,10 +24,9 @@ public class JwtServiceImpl {
         this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
-    public String generateJwtToken(String username, Long userId) {
+    public String generateJwtToken(String username) {
         return Jwts.builder()
                 .subject(username)
-                .claim("userId", String.valueOf(userId))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30)))
                 .signWith(secretKey)
@@ -43,10 +45,6 @@ public class JwtServiceImpl {
         return parseToken(token).getSubject();
     }
 
-    public Long extractUserId(String token) {
-        return Long.valueOf(parseToken(token).get("userId", String.class));
-    }
-
     public Date extractExpiration(String token) {
         return parseToken(token).getExpiration();
     }
@@ -56,6 +54,13 @@ public class JwtServiceImpl {
     }
 
     public String generateRefreshToken() {
-        return UUID.randomUUID().toString();
+        SecureRandom random = new SecureRandom();
+
+        byte[] bytes = new byte[64];
+        random.nextBytes(bytes);
+
+        return Base64.getUrlEncoder()
+                .withoutPadding()
+                .encodeToString(bytes);
     }
 }
