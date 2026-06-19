@@ -1,7 +1,6 @@
 package com.project.hearmeout_backend.common_lib.exception;
 
 import com.project.hearmeout_backend.gateway.dto.response.ExceptionResponseDTO;
-import com.project.hearmeout_backend.gateway.exception.RateLimitExceededException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -181,5 +180,19 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<@NonNull ExceptionResponseDTO> handleRuntimeException(
+            RuntimeException ex) {
+        log.warn("Error on runtime exception: {}", ex.getMessage());
+        ExceptionResponseDTO response = ExceptionResponseDTO.builder()
+                .status(500)
+                .error("Runtime exception")
+                .message(ex.getMessage())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
 }

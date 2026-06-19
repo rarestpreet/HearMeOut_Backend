@@ -1,7 +1,7 @@
 package com.project.hearmeout_backend.gateway.aspect;
 
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
-import com.project.hearmeout_backend.gateway.exception.RateLimitExceededException;
+import com.project.hearmeout_backend.common_lib.exception.RateLimitExceededException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
