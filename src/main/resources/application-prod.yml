@@ -13,6 +13,13 @@ spring:
       ddl-auto: validate
     open-in-view: false
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      sentinel:
+        username: ${REDIS_USER}
+        password: ${REDIS_PASS}
 cookie:
   creation:
     secure: true
