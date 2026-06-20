@@ -124,7 +124,7 @@ public class SecurityServiceImpl {
                         .httpOnly(true)
                         .secure(tokenCookieProperties.isSecure())
                         .sameSite(tokenCookieProperties.getSameSite())
-                        .maxAge(TimeUnit.MINUTES.toSeconds(30))
+                        .maxAge(Duration.ofMinutes(20))
                         .build();
             } catch (RuntimeException e) {
                 throw new RuntimeException("Unable to refresh authentication token on refreshAuthenticationToken() " + e.getMessage());
@@ -150,7 +150,7 @@ public class SecurityServiceImpl {
                         .httpOnly(true)
                         .secure(tokenCookieProperties.isSecure())
                         .sameSite(tokenCookieProperties.getSameSite())
-                        .maxAge(Duration.ofSeconds(30))
+                        .maxAge(Duration.ofMinutes(20))
                         .build(),
                 ResponseCookie.from("refresh-token", refreshToken)
                         .path("/api/v1/")
