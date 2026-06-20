@@ -1,17 +1,18 @@
 package com.project.hearmeout_backend.user_service.service.implementation;
 
+import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
+import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
+import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
+import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
+import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
+import com.project.hearmeout_backend.post_service.model.enums.PostType;
+import com.project.hearmeout_backend.post_service.repository.PostRepository;
 import com.project.hearmeout_backend.user_service.dto.request.UserProfileModificationRequestDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
-import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
-import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
-import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.user_service.model.User;
-import com.project.hearmeout_backend.post_service.model.enums.PostType;
-import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
-import com.project.hearmeout_backend.post_service.repository.PostRepository;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -86,36 +87,53 @@ public class UserServiceImpl {
     public boolean updateUserDetails(UserProfileModificationRequestDTO requestDTO, Long currUserId)
             throws UserNotFoundException, UserAlreadyExistException, EmailAlreadyExistException {
         User currUser = checkAndGetUserByUserId(currUserId);
-        boolean updated = false, emailChanged = false;
 
-        if (!Objects.equals(currUser.getEmail(), requestDTO.getEmail())) {
+        boolean isEmailUpdateRequested = !Objects.equals(currUser.getEmail(), requestDTO.getEmail()),
+                isUsernameUpdateRequested = !Objects.equals(currUser.getUsername(), requestDTO.getUsername());
+        boolean emailUpdateAllowed = currUser.emailUpdateCooldown() == 0,
+                usernameUpdateAllowed = currUser.usernameUpdateCooldown() == 0;
+
+        if (!usernameUpdateAllowed && !emailUpdateAllowed && isEmailUpdateRequested && isUsernameUpdateRequested) {
+            throw new InvalidOperationException(
+                    "You changed your email and username recently. Please wait until the cooldown ends."
+            );
+        }
+        if (!emailUpdateAllowed && isEmailUpdateRequested) {
+            throw new InvalidOperationException(
+                    "You changed your email recently. Please wait until the cooldown ends."
+            );
+        }
+        if (!usernameUpdateAllowed && isUsernameUpdateRequested) {
+            throw new InvalidOperationException(
+                    "You changed your username recently. Please wait until the cooldown ends."
+            );
+        }
+
+        if (isEmailUpdateRequested) {
             if (!userRepo.existsByEmail(requestDTO.getEmail())) {
                 currUser.setEmail(requestDTO.getEmail());
                 currUser.setAccountVerified(false);
-
-                updated = true;
-                emailChanged = true;
             } else {
                 throw new UserAlreadyExistException("User already exist with email: " + requestDTO.getEmail());
             }
         }
 
-        if (!Objects.equals(currUser.getUsername(), requestDTO.getUsername())) {
+        if (isUsernameUpdateRequested) {
             if (!userRepo.existsByUsername(requestDTO.getUsername())) {
                 currUser.setUsername(requestDTO.getUsername());
-
-                updated = true;
             } else {
                 throw new UserAlreadyExistException("User already exist with username: " + requestDTO.getUsername());
             }
         }
 
-        if (updated) {
-            currUser.markUpdatedAt();
-            userRepo.save(currUser);
+        if (!isEmailUpdateRequested && !isUsernameUpdateRequested) {
+            return false;
         }
 
-        return emailChanged;
+        currUser.markUpdatedAt(isEmailUpdateRequested, isUsernameUpdateRequested);
+        userRepo.save(currUser);
+
+        return isEmailUpdateRequested;
     }
 
     @Transactional
