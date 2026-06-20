@@ -1,55 +1,68 @@
 package com.project.hearmeout_backend.gateway.aspect;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetOtpRequestDTO;
+import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
+import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
-import com.project.hearmeout_backend.common_lib.exception.RateLimitExceededException;
-import jakarta.servlet.http.HttpServletRequest;
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
+import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
-import java.util.Objects;
-
+@Slf4j
 @Component
 @Aspect
+@RequiredArgsConstructor
 public class RateLimiterAspect {
+
+    /* Implement token bucket algo
 
     private final int refillRate;
     private final int maxCapacity;
     private long lastRefillTime;
-    private int tokens;
 
     public RateLimiterAspect() {
         refillRate = 2;
         maxCapacity = 1000;
-        tokens = 0;
         lastRefillTime = System.currentTimeMillis();
     }
+     */
 
-    @Around("@annotation(rateLimiter)")
-    public Object allowRequest(ProceedingJoinPoint joinPoint, RateLimiter rateLimiter) throws Throwable {
-        refill();
-        System.out.println(rateLimiter.value());
-        ServletRequestAttributes attributes =
-                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+    private final StringRedisTemplate redisOperator;
 
-        Objects.requireNonNull(attributes, "Invalid input: ServletRequestAttributes ");
-        HttpServletRequest request = attributes.getRequest();
+    @Before("@annotation(rateLimiter)")
+    public void allowRequest(JoinPoint joinPoint, RateLimiter rateLimiter) throws Throwable {
 
-        if(tokens > 0){
-            tokens--;
-            return joinPoint.proceed();
-        }
-        else {
-            throw new RateLimitExceededException(request.getRequestURL().toString());
+        switch (rateLimiter.limitType()) {
+            case RateLimits.EMAIL_VERIFICATION_OTP -> validateEmailVerificationOtpRequest(joinPoint.getArgs());
+            case RateLimits.PASSWORD_RESET_OTP -> validatePasswordResetOtpRequest(joinPoint.getArgs());
         }
     }
 
     public void refill() {
-        int refillAmount = (int) (System.currentTimeMillis() - lastRefillTime) * refillRate;
-        tokens = Math.min(refillAmount, maxCapacity);
-        lastRefillTime = System.currentTimeMillis();
+        //TODO
+    }
+
+    private void validateEmailVerificationOtpRequest(Object[] args) {
+        CustomUserDetails currUser = (CustomUserDetails) args[0];
+
+        if (redisOperator.opsForValue()
+                .get("emailverifycooldown$".concat(currUser.getUsername())) != null) {
+            throw new InvalidOperationException("Please wait few seconds before requesting new otp for email verification");
+        }
+    }
+
+    private void validatePasswordResetOtpRequest(Object[] args) {
+        PasswordResetOtpRequestDTO currUser = (PasswordResetOtpRequestDTO) args[0];
+
+        if (redisOperator.opsForValue()
+                .get("passresetcooldown$".concat(currUser.getEmail())) != null) {
+            throw new InvalidOperationException("Please wait few seconds before requesting new otp for password reset");
+        }
     }
 }

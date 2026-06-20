@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD})
 public @interface RateLimiter {
-    int value();
+    int requestAllowed();
     RateLimits limitType();
+    long timeoutInMinutes();
 }

@@ -25,38 +25,41 @@ public class EmailServiceImpl {
             mailSender.send(message);
         } catch (Exception e) {
             log.warn("Error sending welcome mail {}", e.getMessage());
+            throw new RuntimeException("Error sending welcome mail for %s: %s".formatted(receiverMail, e.getMessage()));
         }
     }
 
     public void sendPasswordResetMail(String receiverMail) {
-        try {
-            Integer otp = utilServiceImpl.handlePasswordResetOtp(receiverMail);
+        Integer otp = utilServiceImpl.handlePasswordResetOtp(receiverMail);
 
+        try {
             SimpleMailMessage message = new SimpleMailMessage();
 
             message.setTo(receiverMail);
             message.setSubject("Reset Password");
-            message.setText("Otp to reset your password is "+ otp +", it will expire in 15 minutes");
+            message.setText("Otp to reset your password is " + otp + ", it will expire in 15 minutes");
 
             mailSender.send(message);
-        } catch (Exception e) {
-            log.warn("Error sending password reset mail {}", e.getMessage());
+        } catch (RuntimeException e) {
+            log.error("Error sending password reset mail ", e);
+            throw new RuntimeException("Error sending password reset mail to %s: %s".formatted(receiverMail, e.getMessage()));
         }
     }
 
     public void sendAccountVerificationMail(String receiverMail) {
-        try {
-            Integer otp = utilServiceImpl.handleAccountVerificationOtp(receiverMail);
+        Integer otp = utilServiceImpl.handleAccountVerificationOtp(receiverMail);
 
+        try {
             SimpleMailMessage message = new SimpleMailMessage();
 
             message.setTo(receiverMail);
             message.setSubject("Account verification");
-            message.setText("Otp to verify your account is "+ otp +", it will expire in 15 minutes");
+            message.setText("Otp to verify your account is " + otp + ", it will expire in 12 hours");
 
             mailSender.send(message);
         } catch (Exception e) {
-            log.warn("Error sending account verification mail {}", e.getMessage());
+            log.error("Error sending email verification mail ", e);
+            throw new RuntimeException("Error sending account verification mail to %s: %s".formatted(receiverMail, e.getMessage()));
         }
     }
 }

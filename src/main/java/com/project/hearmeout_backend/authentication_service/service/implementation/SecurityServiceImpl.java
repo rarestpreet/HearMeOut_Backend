@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -165,40 +164,34 @@ public class SecurityServiceImpl {
     @Transactional
     public void modifyUserPassword(PasswordResetRequestDTO passwordResetRequestDTO) {
         User registeredUser = userServiceImpl.checkAndGetUserByEmail(passwordResetRequestDTO.getEmail());
+        String storedOtp = redisOperator.opsForValue().getAndDelete("passresetotp$".concat(passwordResetRequestDTO.getEmail()));
 
-        if (registeredUser.getPasswordChangeOtp() == null ||
-                !passwordEncoder.matches(passwordResetRequestDTO.getOtp(), registeredUser.getPasswordChangeOtp())) {
-            throw new InvalidOtpException("Otp " + passwordResetRequestDTO.getOtp() + " is not valid");
+        if (storedOtp == null) {
+            throw new InvalidOtpException("Otp expired for password reset, please create a new one.");
         }
 
-        if (registeredUser.getPasswordOtpExpireAt() < System.currentTimeMillis()) {
-            throw new InvalidOtpException("Otp expired, please create a new one.");
+        if (!passwordEncoder.matches(passwordResetRequestDTO.getOtp(), storedOtp)) {
+            throw new InvalidOtpException("Otp for password reset " + passwordResetRequestDTO.getOtp() + " is not valid");
         }
 
         registeredUser.setPassword(passwordEncoder.encode(passwordResetRequestDTO.getNewPassword()));
-        registeredUser.setPasswordChangeOtp(null);
-        registeredUser.setPasswordOtpExpireAt(null);
-
         userRepo.save(registeredUser);
     }
 
     @Transactional
     public void verifyUserEmail(AccountVerificationRequestDTO accountVerificationRequestDTO, String email) {
         User registeredUser = userServiceImpl.checkAndGetUserByEmail(email);
+        String storedOtp = redisOperator.opsForValue().getAndDelete("emailverifyotp$".concat(email));
 
-        if (registeredUser.getEmailVerifyOtp() == null ||
-                !passwordEncoder.matches(accountVerificationRequestDTO.getOtp(), registeredUser.getEmailVerifyOtp())) {
-            throw new InvalidOtpException("Otp " + accountVerificationRequestDTO.getOtp() + " is not valid");
+        if (storedOtp == null) {
+            throw new InvalidOtpException("Otp expired for account verification, please create a new one.");
         }
 
-        if (registeredUser.getEmailVerifyOtpExpireAt() < System.currentTimeMillis()) {
-            throw new InvalidOtpException("Otp expired, please create a new one.");
+        if (!passwordEncoder.matches(accountVerificationRequestDTO.getOtp(), storedOtp)) {
+            throw new InvalidOtpException("Otp for account verification " + accountVerificationRequestDTO.getOtp() + " is not valid");
         }
 
         registeredUser.setAccountVerified(true);
-        registeredUser.setEmailVerifyOtp(null);
-        registeredUser.setEmailVerifyOtpExpireAt(null);
-
         userRepo.save(registeredUser);
     }
 

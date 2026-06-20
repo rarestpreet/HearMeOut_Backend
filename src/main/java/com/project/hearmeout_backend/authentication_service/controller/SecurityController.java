@@ -73,12 +73,11 @@ public class SecurityController {
     @PostMapping("password-reset")
     public ResponseEntity<@NonNull String> resetPassword(
             @Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO,
-            @AuthenticationPrincipal CustomUserDetails currUser,
             HttpServletRequest request
     ) {
         securityServiceImpl.modifyUserPassword(passwordResetRequestDTO);
 
-        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
+        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), passwordResetRequestDTO.getEmail());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
