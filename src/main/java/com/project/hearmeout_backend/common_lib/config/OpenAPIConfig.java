@@ -1,4 +1,4 @@
-package com.project.hearmeout_backend.gateway.config;
+package com.project.hearmeout_backend.common_lib.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

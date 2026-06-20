@@ -4,6 +4,7 @@ import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -23,5 +24,5 @@ public class ExceptionResponseDTO {
     private String message;
 
     @Schema(description = "A map containing field-specific validation errors, if applicable")
-    private Map<String, String> fieldErrors;
+    private List<List<String>> fieldErrors;
 }
