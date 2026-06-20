@@ -13,7 +13,7 @@ public class UserDetailResponseDTO {
     private final String username;
     private final String email;
     private final String password;
-    private List<RoleType> roles;
+    private final List<RoleType> roles;
 
     @Override
     public String toString() {

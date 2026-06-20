@@ -39,11 +39,6 @@ public class User {
     @Builder.Default
     private int reputation = 0;
 
-    private String emailVerifyOtp;
-    private Long emailVerifyOtpExpireAt;
-    private String passwordChangeOtp;
-    private Long passwordOtpExpireAt;
-
     @Builder.Default
     private boolean isAccountVerified = false;
 
@@ -51,7 +46,6 @@ public class User {
     private boolean isAccountTerminated = false;
 
     @Builder.Default
-    @ElementCollection
     private List<RoleType> roles = new ArrayList<>(List.of(RoleType.USER));
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -78,6 +72,7 @@ public class User {
 
     @PrePersist
     public void onCreate() {
+        this.createdAt = LocalDateTime.now();
         this.usernameUpdatedAt = LocalDate.now();
         this.emailUpdatedAt = LocalDate.now();
     }

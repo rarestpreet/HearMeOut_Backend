@@ -1,16 +1,19 @@
 package com.project.hearmeout_backend.common_lib.exception;
 
 import com.project.hearmeout_backend.gateway.dto.response.ExceptionResponseDTO;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Slf4j
 @ControllerAdvice
@@ -105,8 +108,16 @@ public class GlobalExceptionHandler {
         log.warn("Validation failed: {}", ex.getMessage());
         ExceptionResponseDTO response = ExceptionResponseDTO.builder()
                 .status(400)
+                .fieldErrors(
+                        ex.getBindingResult()
+                                .getFieldErrors()
+                                .stream()
+                                .map(error ->
+                                        List.of(error.getField(), error.getDefaultMessage())
+                                ).toList()
+                )
                 .error("Validation failed")
-                .message(ex.getMessage())
+                .message("Invalid input received, please try again")
                 .timestamp(LocalDateTime.now())
                 .build();
 
@@ -142,7 +153,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidOtpException.class)
     public ResponseEntity<@NonNull ExceptionResponseDTO> handleInvalidOtpException(
-            InvalidOperationException ex) {
+            InvalidOtpException ex) {
         log.warn("Invalid otp received: {}", ex.getMessage());
         ExceptionResponseDTO response = ExceptionResponseDTO.builder()
                 .status(400)
@@ -195,4 +206,19 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<@NonNull ExceptionResponseDTO> handleBadCredentialsException(
+            BadCredentialsException ex, HttpServletRequest request) {
+        log.warn("Received bad credential in input: {}", ex.getMessage());
+        ExceptionResponseDTO response = ExceptionResponseDTO.builder()
+                .status(406)
+                .error("Bad credentials")
+                .message(ex.getMessage() +" for request "+ request.getRequestedSessionId()+" "+ request.getRemoteUser())
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
+    }
+
 }
