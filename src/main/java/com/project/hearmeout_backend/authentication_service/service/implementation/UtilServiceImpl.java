@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -31,13 +30,24 @@ public class UtilServiceImpl {
 
     @Transactional
     public Integer handlePasswordResetOtp(String email) {
-        if(!userRepo.existsByEmail(email)){
+        if (!userRepo.existsByEmail(email)) {
             throw new UserNotFoundException("User not found with email: " + email);
         }
 
         Integer otp = generateOtp();
-        redisOperator.opsForValue().set("passresetotp$".concat(email), passwordEncoder.encode(otp.toString()), Duration.ofMinutes(20));
-        redisOperator.opsForValue().set("passresetcooldown$".concat(email), "", Duration.ofMinutes(1));
+
+        redisOperator.opsForValue()
+                .set(
+                        "passresetotp$".concat(email),
+                        passwordEncoder.encode(otp.toString()),
+                        Duration.ofMinutes(20)
+                );
+        redisOperator.opsForValue()
+                .set(
+                        "passresetcooldown$".concat(email),
+                        "",
+                        Duration.ofMinutes(1)
+                );
 
         return otp;
     }
@@ -45,13 +55,23 @@ public class UtilServiceImpl {
     @Transactional
     public Integer handleAccountVerificationOtp(String email) {
         User user = userServiceImpl.checkAndGetUserByEmail(email);
-        if(user.isAccountVerified()){
+        if (user.isAccountVerified()) {
             throw new InvalidOperationException("User already verified with email: " + email);
         }
         Integer otp = generateOtp();
 
-        redisOperator.opsForValue().set("emailverifyotp$".concat(email), passwordEncoder.encode(otp.toString()), Duration.ofHours(12));
-        redisOperator.opsForValue().set("emailverifycooldown$".concat(email), "", Duration.ofMinutes(1));
+        redisOperator.opsForValue()
+                .set(
+                        "emailverifyotp$".concat(email),
+                        passwordEncoder.encode(otp.toString()),
+                        Duration.ofHours(12)
+                );
+        redisOperator.opsForValue()
+                .set(
+                        "emailverifycooldown$".concat(email),
+                        "",
+                        Duration.ofMinutes(1)
+                );
 
         return otp;
     }

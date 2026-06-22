@@ -1,9 +1,10 @@
 package com.project.hearmeout_backend.gateway.aspect;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.hearmeout_backend.authentication_service.dto.request.LoginRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetOtpRequestDTO;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
+import com.project.hearmeout_backend.common_lib.exception.RateLimitExceededException;
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
 import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.Objects;
 
 @Slf4j
 @Component
@@ -41,6 +44,19 @@ public class RateLimiterAspect {
         switch (rateLimiter.limitType()) {
             case RateLimits.EMAIL_VERIFICATION_OTP -> validateEmailVerificationOtpRequest(joinPoint.getArgs());
             case RateLimits.PASSWORD_RESET_OTP -> validatePasswordResetOtpRequest(joinPoint.getArgs());
+            case RateLimits.LOGIN_ATTEMPTS -> validateUserLoginRequest(joinPoint.getArgs(), rateLimiter);
+        }
+    }
+
+    private void validateUserLoginRequest(Object[] args, RateLimiter rateLimiter) throws RateLimitExceededException {
+        LoginRequestDTO request = (LoginRequestDTO) args[0];
+
+        int loginRequestCount = Integer.parseInt(
+                Objects.requireNonNull(redisOperator.opsForValue()
+                        .get("loginrequestcount$".concat(request.getEmail()))));
+
+        if (loginRequestCount == rateLimiter.requestAllowed()) {
+            throw new RateLimitExceededException("Too many attempts made for %s, try again after an hour".formatted(request.getEmail()));
         }
     }
 

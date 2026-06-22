@@ -13,4 +13,5 @@ public @interface RateLimiter {
     int requestAllowed();
     RateLimits limitType();
     long timeoutInMinutes();
+    long timeToRefreshTokenInMinutes() default 0;
 }

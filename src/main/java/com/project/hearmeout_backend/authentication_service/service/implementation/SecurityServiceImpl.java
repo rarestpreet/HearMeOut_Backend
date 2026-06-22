@@ -23,13 +23,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -63,7 +67,7 @@ public class SecurityServiceImpl {
         emailServiceImpl.sendWelcomeMail(registerRequestDTO.getEmail(), registerRequestDTO.getUsername());
     }
 
-    public List<ResponseCookie> terminateSession(Cookie[] cookies, String username) {
+    public List<ResponseCookie> terminateSession(String email) {
         HttpSession session = httpServletRequest.getSession(false);
         if (session != null) {
             session.invalidate();
@@ -71,11 +75,15 @@ public class SecurityServiceImpl {
         SecurityContextHolder.getContext().setAuthentication(null);
 
         try {
-            redisOperator.delete("refresh_token$" + extractToken(cookies));
+            String[] refreshTokens = Objects.requireNonNull(redisOperator.opsForValue().get("user_session$".concat(email))).split("\\$");
+
+            Arrays.stream(refreshTokens).forEach(token -> {
+                redisOperator.delete("refresh_token$" + token);
+            });
         } catch (RuntimeException e) {
             throw new RuntimeException("Unable to delete token on terminateSession() " + e.getMessage());
         }
-        log.info("Terminated user session for {}", username);
+        log.info("Terminated user session for {}", email);
 
         return List.of(
                 ResponseCookie.from("jwt-token", "")
@@ -95,12 +103,50 @@ public class SecurityServiceImpl {
         );
     }
 
-    public List<ResponseCookie> authenticateUser(LoginRequestDTO loginRequestDTO) {
-        authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDTO.getEmail(), loginRequestDTO.getPassword())
-        );
+    public List<ResponseCookie> authenticateUser(LoginRequestDTO request) {
+        int loginRequestCount = redisOperator.opsForValue()
+                .get("loginrequestcount$".concat(request.getEmail())) == null ?
+                0 :
+                Integer.parseInt(
+                        Objects.requireNonNull(
+                                redisOperator.opsForValue()
+                                        .get("loginrequestcount$".concat(request.getEmail()))
+                        )
+                );
 
-        return handleTokenProcessing(loginRequestDTO.getEmail());
+        try {
+            authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+            redisOperator.delete("loginrequestcount$".concat(request.getEmail()));
+        } catch (AuthenticationException e) {
+            log.warn("Login attempt failed for {}, total attempts = {}: {}",
+                    request.getEmail(), loginRequestCount, e.getMessage()
+            );
+
+            redisOperator.opsForValue()
+                    .set(
+                            "loginrequestcount$".concat(request.getEmail()),
+                            String.valueOf(loginRequestCount + 1),
+                            Duration.ofHours(1)
+                    );
+
+            throw new BadCredentialsException("Login attempt failed, please enter valid email and password");
+        }
+
+        List<ResponseCookie> tokens = handleTokenProcessing(request.getEmail());
+
+        String currentTokens = redisOperator.opsForValue()
+                .get("user_session$".concat(request.getEmail()));
+        redisOperator.delete("login_request_count$".concat(request.getEmail()));
+        redisOperator.opsForValue()
+                .set(
+                        "user_session$".concat(request.getEmail()),
+                        currentTokens == null ? tokens.get(1).getValue() : currentTokens.concat("$".concat(tokens.get(1).getValue())),
+                        Duration.ofHours(1)
+                );
+
+        return tokens;
     }
 
     public ResponseCookie refreshAuthenticationTokens(Cookie[] cookies) {

@@ -8,6 +8,8 @@ import com.project.hearmeout_backend.authentication_service.model.CustomUserDeta
 import com.project.hearmeout_backend.authentication_service.service.implementation.SecurityServiceImpl;
 import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
+import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
+import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -51,7 +53,7 @@ public class SecurityController {
             @AuthenticationPrincipal CustomUserDetails currUser,
             HttpServletRequest request
     ) {
-        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
+        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(currUser.getUsername());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
@@ -60,6 +62,12 @@ public class SecurityController {
 
     @Operation(summary = "Login user", description = "Authenticates a user with email and password, and sets an HTTP-only session cookie upon success.")
     @PostMapping("login")
+    @RateLimiter(
+            requestAllowed = 5,
+            limitType = RateLimits.LOGIN_ATTEMPTS,
+            timeoutInMinutes = 60,
+            timeToRefreshTokenInMinutes = 20
+    )
     public ResponseEntity<@NonNull String> loginUser(
             @Valid @RequestBody LoginRequestDTO loginRequestDTO) {
         List<ResponseCookie> cookies = securityServiceImpl.authenticateUser(loginRequestDTO);
@@ -77,7 +85,7 @@ public class SecurityController {
     ) {
         securityServiceImpl.modifyUserPassword(passwordResetRequestDTO);
 
-        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), passwordResetRequestDTO.getEmail());
+        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(passwordResetRequestDTO.getEmail());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
@@ -97,9 +105,13 @@ public class SecurityController {
                 .body("Account verified successfully");
     }
 
+    @Operation(
+            summary = "Generate new access token",
+            description = "Validates the refresh token and issues a new access token for an authenticated user without requiring them to log in again."
+    )
     @GetMapping("refresh-token")
     public ResponseEntity<@NonNull String> refreshToken(HttpServletRequest request) {
-        log.info("number of cookies {}",request.getCookies().length);
+        log.info("number of cookies {}", request.getCookies().length);
         ResponseCookie cookie = securityServiceImpl
                 .refreshAuthenticationTokens(request.getCookies());
 

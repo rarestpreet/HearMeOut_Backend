@@ -89,7 +89,7 @@ public class UserController {
         boolean emailChanged = userServiceImpl.updateUserDetails(userProfileModificationRequestDTO, currUser.getUserId());
 
         if (emailChanged) {
-            List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
+            List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(currUser.getUsername());
 
             return ResponseEntity.status(HttpStatus.OK)
                     .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
@@ -110,7 +110,7 @@ public class UserController {
     ) throws UserNotFoundException {
         userServiceImpl.terminateUserAccount(currUser.getUserId());
 
-        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(request.getCookies(), currUser.getUserName());
+        List<ResponseCookie> clearedCookie = securityServiceImpl.terminateSession(currUser.getUsername());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .header(HttpHeaders.SET_COOKIE, clearedCookie.get(0).toString(), clearedCookie.get(1).toString())
