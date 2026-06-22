@@ -1,4 +1,4 @@
 package com.project.hearmeout_backend.post_service.service;
 
-public class PostService {
+public interface PostService {
 }

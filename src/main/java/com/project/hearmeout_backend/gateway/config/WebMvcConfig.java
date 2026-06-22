@@ -16,7 +16,8 @@ public class WebMvcConfig {
         CorsConfiguration corsConfiguration = getCorsConfig();
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", corsConfiguration);
+        source
+                .registerCorsConfiguration("/**", corsConfiguration);
 
         /* cors config requires CorsConfigSources (for global cors config) not
            corsfilter (as it will create two config, one custom and other security config) */
@@ -27,11 +28,26 @@ public class WebMvcConfig {
         CorsConfiguration corsConfiguration = new CorsConfiguration();
 
         corsConfiguration
-                .setAllowedOrigins(List.of("http://localhost:5173", "https://hearmeout-frontend.onrender.com"));
+                .setAllowedOrigins(
+                        List.of(
+                                "http://localhost:5173",
+                                "https://hearmeout-frontend.onrender.com"
+                        )
+                );
         corsConfiguration
-                .setAllowedMethods(List.of("PUT", "POST", "GET", "DELETE", "OPTIONS"));
+                .setAllowedMethods(
+                        List.of(
+                                "PUT",
+                                "POST",
+                                "GET",
+                                "DELETE",
+                                "OPTIONS"
+                        )
+                );
         corsConfiguration
-                .setAllowedHeaders(List.of("*"));
+                .setAllowedHeaders(
+                        List.of("*")
+                );
         corsConfiguration
                 .setMaxAge(3600L);
         corsConfiguration

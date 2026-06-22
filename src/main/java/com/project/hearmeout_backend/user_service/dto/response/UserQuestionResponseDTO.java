@@ -6,11 +6,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class UserQuestionResponseDTO {
     @Schema(description = "The unique identifier of the question post, used for navigation")

@@ -10,6 +10,7 @@ import java.util.Map;
 @Getter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class ExceptionResponseDTO {
     @Schema(description = "The HTTP status code of the error response")
     private int status;

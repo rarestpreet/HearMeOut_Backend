@@ -25,28 +25,38 @@ public class UtilServiceImpl {
 
     public Integer generateOtp() {
         SecureRandom random = new SecureRandom();
-        return 100000 + random.nextInt(900000);
+        return 100000 + random
+                .nextInt(900000);
     }
 
     @Transactional
     public Integer handlePasswordResetOtp(String email) {
-        if (!userRepo.existsByEmail(email)) {
-            throw new UserNotFoundException("User not found with email: " + email);
+        if (!userRepo
+                .existsByEmail(email)
+        ) {
+            throw new UserNotFoundException(
+                    "User not found with email: " + email
+            );
         }
 
         Integer otp = generateOtp();
 
         redisOperator.opsForValue()
                 .set(
-                        "passresetotp$".concat(email),
-                        passwordEncoder.encode(otp.toString()),
-                        Duration.ofMinutes(20)
+                        "pass_reset_otp$"
+                                .concat(email),
+                        passwordEncoder
+                                .encode(otp.toString()),
+                        Duration
+                                .ofMinutes(20)
                 );
         redisOperator.opsForValue()
                 .set(
-                        "passresetcooldown$".concat(email),
+                        "pass_reset_cooldown$"
+                                .concat(email),
                         "",
-                        Duration.ofMinutes(1)
+                        Duration
+                                .ofMinutes(1)
                 );
 
         return otp;
@@ -54,23 +64,33 @@ public class UtilServiceImpl {
 
     @Transactional
     public Integer handleAccountVerificationOtp(String email) {
-        User user = userServiceImpl.checkAndGetUserByEmail(email);
-        if (user.isAccountVerified()) {
-            throw new InvalidOperationException("User already verified with email: " + email);
+        User user = userServiceImpl
+                .checkAndGetUserByEmail(email);
+        if (user
+                .isAccountVerified()
+        ) {
+            throw new InvalidOperationException(
+                    "User already verified with email: " + email
+            );
         }
         Integer otp = generateOtp();
 
         redisOperator.opsForValue()
                 .set(
-                        "emailverifyotp$".concat(email),
-                        passwordEncoder.encode(otp.toString()),
-                        Duration.ofHours(12)
+                        "email_verify_otp$"
+                                .concat(email),
+                        passwordEncoder
+                                .encode(otp.toString()),
+                        Duration
+                                .ofHours(12)
                 );
         redisOperator.opsForValue()
                 .set(
-                        "emailverifycooldown$".concat(email),
+                        "email_verify_cooldown$"
+                                .concat(email),
                         "",
-                        Duration.ofMinutes(1)
+                        Duration
+                                .ofMinutes(1)
                 );
 
         return otp;

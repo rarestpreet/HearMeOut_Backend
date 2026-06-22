@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.NoArgsConstructor;
 
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class TagResponseDTO {
     @Schema(description = "The unique identifier of the tag")

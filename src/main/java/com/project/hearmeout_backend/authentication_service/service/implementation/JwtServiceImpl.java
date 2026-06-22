@@ -4,7 +4,6 @@ import com.project.hearmeout_backend.authentication_service.model.CustomUserDeta
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import io.jsonwebtoken.security.SecureRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -12,7 +11,6 @@ import javax.crypto.SecretKey;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Date;
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -21,7 +19,8 @@ public class JwtServiceImpl {
     private final SecretKey secretKey;
 
     public JwtServiceImpl(@Value("${jwt.secret}") String secretKey) {
-        this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes());
+        this.secretKey = Keys
+                .hmacShaKeyFor(secretKey.getBytes());
     }
 
     public String generateJwtToken(String username) {
@@ -42,22 +41,28 @@ public class JwtServiceImpl {
     }
 
     public String extractUsername(String token) {
-        return parseToken(token).getSubject();
+        return parseToken(token)
+                .getSubject();
     }
 
     public Date extractExpiration(String token) {
-        return parseToken(token).getExpiration();
+        return parseToken(token)
+                .getExpiration();
     }
 
     public boolean isTokenValid(String token, CustomUserDetails userDetails) {
-        return (extractUsername(token).equals(userDetails.getUsername()) && !extractExpiration(token).before(new Date()));
+        return (
+                extractUsername(token).equals(userDetails.getUsername()) &&
+                        !extractExpiration(token).before(new Date())
+        );
     }
 
     public String generateRefreshToken() {
         SecureRandom random = new SecureRandom();
 
         byte[] bytes = new byte[64];
-        random.nextBytes(bytes);
+        random
+                .nextBytes(bytes);
 
         return Base64.getUrlEncoder()
                 .withoutPadding()

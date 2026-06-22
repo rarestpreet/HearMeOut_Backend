@@ -1,17 +1,14 @@
 package com.project.hearmeout_backend.user_service.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
-@Setter
 @Getter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class UserCommentResponseDTO {
 

@@ -52,11 +52,18 @@ public class RateLimiterAspect {
         LoginRequestDTO request = (LoginRequestDTO) args[0];
 
         int loginRequestCount = Integer.parseInt(
-                Objects.requireNonNull(redisOperator.opsForValue()
-                        .get("loginrequestcount$".concat(request.getEmail()))));
+                Objects.requireNonNull(
+                        redisOperator.opsForValue()
+                                .get(
+                                        "loginrequestcount$"
+                                                .concat(request.getEmail()))
+                )
+        );
 
         if (loginRequestCount == rateLimiter.requestAllowed()) {
-            throw new RateLimitExceededException("Too many attempts made for %s, try again after an hour".formatted(request.getEmail()));
+            throw new RateLimitExceededException(
+                    "Too many attempts made for %s, try again after an hour".formatted(request.getEmail())
+            );
         }
     }
 
@@ -68,8 +75,13 @@ public class RateLimiterAspect {
         CustomUserDetails currUser = (CustomUserDetails) args[0];
 
         if (redisOperator.opsForValue()
-                .get("emailverifycooldown$".concat(currUser.getUsername())) != null) {
-            throw new InvalidOperationException("Please wait few seconds before requesting new otp for email verification");
+                .get(
+                        "email_verify_cooldown$"
+                                .concat(currUser.getUsername())) != null
+        ) {
+            throw new InvalidOperationException(
+                    "Please wait few seconds before requesting new otp for email verification"
+            );
         }
     }
 
@@ -77,8 +89,13 @@ public class RateLimiterAspect {
         PasswordResetOtpRequestDTO currUser = (PasswordResetOtpRequestDTO) args[0];
 
         if (redisOperator.opsForValue()
-                .get("passresetcooldown$".concat(currUser.getEmail())) != null) {
-            throw new InvalidOperationException("Please wait few seconds before requesting new otp for password reset");
+                .get(
+                        "pass_reset_cooldown$"
+                                .concat(currUser.getEmail())) != null
+        ) {
+            throw new InvalidOperationException(
+                    "Please wait few seconds before requesting new otp for password reset"
+            );
         }
     }
 }

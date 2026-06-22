@@ -4,18 +4,15 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.post_service.model.enums.PostStatus;
 import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 public class QuestionPostResponseDTO {
     @Schema(description = "The unique identifier of the question post")

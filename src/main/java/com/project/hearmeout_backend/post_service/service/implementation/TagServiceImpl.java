@@ -24,12 +24,14 @@ public class TagServiceImpl {
                 Math.max(pageNum, 0), 10
         );
 
-        return tagRepo.findAllTagsDTO(pageable);
+        return tagRepo
+                .findAllTagsDTO(pageable);
     }
 
     @Transactional
     public void createNewTag(TagCreationRequestDTO tag) {
-        tagRepo.save(TagMapper.toTagEntity(tag));
+        tagRepo
+                .save(TagMapper.toTagEntity(tag));
     }
 
     // method to update info of a tag and remove tag

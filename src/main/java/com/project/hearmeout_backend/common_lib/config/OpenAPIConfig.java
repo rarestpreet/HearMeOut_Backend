@@ -23,8 +23,14 @@ public class OpenAPIConfig {
                                 .description("by Arpit")
                 )
                 .servers(
-                        List.of(new Server().url("https://hearmeout-backend-kbw4.onrender.com/api").description("production stage"),
-                                new Server().url("http://localhost:8080/api").description("development stage"))
+                        List.of(
+                                new Server()
+                                        .url("https://hearmeout-backend-kbw4.onrender.com/api")
+                                        .description("production stage"),
+                                new Server()
+                                        .url("http://localhost:8080/api")
+                                        .description("development stage")
+                        )
                 )
                 .components(new Components()
                         .addSecuritySchemes("bearerAuth",
@@ -36,13 +42,21 @@ public class OpenAPIConfig {
                         )
                 )
                 .tags(
-                        List.of(new Tag().name("Home display APIs"),
-                                new Tag().name("Account authentication APIs"),
-                                new Tag().name("Profile showcase APIs"),
-                                new Tag().name("Post CRUD APIs"),
-                                new Tag().name("Comment CRUD APIs"),
-                                new Tag().name("Vote toggle APIs"),
-                                new Tag().name("Tag CRUD APIS"))
+                        List.of(new Tag()
+                                        .name("Home display APIs"),
+                                new Tag()
+                                        .name("Account authentication APIs"),
+                                new Tag()
+                                        .name("Profile showcase APIs"),
+                                new Tag()
+                                        .name("Post CRUD APIs"),
+                                new Tag()
+                                        .name("Comment CRUD APIs"),
+                                new Tag()
+                                        .name("Vote toggle APIs"),
+                                new Tag()
+                                        .name("Tag CRUD APIS")
+                        )
                 );
     }
 }

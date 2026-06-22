@@ -1,13 +1,13 @@
 package com.project.hearmeout_backend.post_service.controller;
 
+import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
+import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
+import com.project.hearmeout_backend.common_lib.exception.TagNotFoundException;
+import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.post_service.dto.request.AcceptAnswerRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.request.AnswerSubmitRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.request.QuestionSubmitRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.response.QuestionPostResponseDTO;
-import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
-import com.project.hearmeout_backend.common_lib.exception.TagNotFoundException;
-import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
-import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.post_service.service.implementation.PostServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -24,104 +24,157 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/post")
 @RequiredArgsConstructor
-@Tag(name = "Post Management", description = "Endpoints for creating, reading, updating, and deleting questions and answers")
+@Tag(
+        name = "Post Management",
+        description = "Endpoints for creating, reading, updating, and deleting questions and answers"
+)
 public class PostController {
 
     private final PostServiceImpl postServiceImpl;
 
-    @Operation(summary = "Ask a new question", description = "Creates a new question post with title, body, and tags. Requires user authentication.")
+    @Operation(
+            summary = "Ask a new question",
+            description = "Creates a new question post with title, body, and tags. Requires user authentication."
+    )
     @PostMapping("/ask")
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> askQuestion(
             @Valid @RequestBody QuestionSubmitRequestDTO questionSubmitRequestDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails)
-            throws UserNotFoundException, TagNotFoundException {
-        postServiceImpl.postNewQuestion(questionSubmitRequestDTO, userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) throws UserNotFoundException, TagNotFoundException {
+        postServiceImpl
+                .postNewQuestion(questionSubmitRequestDTO, userDetails.getUserId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Question created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Question created successfully");
     }
 
-    @Operation(summary = "Submit an answer", description = "Adds a new answer to a specific question. Requires user authentication.")
+    @Operation(
+            summary = "Submit an answer",
+            description = "Adds a new answer to a specific question. Requires user authentication."
+    )
     @PostMapping("/{postId}/answer")
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> submitAnswer(
             @PathVariable Long postId,
             @Valid @RequestBody AnswerSubmitRequestDTO answerSubmitRequestDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails)
-            throws UserNotFoundException, PostNotFoundException {
-        postServiceImpl.postNewAnswer(postId, answerSubmitRequestDTO, userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) throws UserNotFoundException, PostNotFoundException {
+        postServiceImpl
+                .postNewAnswer(postId, answerSubmitRequestDTO, userDetails.getUserId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Answer created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Answer created successfully");
     }
 
-    @Operation(summary = "Get question details", description = "Retrieves a specific question by its ID, including its answers, comments, and tags. User context is applied if authenticated.")
+    @Operation(
+            summary = "Get question details",
+            description = "Retrieves a specific question by its ID, including its answers, comments, and tags. User context is applied if authenticated."
+    )
     @GetMapping("/{postId}")
     public ResponseEntity<@NonNull QuestionPostResponseDTO> getQuestion(
             @PathVariable Long postId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) throws PostNotFoundException {
-        Long userId = userDetails == null ? 0L : userDetails.getUserId();
-        String username = userDetails == null ? "" : userDetails.getUserName();
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) throws PostNotFoundException {
+        Long userId = userDetails == null ?
+                0L :
+                userDetails.getUserId();
+        String username = userDetails == null ?
+                "" :
+                userDetails.getName();
 
         return ResponseEntity.status(HttpStatus.OK)
-                .body(postServiceImpl.getQuestionPost(postId, userId, username));
+                .body(postServiceImpl
+                        .getQuestionPost(postId, userId, username)
+                );
     }
 
-    @Operation(summary = "Accept an answer", description = "Toggles the accepted status of an answer. Only the question author can accept an answer.")
+    @Operation(
+            summary = "Accept an answer",
+            description = "Toggles the accepted status of an answer. Only the question author can accept an answer."
+    )
     @PostMapping("/toggleStatus")
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     public ResponseEntity<@NonNull String> toggleAnswerStatus(
             @Valid @RequestBody AcceptAnswerRequestDTO acceptAnswerRequestDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postServiceImpl.handleAnswerStatus(acceptAnswerRequestDTO, userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        postServiceImpl
+                .handleAnswerStatus(acceptAnswerRequestDTO, userDetails.getUserId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Answer accepted successfully");
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body("Answer accepted successfully");
     }
 
-    @Operation(summary = "Update an answer", description = "Modifies the content of an existing answer. Only the answer author can update it.")
+    @Operation(
+            summary = "Update an answer",
+            description = "Modifies the content of an existing answer. Only the answer author can update it."
+    )
     @PutMapping("/answer/{answerId}")
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     public ResponseEntity<@NonNull String> modifyAnswer(
             @PathVariable Long answerId,
             @Valid @RequestBody AnswerSubmitRequestDTO answerSubmitRequestDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postServiceImpl.updateAnswer(answerId, answerSubmitRequestDTO, userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        postServiceImpl
+                .updateAnswer(answerId, answerSubmitRequestDTO, userDetails.getUserId());
 
-        return ResponseEntity.status(HttpStatus.OK).body("Answer modified successfully");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Answer modified successfully");
     }
 
-    @Operation(summary = "Delete an answer", description = "Removes an existing answer by its ID. Only the answer author can delete it.")
+    @Operation(
+            summary = "Delete an answer",
+            description = "Removes an existing answer by its ID. Only the answer author can delete it."
+    )
     @DeleteMapping("/answer/{answerId}")
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     public ResponseEntity<@NonNull String> removeAnswer(
             @PathVariable Long answerId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postServiceImpl.deleteAnswer(answerId, userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        postServiceImpl
+                .deleteAnswer(answerId, userDetails.getUserId());
 
-        return ResponseEntity.status(HttpStatus.OK).body("Answer deleted successfully");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Answer deleted successfully");
     }
 
-    @Operation(summary = "Update a question", description = "Modifies an existing question's title, body, and tags. Only the question author can update it.")
+    @Operation(
+            summary = "Update a question",
+            description = "Modifies an existing question's title, body, and tags. Only the question author can update it."
+    )
     @PutMapping("/question/{questionId}")
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     public ResponseEntity<@NonNull String> modifyQuestion(
             @PathVariable Long questionId,
             @Valid @RequestBody QuestionSubmitRequestDTO questionSubmitRequestDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postServiceImpl.updateQuestion(questionId, questionSubmitRequestDTO, userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        postServiceImpl
+                .updateQuestion(questionId, questionSubmitRequestDTO, userDetails.getUserId());
 
-        return ResponseEntity.status(HttpStatus.OK).body("Question modified successfully");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Question modified successfully");
     }
 
-    @Operation(summary = "Delete a question", description = "Removes an existing question by its ID. Only the question author can delete it.")
+    @Operation(
+            summary = "Delete a question",
+            description = "Removes an existing question by its ID. Only the question author can delete it."
+    )
     @DeleteMapping("/question/{questionId}")
     @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
     public ResponseEntity<@NonNull String> removeQuestion(
             @PathVariable Long questionId,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        postServiceImpl.deleteQuestion(questionId, userDetails.getUserId());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        postServiceImpl
+                .deleteQuestion(questionId, userDetails.getUserId());
 
-        return ResponseEntity.status(HttpStatus.OK).body("Question deleted successfully");
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Question deleted successfully");
     }
 }

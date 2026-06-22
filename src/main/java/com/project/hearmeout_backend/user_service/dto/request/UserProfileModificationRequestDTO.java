@@ -11,7 +11,6 @@ import org.hibernate.validator.constraints.Length;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
 public class UserProfileModificationRequestDTO {
 
     @NotBlank(message = "Username is required")

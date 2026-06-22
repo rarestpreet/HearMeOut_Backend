@@ -55,9 +55,11 @@ public class WebSecurityConfig {
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
                 .logout(AbstractHttpConfigurer::disable)
                 .exceptionHandling(ex ->
-                        ex.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
+                        ex.authenticationEntryPoint(new CustomAuthenticationEntryPoint())
+                )
                 .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .build();
     }
 

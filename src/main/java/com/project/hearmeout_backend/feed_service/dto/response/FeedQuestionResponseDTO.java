@@ -4,16 +4,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO;
 import com.project.hearmeout_backend.post_service.model.enums.PostStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
-@Setter
+@NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class FeedQuestionResponseDTO {

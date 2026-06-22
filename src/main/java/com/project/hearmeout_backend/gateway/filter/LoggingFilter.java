@@ -23,27 +23,44 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain)
-            throws ServletException, IOException {
+                                    FilterChain filterChain
+    ) throws ServletException, IOException {
         long startTime = System.currentTimeMillis();
 
         try {
-            MDC.put("requestId", UUID.randomUUID().toString());
-            MDC.put("requestMethod", request.getMethod());
-            MDC.put("requestURI", request.getRequestURI());
+            MDC
+                    .put("requestId", UUID.randomUUID().toString());
+            MDC
+                    .put("requestMethod", request.getMethod());
+            MDC
+                    .put("requestURI", request.getRequestURI());
 
-            log.info("Incoming request");
+            log.info(
+                    "Incoming request"
+            );
 
-            filterChain.doFilter(request, response);
+            filterChain
+                    .doFilter(request, response);
 
         } catch (Exception e) {
-            log.error("Exception occurred: {}", e.getMessage());
+            log.warn(
+                    "Exception occurred: \n",
+                    e
+            );
         } finally {
             long duration = System.currentTimeMillis() - startTime;
 
             if (response.getStatus() >= 400) {
-                log.info("Completed with error status {} in {} ms", response.getStatus(), duration);
-            } else log.info("Completed with status {} in {} ms", response.getStatus(), duration);
+                log.info(
+                        "Completed with error status {} in {} ms",
+                        response.getStatus(),
+                        duration
+                );
+            } else log.info(
+                    "Completed with status {} in {} ms",
+                    response.getStatus(),
+                    duration
+            );
 
             MDC.clear();
         }

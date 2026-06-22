@@ -31,32 +31,60 @@ public class UserServiceImpl {
 
     public UserProfileResponseDTO getUserProfile(String username, Long currUserId)
             throws UserNotFoundException {
-        UserProfileResponseDTO profileDTO = userRepo.getUserProfileByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
-        profileDTO.setOperable(profileDTO.getUserId().equals(currUserId));
+        UserProfileResponseDTO profileResponse = userRepo
+                .getUserProfileByUsername(username)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with username: " + username
+                        )
+                );
 
-        return profileDTO;
+        return UserProfileResponseDTO.builder()
+                .userId(profileResponse.getUserId())
+                .username(profileResponse.getUsername())
+                .email(profileResponse.getEmail())
+                .reputation(profileResponse.getReputation())
+                .createdAt(profileResponse.getCreatedAt())
+                .isOperable(profileResponse.getUserId().equals(currUserId))
+                .isAccountVerified(profileResponse.isAccountVerified())
+                .isAccountTerminated(profileResponse.isAccountTerminated())
+                .build();
     }
 
     @Transactional(readOnly = true)
     public User checkAndGetUserByUserId(Long userId)
             throws UserNotFoundException {
-        return userRepo.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return userRepo
+                .findById(userId)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with id: " + userId
+                        )
+                );
     }
 
     @Transactional(readOnly = true)
     public User checkAndGetUserByUsername(String username)
             throws UserNotFoundException {
-        return userRepo.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+        return userRepo
+                .findByUsername(username)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with username: " + username
+                        )
+                );
     }
 
     @Transactional(readOnly = true)
     public User checkAndGetUserByEmail(String email)
             throws UserNotFoundException {
-        return userRepo.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found with email: " + email));
+        return userRepo
+                .findByEmail(email)
+                .orElseThrow(() ->
+                        new UserNotFoundException(
+                                "User not found with email: " + email
+                        )
+                );
     }
 
     @Transactional(readOnly = true)
@@ -64,7 +92,8 @@ public class UserServiceImpl {
             throws UserNotFoundException {
         checkAndGetUserByUsername(username);
 
-        return postRepo.findUserQuestionByUsername(username, PostType.QUESTION);
+        return postRepo
+                .findUserQuestionByUsername(username, PostType.QUESTION);
     }
 
     @Transactional(readOnly = true)
@@ -72,7 +101,8 @@ public class UserServiceImpl {
             throws UserNotFoundException {
         checkAndGetUserByUsername(username);
 
-        return postRepo.findUserAnswerByUsername(username, PostType.ANSWER);
+        return postRepo
+                .findUserAnswerByUsername(username, PostType.ANSWER);
     }
 
     @Transactional(readOnly = true)
@@ -80,7 +110,8 @@ public class UserServiceImpl {
             throws UserNotFoundException {
         checkAndGetUserByUsername(username);
 
-        return commentRepo.findUserCommentsByUsername(username);
+        return commentRepo
+                .findUserCommentsByUsername(username);
     }
 
     @Transactional
@@ -93,45 +124,65 @@ public class UserServiceImpl {
         boolean emailUpdateAllowed = currUser.emailUpdateCooldown() == 0,
                 usernameUpdateAllowed = currUser.usernameUpdateCooldown() == 0;
 
-        if (!usernameUpdateAllowed && !emailUpdateAllowed && isEmailUpdateRequested && isUsernameUpdateRequested) {
+        if (!usernameUpdateAllowed &&
+                !emailUpdateAllowed &&
+                isEmailUpdateRequested &&
+                isUsernameUpdateRequested
+        ) {
             throw new InvalidOperationException(
                     "You changed your email and username recently. Please wait until the cooldown ends."
             );
         }
-        if (!emailUpdateAllowed && isEmailUpdateRequested) {
+        if (!emailUpdateAllowed &&
+                isEmailUpdateRequested
+        ) {
             throw new InvalidOperationException(
                     "You changed your email recently. Please wait until the cooldown ends."
             );
         }
-        if (!usernameUpdateAllowed && isUsernameUpdateRequested) {
+        if (!usernameUpdateAllowed &&
+                isUsernameUpdateRequested
+        ) {
             throw new InvalidOperationException(
                     "You changed your username recently. Please wait until the cooldown ends."
             );
         }
 
         if (isEmailUpdateRequested) {
-            if (!userRepo.existsByEmail(requestDTO.getEmail())) {
+            if (!userRepo
+                    .existsByEmail(requestDTO.getEmail())
+            ) {
                 currUser.setEmail(requestDTO.getEmail());
                 currUser.setAccountVerified(false);
             } else {
-                throw new UserAlreadyExistException("User already exist with email: " + requestDTO.getEmail());
+                throw new UserAlreadyExistException(
+                        "User already exist with email: " + requestDTO.getEmail()
+                );
             }
         }
 
         if (isUsernameUpdateRequested) {
-            if (!userRepo.existsByUsername(requestDTO.getUsername())) {
+            if (!userRepo
+                    .existsByUsername(requestDTO.getUsername())
+            ) {
                 currUser.setUsername(requestDTO.getUsername());
             } else {
-                throw new UserAlreadyExistException("User already exist with username: " + requestDTO.getUsername());
+                throw new UserAlreadyExistException(
+                        "User already exist with username: " + requestDTO.getUsername()
+                );
             }
         }
 
-        if (!isEmailUpdateRequested && !isUsernameUpdateRequested) {
+        if (!isEmailUpdateRequested &&
+                !isUsernameUpdateRequested
+        ) {
             return false;
         }
 
-        currUser.markUpdatedAt(isEmailUpdateRequested, isUsernameUpdateRequested);
-        userRepo.save(currUser);
+        currUser
+                .markUpdatedAt(isEmailUpdateRequested, isUsernameUpdateRequested);
+        userRepo
+                .save(currUser);
 
         return isEmailUpdateRequested;
     }
@@ -149,6 +200,7 @@ public class UserServiceImpl {
         currUser.setAccountVerified(false);
         */
 
-        userRepo.delete(currUser);
+        userRepo
+                .delete(currUser);
     }
 }

@@ -24,12 +24,18 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("mail")
 @RequiredArgsConstructor
-@Tag(name = "Email Management", description = "Endpoints for sending verification and password reset emails")
+@Tag(
+        name = "Email Management",
+        description = "Endpoints for sending verification and password reset emails"
+)
 public class EmailController {
 
     private final EmailServiceImpl emailServiceImpl;
 
-    @Operation(summary = "Send account verification OTP", description = "Sends an email with a One-Time Password (OTP) to verify the authenticated user's email address.")
+    @Operation(
+            summary = "Send account verification OTP",
+            description = "Sends an email with a One-Time Password (OTP) to verify the authenticated user's email address."
+    )
     @PostMapping("email-verification-otp")
     @PreAuthorize("isFullyAuthenticated()")
     @RateLimiter(
@@ -38,14 +44,19 @@ public class EmailController {
             timeoutInMinutes = 1
     )
     public ResponseEntity<@NonNull String> sendAccountVerificationOtp(
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
-        emailServiceImpl.sendAccountVerificationMail(userDetails.getUsername());
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        emailServiceImpl
+                .sendAccountVerificationMail(userDetails.getUsername());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Account verification mail sent successfully");
     }
 
-    @Operation(summary = "Send password reset OTP", description = "Sends an email with a One-Time Password (OTP) to allow a user to reset their password.")
+    @Operation(
+            summary = "Send password reset OTP",
+            description = "Sends an email with a One-Time Password (OTP) to allow a user to reset their password."
+    )
     @PostMapping("reset-password-otp")
     @RateLimiter(
             limitType = RateLimits.PASSWORD_RESET_OTP,
@@ -53,8 +64,10 @@ public class EmailController {
             timeoutInMinutes = 1
     )
     public ResponseEntity<@NonNull String> sendResetPasswordOtp(
-            @Valid @RequestBody PasswordResetOtpRequestDTO passwordResetOtpRequestDTO) {
-        emailServiceImpl.sendPasswordResetMail(passwordResetOtpRequestDTO.getEmail());
+            @Valid @RequestBody PasswordResetOtpRequestDTO passwordResetOtpRequestDTO
+    ) {
+        emailServiceImpl
+                .sendPasswordResetMail(passwordResetOtpRequestDTO.getEmail());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Account verification mail sent successfully");
