@@ -6,6 +6,7 @@ import com.project.hearmeout_backend.authentication_service.dto.request.LoginReq
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.RegisterRequestDTO;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
+import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
 import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOtpException;
 import com.project.hearmeout_backend.common_lib.exception.TokenInvalidException;
@@ -134,21 +135,16 @@ public class SecurityServiceImpl {
     }
 
     public List<ResponseCookie> authenticateUser(LoginRequestDTO request) {
-        int loginRequestCount = redisOperator.opsForValue()
-                .get(
-                        "login_request_count$"
-                                .concat(request.getEmail())
-                ) == null ?
-                0 :
-                Integer.parseInt(
-                        Objects.requireNonNull(
-                                redisOperator.opsForValue()
-                                        .get(
-                                                "login_request_count$"
-                                                        .concat(request.getEmail())
-                                        )
-                        )
-                );
+        int loginRequestCount = Integer.parseInt(
+                Objects.requireNonNullElse(
+                        redisOperator.opsForValue()
+                                .get(
+                                        "login_request_count$"
+                                                .concat(request.getEmail())
+                                ),
+                        "0"
+                )
+        );
 
         try {
             authManager
@@ -302,7 +298,7 @@ public class SecurityServiceImpl {
                 .checkAndGetUserByEmail(passwordResetRequestDTO.getEmail());
         String storedOtp = redisOperator.opsForValue()
                 .getAndDelete(
-                        "passresetotp$"
+                        "pass_reset_otp$"
                                 .concat(passwordResetRequestDTO.getEmail())
                 );
 
@@ -335,7 +331,7 @@ public class SecurityServiceImpl {
                 .checkAndGetUserByEmail(email);
         String storedOtp = redisOperator.opsForValue()
                 .getAndDelete(
-                        "emailverifyotp$"
+                        "email_verify_otp$"
                                 .concat(email)
                 );
 
@@ -358,6 +354,8 @@ public class SecurityServiceImpl {
 
         registeredUser
                 .setAccountVerified(true);
+        registeredUser
+                .setRole(RoleType.VERIFIED_USER);
         userRepo
                 .save(registeredUser);
     }

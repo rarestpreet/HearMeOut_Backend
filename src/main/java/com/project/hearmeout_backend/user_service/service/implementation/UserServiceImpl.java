@@ -1,5 +1,6 @@
 package com.project.hearmeout_backend.user_service.service.implementation;
 
+import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
 import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
@@ -152,8 +153,12 @@ public class UserServiceImpl {
             if (!userRepo
                     .existsByEmail(requestDTO.getEmail())
             ) {
-                currUser.setEmail(requestDTO.getEmail());
-                currUser.setAccountVerified(false);
+                currUser
+                        .setEmail(requestDTO.getEmail());
+                currUser
+                        .setAccountVerified(false);
+                currUser
+                        .setRole(RoleType.USER);
             } else {
                 throw new UserAlreadyExistException(
                         "User already exist with email: " + requestDTO.getEmail()
@@ -165,7 +170,8 @@ public class UserServiceImpl {
             if (!userRepo
                     .existsByUsername(requestDTO.getUsername())
             ) {
-                currUser.setUsername(requestDTO.getUsername());
+                currUser
+                        .setUsername(requestDTO.getUsername());
             } else {
                 throw new UserAlreadyExistException(
                         "User already exist with username: " + requestDTO.getUsername()

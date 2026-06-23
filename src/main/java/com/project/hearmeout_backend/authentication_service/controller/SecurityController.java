@@ -106,6 +106,7 @@ public class SecurityController {
             description = "Resets the user's password using a valid OTP and terminates their current session."
     )
     @PostMapping("password-reset")
+    @PreAuthorize("!hasAuthority('ADMIN')")
     public ResponseEntity<@NonNull String> resetPassword(
             @Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO
     ) {
@@ -129,7 +130,7 @@ public class SecurityController {
             description = "Verifies the user's account using a valid OTP sent to their email. Requires authentication."
     )
     @PostMapping("verify-account")
-    @PreAuthorize("isFullyAuthenticated()")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('USER')")
     public ResponseEntity<@NonNull String> verifyAccount(
             @Valid @RequestBody AccountVerificationRequestDTO accountVerificationRequestDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails

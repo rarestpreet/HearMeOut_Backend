@@ -37,7 +37,7 @@ public class EmailController {
             description = "Sends an email with a One-Time Password (OTP) to verify the authenticated user's email address."
     )
     @PostMapping("email-verification-otp")
-    @PreAuthorize("isFullyAuthenticated()")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('USER')")
     @RateLimiter(
             limitType = RateLimits.EMAIL_VERIFICATION_OTP,
             requestAllowed = 1,
@@ -63,6 +63,7 @@ public class EmailController {
             requestAllowed = 1,
             timeoutInMinutes = 1
     )
+    @PreAuthorize("!hasAuthority('ADMIN')")
     public ResponseEntity<@NonNull String> sendResetPasswordOtp(
             @Valid @RequestBody PasswordResetOtpRequestDTO passwordResetOtpRequestDTO
     ) {

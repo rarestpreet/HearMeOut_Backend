@@ -45,8 +45,7 @@ public class User {
     @Builder.Default
     private boolean isAccountTerminated = false;
 
-    @Builder.Default
-    private List<RoleType> roles = new ArrayList<>(List.of(RoleType.USER));
+    private RoleType role;
 
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
