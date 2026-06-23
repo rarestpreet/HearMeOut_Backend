@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -45,8 +46,9 @@ public class UtilServiceImpl {
                 .set(
                         "pass_reset_otp$"
                                 .concat(email),
-                        passwordEncoder
-                                .encode(otp.toString()),
+                        Objects.requireNonNull(passwordEncoder
+                                .encode(otp.toString())
+                        ),
                         Duration
                                 .ofMinutes(20)
                 );
@@ -79,8 +81,9 @@ public class UtilServiceImpl {
                 .set(
                         "email_verify_otp$"
                                 .concat(email),
-                        passwordEncoder
-                                .encode(otp.toString()),
+                        Objects.requireNonNull(passwordEncoder
+                                .encode(otp.toString())
+                        ),
                         Duration
                                 .ofHours(12)
                 );

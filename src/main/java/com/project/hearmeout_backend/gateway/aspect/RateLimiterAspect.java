@@ -13,6 +13,7 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -52,17 +53,18 @@ public class RateLimiterAspect {
         LoginRequestDTO request = (LoginRequestDTO) args[0];
 
         int loginRequestCount = Integer.parseInt(
-                Objects.requireNonNull(
+                Objects.requireNonNullElse(
                         redisOperator.opsForValue()
                                 .get(
-                                        "loginrequestcount$"
-                                                .concat(request.getEmail()))
+                                        "login_request_count$"
+                                                .concat(request.getEmail())),
+                        "0"
                 )
         );
 
         if (loginRequestCount == rateLimiter.requestAllowed()) {
             throw new RateLimitExceededException(
-                    "Too many attempts made for %s, try again after an hour".formatted(request.getEmail())
+                    "Too many attempts made for %s, account locked. Try again after an hour".formatted(request.getEmail())
             );
         }
     }

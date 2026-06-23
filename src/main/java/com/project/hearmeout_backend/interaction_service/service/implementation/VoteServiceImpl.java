@@ -13,6 +13,7 @@ import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,7 +30,7 @@ public class VoteServiceImpl {
     private final PostRepository postRepo;
 
     @Transactional
-    public void handleVote(VoteRequestDTO voteRequestDTO, Long userId) {
+    public void handleVote(VoteRequestDTO voteRequestDTO, Long userId, VoteType newVoteType) throws BadRequestException {
         Vote existingVote = voteRepo
                 .findByPostIdAndUserId(
                         voteRequestDTO.getPostId(),
@@ -42,13 +43,16 @@ public class VoteServiceImpl {
                 .checkAndGetPost(voteRequestDTO.getPostId());
         User author = userServiceImpl
                 .checkAndGetUserByUserId(post.getAuthor().getId());
-        VoteType newVoteType = voteRequestDTO
-                .getVoteType();
 
         if (Objects.equals(author.getId(), currUser.getId())) {
             throw new InvalidOperationException(
                     "Invalid action: you cannot vote your own posts."
             );
+        }
+
+        if(!Objects.equals(newVoteType, VoteType.UPVOTE) &&
+                !Objects.equals(newVoteType, VoteType.DOWNVOTE)){
+            throw new BadRequestException("Invalid input provided, please try again.");
         }
 
         // new vote, so either +1 or -1 to post, author, voter for upvote or downvote respectively
@@ -75,7 +79,7 @@ public class VoteServiceImpl {
                     .save(currUser);
 
             Vote vote = VoteMapper
-                    .toVoteEntity(voteRequestDTO, currUser, post);
+                    .toVoteEntity(voteRequestDTO, currUser, post, newVoteType);
             voteRepo
                     .save(vote);
 
