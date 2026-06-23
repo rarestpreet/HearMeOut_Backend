@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
         description = "Endpoints for creating, updating, and deleting comments on posts"
 )
 @SecurityRequirement(name = "bearerAuth")
-@PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+@PreAuthorize("isFullyAuthenticated() && hasAnyAuthority('VERIFIED_USER', 'USER')")
 public class CommentController {
 
     private final CommentServiceImpl commentServiceImpl;

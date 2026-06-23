@@ -37,7 +37,7 @@ public class PostController {
             description = "Creates a new question post with title, body, and tags. Requires user authentication."
     )
     @PostMapping("/ask")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> askQuestion(
             @Valid @RequestBody QuestionSubmitRequestDTO questionSubmitRequestDTO,
@@ -55,7 +55,7 @@ public class PostController {
             description = "Adds a new answer to a specific question. Requires user authentication."
     )
     @PostMapping("/{postId}/answer")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> submitAnswer(
             @PathVariable Long postId,
@@ -96,7 +96,7 @@ public class PostController {
             description = "Toggles the accepted status of an answer. Only the question author can accept an answer."
     )
     @PostMapping("/toggleStatus")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     public ResponseEntity<@NonNull String> toggleAnswerStatus(
             @Valid @RequestBody AcceptAnswerRequestDTO acceptAnswerRequestDTO,
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -113,7 +113,7 @@ public class PostController {
             description = "Modifies the content of an existing answer. Only the answer author can update it."
     )
     @PutMapping("/answer/{answerId}")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     public ResponseEntity<@NonNull String> modifyAnswer(
             @PathVariable Long answerId,
             @Valid @RequestBody AnswerSubmitRequestDTO answerSubmitRequestDTO,
@@ -131,7 +131,7 @@ public class PostController {
             description = "Removes an existing answer by its ID. Only the answer author can delete it."
     )
     @DeleteMapping("/answer/{answerId}")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     public ResponseEntity<@NonNull String> removeAnswer(
             @PathVariable Long answerId,
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -148,7 +148,7 @@ public class PostController {
             description = "Modifies an existing question's title, body, and tags. Only the question author can update it."
     )
     @PutMapping("/question/{questionId}")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     public ResponseEntity<@NonNull String> modifyQuestion(
             @PathVariable Long questionId,
             @Valid @RequestBody QuestionSubmitRequestDTO questionSubmitRequestDTO,
@@ -166,7 +166,7 @@ public class PostController {
             description = "Removes an existing question by its ID. Only the question author can delete it."
     )
     @DeleteMapping("/question/{questionId}")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     public ResponseEntity<@NonNull String> removeQuestion(
             @PathVariable Long questionId,
             @AuthenticationPrincipal CustomUserDetails userDetails

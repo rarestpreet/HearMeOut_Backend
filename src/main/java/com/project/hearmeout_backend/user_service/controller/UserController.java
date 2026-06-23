@@ -44,6 +44,7 @@ public class UserController {
             description = "Retrieves the public profile information of a user by their username."
     )
     @GetMapping("")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER', 'VERIFIED_USER')")
     public ResponseEntity<@NonNull UserProfileResponseDTO> userProfile(
             @PathVariable String username,
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -61,6 +62,7 @@ public class UserController {
             description = "Retrieves a list of all questions asked by the specified user."
     )
     @GetMapping("/questions")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
     public ResponseEntity<@NonNull List<UserQuestionResponseDTO>> userQuestions(@PathVariable String username)
             throws UserNotFoundException {
         List<UserQuestionResponseDTO> userQuestions = userServiceImpl
@@ -76,6 +78,7 @@ public class UserController {
             description = "Retrieves a list of all answers provided by the specified user."
     )
     @GetMapping("/answers")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
     public ResponseEntity<@NonNull List<UserAnswerResponseDTO>> userAnswers(@PathVariable String username)
             throws UserNotFoundException {
         List<UserAnswerResponseDTO> userAnswer = userServiceImpl
@@ -91,6 +94,7 @@ public class UserController {
             description = "Retrieves a list of all comments made by the specified user."
     )
     @GetMapping("/comments")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
     public ResponseEntity<@NonNull List<UserCommentResponseDTO>> userComments(@PathVariable String username)
             throws UserNotFoundException {
         List<UserCommentResponseDTO> comments = userServiceImpl
@@ -105,7 +109,7 @@ public class UserController {
             description = "Modifies the authenticated user's profile details such as username and email. Terminates the current session upon success."
     )
     @PutMapping("")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> updateUserProfile(
             @PathVariable String username,
@@ -137,7 +141,7 @@ public class UserController {
             description = "Permanently deletes the authenticated user's account and terminates their current session."
     )
     @DeleteMapping("")
-    @PreAuthorize("isFullyAuthenticated() && !hasAuthority('ADMIN')")
+    @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
     @SecurityRequirement(name = "bearerAuth")
     public ResponseEntity<@NonNull String> deleteUser(
             @PathVariable String username,
