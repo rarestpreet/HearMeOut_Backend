@@ -1,0 +1,31 @@
+name: HearMeOut CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven #reduce latency during build
+
+      - name: Run Tests
+        run: ./mvnw clean test #everyone use same maven version
+
+      - name: Run Spotless Check
+        run: mvn spotless:check #checkstyle require custom style file
+
+      - name: Build Docker Image
+        run: docker build -t rarestpreet/hearmeout .
