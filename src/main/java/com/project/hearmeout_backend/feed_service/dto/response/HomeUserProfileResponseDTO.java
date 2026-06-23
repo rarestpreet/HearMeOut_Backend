@@ -24,5 +24,5 @@ public class HomeUserProfileResponseDTO {
   private boolean accountVerified;
 
   @Schema(description = "List of roles assigned to the user", example = "[\"USER\"]")
-  private List<RoleType> roles;
+  private RoleType role;
 }

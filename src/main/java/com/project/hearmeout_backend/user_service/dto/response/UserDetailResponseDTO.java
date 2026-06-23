@@ -12,10 +12,10 @@ public class UserDetailResponseDTO {
   private final String username;
   private final String email;
   private final String password;
-  private final List<RoleType> roles;
+  private final RoleType role;
 
   @Override
   public String toString() {
-    return userId + " " + username + " " + email + " " + password + " " + roles;
+    return userId + " " + username + " " + email + " " + password + " " + role;
   }
 }

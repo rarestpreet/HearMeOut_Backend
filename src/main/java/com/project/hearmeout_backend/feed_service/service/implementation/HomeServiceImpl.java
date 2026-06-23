@@ -62,7 +62,7 @@ public class HomeServiceImpl {
           .username(null)
           .userNavigationId(null)
           .accountVerified(false)
-          .roles(List.of())
+          .role(null)
           .build();
     }
 

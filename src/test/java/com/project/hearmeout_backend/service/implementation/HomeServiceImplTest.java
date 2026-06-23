@@ -151,7 +151,7 @@ public class HomeServiceImplTest {
     // Assert
     assertNull(result.getUsername());
     assertNull(result.getUserNavigationId());
-    assertEquals(0, result.getRoles().size());
+    assertNull(result.getRole());
   }
 
   @ParameterizedTest

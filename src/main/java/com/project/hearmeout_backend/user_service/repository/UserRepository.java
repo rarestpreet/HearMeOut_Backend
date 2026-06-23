@@ -20,7 +20,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   @Query(
       """
                 SELECT new com.project.hearmeout_backend.user_service.dto.response.UserDetailResponseDTO(
-                    u.id, u.username, u.email, u.password, u.roles
+                    u.id, u.username, u.email, u.password, u.role
                 )
                 FROM User u
                 WHERE u.email = :email
@@ -41,7 +41,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
   @Query(
       """
             SELECT new com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileResponseDTO(
-                u.username, u.id, u.isAccountVerified, u.roles
+                u.username, u.id, u.isAccountVerified, u.role
             )
             FROM User u
             WHERE u.id = :id
