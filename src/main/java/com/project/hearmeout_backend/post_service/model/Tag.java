@@ -13,10 +13,10 @@ import lombok.*;
 @Builder
 public class Tag extends BaseModel {
 
-    @Column(nullable = false, unique = true, length = 15)
-    private String name;
+  @Column(nullable = false, unique = true, length = 15)
+  private String name;
 
-    @Lob
-    @Column(length = 100)
-    private String description;
+  @Lob
+  @Column(length = 100)
+  private String description;
 }

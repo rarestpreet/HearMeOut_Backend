@@ -6,8 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class HearMeOutBackendApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(HearMeOutBackendApplication.class, args);
-    }
-
+  public static void main(String[] args) {
+    SpringApplication.run(HearMeOutBackendApplication.class, args);
+  }
 }

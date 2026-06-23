@@ -7,16 +7,14 @@ import com.project.hearmeout_backend.common_lib.exception.InvalidOperationExcept
 import com.project.hearmeout_backend.common_lib.exception.RateLimitExceededException;
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
 import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 @Slf4j
 @Component
@@ -24,80 +22,70 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class RateLimiterAspect {
 
-    /* Implement token bucket algo
+  /* Implement token bucket algo
 
-    private final int refillRate;
-    private final int maxCapacity;
-    private long lastRefillTime;
+  private final int refillRate;
+  private final int maxCapacity;
+  private long lastRefillTime;
 
-    public RateLimiterAspect() {
-        refillRate = 2;
-        maxCapacity = 1000;
-        lastRefillTime = System.currentTimeMillis();
+  public RateLimiterAspect() {
+      refillRate = 2;
+      maxCapacity = 1000;
+      lastRefillTime = System.currentTimeMillis();
+  }
+   */
+
+  private final StringRedisTemplate redisOperator;
+
+  @Before("@annotation(rateLimiter)")
+  public void allowRequest(JoinPoint joinPoint, RateLimiter rateLimiter) throws Throwable {
+
+    switch (rateLimiter.limitType()) {
+      case RateLimits.EMAIL_VERIFICATION_OTP ->
+          validateEmailVerificationOtpRequest(joinPoint.getArgs());
+      case RateLimits.PASSWORD_RESET_OTP -> validatePasswordResetOtpRequest(joinPoint.getArgs());
+      case RateLimits.LOGIN_ATTEMPTS -> validateUserLoginRequest(joinPoint.getArgs(), rateLimiter);
     }
-     */
+  }
 
-    private final StringRedisTemplate redisOperator;
+  private void validateUserLoginRequest(Object[] args, RateLimiter rateLimiter)
+      throws RateLimitExceededException {
+    LoginRequestDTO request = (LoginRequestDTO) args[0];
 
-    @Before("@annotation(rateLimiter)")
-    public void allowRequest(JoinPoint joinPoint, RateLimiter rateLimiter) throws Throwable {
+    int loginRequestCount =
+        Integer.parseInt(
+            Objects.requireNonNullElse(
+                redisOperator.opsForValue().get("login_request_count$".concat(request.getEmail())),
+                "0"));
 
-        switch (rateLimiter.limitType()) {
-            case RateLimits.EMAIL_VERIFICATION_OTP -> validateEmailVerificationOtpRequest(joinPoint.getArgs());
-            case RateLimits.PASSWORD_RESET_OTP -> validatePasswordResetOtpRequest(joinPoint.getArgs());
-            case RateLimits.LOGIN_ATTEMPTS -> validateUserLoginRequest(joinPoint.getArgs(), rateLimiter);
-        }
+    if (loginRequestCount == rateLimiter.requestAllowed()) {
+      throw new RateLimitExceededException(
+          "Too many attempts made for %s, account locked. Try again after an hour"
+              .formatted(request.getEmail()));
     }
+  }
 
-    private void validateUserLoginRequest(Object[] args, RateLimiter rateLimiter) throws RateLimitExceededException {
-        LoginRequestDTO request = (LoginRequestDTO) args[0];
+  public void refill() {
+    // TODO
+  }
 
-        int loginRequestCount = Integer.parseInt(
-                Objects.requireNonNullElse(
-                        redisOperator.opsForValue()
-                                .get(
-                                        "login_request_count$"
-                                                .concat(request.getEmail())),
-                        "0"
-                )
-        );
+  private void validateEmailVerificationOtpRequest(Object[] args) {
+    CustomUserDetails currUser = (CustomUserDetails) args[0];
 
-        if (loginRequestCount == rateLimiter.requestAllowed()) {
-            throw new RateLimitExceededException(
-                    "Too many attempts made for %s, account locked. Try again after an hour".formatted(request.getEmail())
-            );
-        }
+    if (redisOperator.opsForValue().get("email_verify_cooldown$".concat(currUser.getUsername()))
+        != null) {
+      throw new InvalidOperationException(
+          "Please wait few seconds before requesting new otp for email verification");
     }
+  }
 
-    public void refill() {
-        //TODO
+  private void validatePasswordResetOtpRequest(Object[] args) {
+    PasswordResetOtpRequestDTO currUser = (PasswordResetOtpRequestDTO) args[0];
+
+    if (redisOperator.opsForValue().get("pass_reset_cooldown$".concat(currUser.getEmail()))
+        != null) {
+      throw new InvalidOperationException(
+          "Please wait few seconds before requesting new otp for password reset");
     }
-
-    private void validateEmailVerificationOtpRequest(Object[] args) {
-        CustomUserDetails currUser = (CustomUserDetails) args[0];
-
-        if (redisOperator.opsForValue()
-                .get(
-                        "email_verify_cooldown$"
-                                .concat(currUser.getUsername())) != null
-        ) {
-            throw new InvalidOperationException(
-                    "Please wait few seconds before requesting new otp for email verification"
-            );
-        }
-    }
-
-    private void validatePasswordResetOtpRequest(Object[] args) {
-        PasswordResetOtpRequestDTO currUser = (PasswordResetOtpRequestDTO) args[0];
-
-        if (redisOperator.opsForValue()
-                .get(
-                        "pass_reset_cooldown$"
-                                .concat(currUser.getEmail())) != null
-        ) {
-            throw new InvalidOperationException(
-                    "Please wait few seconds before requesting new otp for password reset"
-            );
-        }
-    }
+  }
 }

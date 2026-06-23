@@ -26,50 +26,53 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-    private final JwtFilter jwtFilter;
+  private final JwtFilter jwtFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
-        return httpSecurity
-                .cors(Customizer.withDefaults())
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request ->
-                        request
-                                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/post/*").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/profile/**").permitAll()
-                                .requestMatchers(HttpMethod.GET, "/tag").permitAll()
-                                .requestMatchers(
-                                        "/auth/**",
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
-                                        "/docs/**",
-                                        "/mail/reset-password-otp",
-                                        "/auth/password-reset",
-                                        "/auth/refresh-token"
-                                ).permitAll()
-                                .anyRequest().authenticated()
-                )
-                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
-                .logout(AbstractHttpConfigurer::disable)
-                .exceptionHandling(ex ->
-                        ex.authenticationEntryPoint(new CustomAuthenticationEntryPoint())
-                )
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .build();
-    }
+  @Bean
+  public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
+    return httpSecurity
+        .cors(Customizer.withDefaults())
+        .csrf(AbstractHttpConfigurer::disable)
+        .authorizeHttpRequests(
+            request ->
+                request
+                    .requestMatchers(HttpMethod.OPTIONS, "/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/post/*")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/profile/**")
+                    .permitAll()
+                    .requestMatchers(HttpMethod.GET, "/tag")
+                    .permitAll()
+                    .requestMatchers(
+                        "/auth/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/swagger-ui.html",
+                        "/docs/**",
+                        "/mail/reset-password-otp",
+                        "/auth/password-reset",
+                        "/auth/refresh-token")
+                    .permitAll()
+                    .anyRequest()
+                    .authenticated())
+        .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
+        .logout(AbstractHttpConfigurer::disable)
+        .exceptionHandling(ex -> ex.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
+        .sessionManagement(
+            session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .build();
+  }
 
-    @Bean
-    public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+  @Bean
+  public BCryptPasswordEncoder passwordEncoder() {
+    return new BCryptPasswordEncoder();
+  }
 
-    @Bean
-    public AuthenticationManager authManager(AuthenticationConfiguration authConfig) {
-        return authConfig.getAuthenticationManager();
-    }
+  @Bean
+  public AuthenticationManager authManager(AuthenticationConfiguration authConfig) {
+    return authConfig.getAuthenticationManager();
+  }
 }

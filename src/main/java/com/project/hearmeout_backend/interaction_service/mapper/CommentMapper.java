@@ -7,11 +7,8 @@ import com.project.hearmeout_backend.user_service.model.User;
 
 public class CommentMapper {
 
-    public static Comment toCommentEntity(CommentRequestDTO commentRequestDTO, Post post, User author) {
-        return Comment.builder()
-                .post(post)
-                .author(author)
-                .body(commentRequestDTO.getBody())
-                .build();
-    }
+  public static Comment toCommentEntity(
+      CommentRequestDTO commentRequestDTO, Post post, User author) {
+    return Comment.builder().post(post).author(author).body(commentRequestDTO.getBody()).build();
+  }
 }

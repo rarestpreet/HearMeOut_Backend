@@ -12,13 +12,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TagCreationRequestDTO {
 
-    @NotNull(message = "tag name is required")
-    @Size(max = 15, message = "name should be short (<15 char)")
-    @Schema(description = "The concise name of the tag (e.g., 'java', 'spring-boot')")
-    String name;
+  @NotNull(message = "tag name is required")
+  @Size(max = 15, message = "name should be short (<15 char)")
+  @Schema(description = "The concise name of the tag (e.g., 'java', 'spring-boot')")
+  String name;
 
-    @NotNull(message = "info about tag is required")
-    @Size(max = 100, message = "only brief info about tag (<100 char)")
-    @Schema(description = "A brief description explaining when to use this tag")
-    String description;
+  @NotNull(message = "info about tag is required")
+  @Size(max = 100, message = "only brief info about tag (<100 char)")
+  @Schema(description = "A brief description explaining when to use this tag")
+  String description;
 }

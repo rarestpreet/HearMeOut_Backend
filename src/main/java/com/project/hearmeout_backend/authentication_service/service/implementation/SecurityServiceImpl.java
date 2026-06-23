@@ -19,6 +19,10 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
+import java.time.Duration;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,345 +35,240 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SecurityServiceImpl {
 
-    private final UserRepository userRepo;
-    private final AuthenticationManager authManager;
-    private final BCryptPasswordEncoder passwordEncoder;
-    private final HttpServletRequest httpServletRequest;
-    private final JwtServiceImpl jwtServiceImpl;
-    private final TokenCookieProperties tokenCookieProperties;
-    private final EmailServiceImpl emailServiceImpl;
-    private final UserServiceImpl userServiceImpl;
-    private final StringRedisTemplate redisOperator;
-    private final CustomUserDetailsServiceImpl customUserDetailsServiceImpl;
+  private final UserRepository userRepo;
+  private final AuthenticationManager authManager;
+  private final BCryptPasswordEncoder passwordEncoder;
+  private final HttpServletRequest httpServletRequest;
+  private final JwtServiceImpl jwtServiceImpl;
+  private final TokenCookieProperties tokenCookieProperties;
+  private final EmailServiceImpl emailServiceImpl;
+  private final UserServiceImpl userServiceImpl;
+  private final StringRedisTemplate redisOperator;
+  private final CustomUserDetailsServiceImpl customUserDetailsServiceImpl;
 
-    @Transactional
-    public void createNewUser(RegisterRequestDTO registerRequestDTO)
-            throws UserAlreadyExistException, EmailAlreadyExistException {
-        if (userRepo
-                .existsByUsernameOrEmail(registerRequestDTO.getUsername(), registerRequestDTO.getEmail())
-        ) {
-            throw new UserAlreadyExistException(
-                    "User with similar username or email already exist"
-            );
-        }
-
-        User user = UserMapper
-                .toProfileEntity(
-                        registerRequestDTO,
-                        passwordEncoder
-                                .encode(registerRequestDTO.getPassword())
-                );
-
-        userRepo
-                .save(user);
-        log.info(
-                "Successfully created new user account for email: {}",
-                registerRequestDTO.getEmail()
-        );
-
-        emailServiceImpl
-                .sendWelcomeMail(
-                        registerRequestDTO.getEmail(),
-                        registerRequestDTO.getUsername()
-                );
+  @Transactional
+  public void createNewUser(RegisterRequestDTO registerRequestDTO)
+      throws UserAlreadyExistException, EmailAlreadyExistException {
+    if (userRepo.existsByUsernameOrEmail(
+        registerRequestDTO.getUsername(), registerRequestDTO.getEmail())) {
+      throw new UserAlreadyExistException("User with similar username or email already exist");
     }
 
-    public List<ResponseCookie> terminateSession(String email) {
-        HttpSession session = httpServletRequest
-                .getSession(false);
-        if (session != null) {
-            session
-                    .invalidate();
-        }
-        SecurityContextHolder.getContext()
-                .setAuthentication(null);
+    User user =
+        UserMapper.toProfileEntity(
+            registerRequestDTO, passwordEncoder.encode(registerRequestDTO.getPassword()));
 
-        try {
-            String[] refreshTokens = Objects
-                    .requireNonNull(
-                            redisOperator.opsForValue()
-                                    .get("user_session$".concat(email))
-                    ).split("\\$");
+    userRepo.save(user);
+    log.info("Successfully created new user account for email: {}", registerRequestDTO.getEmail());
 
-            Arrays.stream(refreshTokens)
-                    .forEach(token -> {
-                        redisOperator
-                                .delete("refresh_token$" + token);
-                    });
-        } catch (RuntimeException e) {
-            throw new RuntimeException(
-                    "Unable to delete token on terminateSession() " + e.getMessage()
-            );
-        }
-        log.info(
-                "Terminated user session for {}",
-                email
-        );
+    emailServiceImpl.sendWelcomeMail(
+        registerRequestDTO.getEmail(), registerRequestDTO.getUsername());
+  }
 
-        return List.of(
-                ResponseCookie.from("jwt-token", "")
-                        .path("/api/v1")
-                        .httpOnly(true)
-                        .maxAge(0)
-                        .secure(tokenCookieProperties.isSecure())
-                        .sameSite(tokenCookieProperties.getSameSite())
-                        .build(),
-                ResponseCookie.from("refresh-token", "")
-                        .path("/api/v1/")
-                        .httpOnly(true)
-                        .maxAge(0)
-                        .secure(tokenCookieProperties.isSecure())
-                        .sameSite(tokenCookieProperties.getSameSite())
-                        .build()
-        );
+  public List<ResponseCookie> terminateSession(String email) {
+    HttpSession session = httpServletRequest.getSession(false);
+    if (session != null) {
+      session.invalidate();
+    }
+    SecurityContextHolder.getContext().setAuthentication(null);
+
+    try {
+      String[] refreshTokens =
+          Objects.requireNonNull(redisOperator.opsForValue().get("user_session$".concat(email)))
+              .split("\\$");
+
+      Arrays.stream(refreshTokens)
+          .forEach(
+              token -> {
+                redisOperator.delete("refresh_token$" + token);
+              });
+    } catch (RuntimeException e) {
+      throw new RuntimeException("Unable to delete token on terminateSession() " + e.getMessage());
+    }
+    log.info("Terminated user session for {}", email);
+
+    return List.of(
+        ResponseCookie.from("jwt-token", "")
+            .path("/api/v1")
+            .httpOnly(true)
+            .maxAge(0)
+            .secure(tokenCookieProperties.isSecure())
+            .sameSite(tokenCookieProperties.getSameSite())
+            .build(),
+        ResponseCookie.from("refresh-token", "")
+            .path("/api/v1/")
+            .httpOnly(true)
+            .maxAge(0)
+            .secure(tokenCookieProperties.isSecure())
+            .sameSite(tokenCookieProperties.getSameSite())
+            .build());
+  }
+
+  public List<ResponseCookie> authenticateUser(LoginRequestDTO request) {
+    int loginRequestCount =
+        Integer.parseInt(
+            Objects.requireNonNullElse(
+                redisOperator.opsForValue().get("login_request_count$".concat(request.getEmail())),
+                "0"));
+
+    try {
+      authManager.authenticate(
+          new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+      redisOperator.delete("login_request_count$".concat(request.getEmail()));
+    } catch (AuthenticationException e) {
+      log.warn(
+          "Login attempt failed for {}, total attempts = {}: {}",
+          request.getEmail(),
+          loginRequestCount,
+          e.getMessage());
+
+      redisOperator
+          .opsForValue()
+          .set(
+              "login_request_count$".concat(request.getEmail()),
+              String.valueOf(loginRequestCount + 1),
+              Duration.ofHours(1));
+
+      throw new BadCredentialsException(
+          "Login attempt failed, please enter valid email and password");
     }
 
-    public List<ResponseCookie> authenticateUser(LoginRequestDTO request) {
-        int loginRequestCount = Integer.parseInt(
-                Objects.requireNonNullElse(
-                        redisOperator.opsForValue()
-                                .get(
-                                        "login_request_count$"
-                                                .concat(request.getEmail())
-                                ),
-                        "0"
-                )
-        );
+    List<ResponseCookie> tokens = handleTokenProcessing(request.getEmail());
 
-        try {
-            authManager
-                    .authenticate(
-                            new UsernamePasswordAuthenticationToken(
-                                    request.getEmail(), request.getPassword()
-                            )
-                    );
-            redisOperator
-                    .delete(
-                            "login_request_count$"
-                                    .concat(request.getEmail())
-                    );
-        } catch (AuthenticationException e) {
-            log.warn(
-                    "Login attempt failed for {}, total attempts = {}: {}",
-                    request.getEmail(),
-                    loginRequestCount,
-                    e.getMessage()
-            );
+    String currentTokens =
+        redisOperator.opsForValue().get("user_session$".concat(request.getEmail()));
+    redisOperator.delete("login_request_count$".concat(request.getEmail()));
+    redisOperator
+        .opsForValue()
+        .set(
+            "user_session$".concat(request.getEmail()),
+            currentTokens == null
+                ? tokens.get(1).getValue()
+                : currentTokens.concat("$".concat(tokens.get(1).getValue())),
+            Duration.ofHours(1));
 
-            redisOperator.opsForValue()
-                    .set(
-                            "login_request_count$"
-                                    .concat(request.getEmail()),
-                            String
-                                    .valueOf(loginRequestCount + 1),
-                            Duration
-                                    .ofHours(1)
-                    );
+    return tokens;
+  }
 
-            throw new BadCredentialsException(
-                    "Login attempt failed, please enter valid email and password"
-            );
-        }
+  public ResponseCookie refreshAuthenticationTokens(Cookie[] cookies) {
+    String refreshToken = extractToken(cookies);
 
-        List<ResponseCookie> tokens = handleTokenProcessing(request.getEmail());
+    if (!refreshToken.isBlank()) {
+      try {
+        String username = redisOperator.opsForValue().get("refresh_token$" + refreshToken);
+        CustomUserDetails currUser = customUserDetailsServiceImpl.loadUserByUsername(username);
 
-        String currentTokens = redisOperator.opsForValue()
-                .get(
-                        "user_session$"
-                                .concat(request.getEmail())
-                );
+        UsernamePasswordAuthenticationToken authToken =
+            new UsernamePasswordAuthenticationToken(currUser, null, currUser.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authToken);
+
+        String jwtToken = jwtServiceImpl.generateJwtToken(username);
+
+        return ResponseCookie.from("jwt-token", jwtToken)
+            .path("/api/v1")
+            .httpOnly(true)
+            .secure(tokenCookieProperties.isSecure())
+            .sameSite(tokenCookieProperties.getSameSite())
+            .maxAge(Duration.ofMinutes(20))
+            .build();
+      } catch (RuntimeException e) {
+        throw new RuntimeException(
+            "Unable to refresh authentication token on refreshAuthenticationToken() "
+                + e.getMessage());
+      }
+    } else {
+      throw new TokenInvalidException("Authentication token is invalid, token refresh failed");
+    }
+  }
+
+  public List<ResponseCookie> handleTokenProcessing(String username) {
+    String jwtToken = jwtServiceImpl.generateJwtToken(username);
+    String refreshToken = jwtServiceImpl.generateRefreshToken();
+
+    try {
+      redisOperator
+          .opsForValue()
+          .set("refresh_token$" + refreshToken, username, Duration.ofDays(7));
+    } catch (RuntimeException e) {
+      throw new RuntimeException(
+          "Unable to save token on handleTokenProcessing() " + e.getMessage());
+    }
+
+    return List.of(
+        ResponseCookie.from("jwt-token", jwtToken)
+            .path("/api/v1")
+            .httpOnly(true)
+            .secure(tokenCookieProperties.isSecure())
+            .sameSite(tokenCookieProperties.getSameSite())
+            .maxAge(Duration.ofMinutes(20))
+            .build(),
+        ResponseCookie.from("refresh-token", refreshToken)
+            .path("/api/v1/")
+            .httpOnly(true)
+            .secure(tokenCookieProperties.isSecure())
+            .sameSite(tokenCookieProperties.getSameSite())
+            .maxAge(Duration.ofDays(7))
+            .build());
+  }
+
+  @Transactional
+  public void modifyUserPassword(PasswordResetRequestDTO passwordResetRequestDTO) {
+    User registeredUser =
+        userServiceImpl.checkAndGetUserByEmail(passwordResetRequestDTO.getEmail());
+    String storedOtp =
         redisOperator
-                .delete(
-                        "login_request_count$"
-                                .concat(request.getEmail())
-                );
-        redisOperator.opsForValue()
-                .set(
-                        "user_session$"
-                                .concat(request.getEmail()),
-                        currentTokens == null ?
-                                tokens.get(1)
-                                        .getValue() :
-                                currentTokens
-                                        .concat(
-                                                "$".concat(tokens.get(1).getValue())
-                                        ),
-                        Duration
-                                .ofHours(1)
-                );
+            .opsForValue()
+            .getAndDelete("pass_reset_otp$".concat(passwordResetRequestDTO.getEmail()));
 
-        return tokens;
+    if (storedOtp == null) {
+      throw new InvalidOtpException("Otp expired for password reset, please create a new one.");
     }
 
-    public ResponseCookie refreshAuthenticationTokens(Cookie[] cookies) {
-        String refreshToken = extractToken(cookies);
-
-        if (!refreshToken.isBlank()) {
-            try {
-                String username = redisOperator.opsForValue()
-                        .get(
-                                "refresh_token$" + refreshToken
-                        );
-                CustomUserDetails currUser = customUserDetailsServiceImpl
-                        .loadUserByUsername(username);
-
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                currUser,
-                                null,
-                                currUser.getAuthorities()
-                        );
-                SecurityContextHolder.getContext()
-                        .setAuthentication(authToken);
-
-                String jwtToken = jwtServiceImpl
-                        .generateJwtToken(username);
-
-                return ResponseCookie.from("jwt-token", jwtToken)
-                        .path("/api/v1")
-                        .httpOnly(true)
-                        .secure(tokenCookieProperties.isSecure())
-                        .sameSite(tokenCookieProperties.getSameSite())
-                        .maxAge(Duration.ofMinutes(20))
-                        .build();
-            } catch (RuntimeException e) {
-                throw new RuntimeException(
-                        "Unable to refresh authentication token on refreshAuthenticationToken() " + e.getMessage()
-                );
-            }
-        } else {
-            throw new TokenInvalidException(
-                    "Authentication token is invalid, token refresh failed"
-            );
-        }
+    if (!passwordEncoder.matches(passwordResetRequestDTO.getOtp(), storedOtp)) {
+      throw new InvalidOtpException(
+          "Otp for password reset " + passwordResetRequestDTO.getOtp() + " is not valid");
     }
 
-    public List<ResponseCookie> handleTokenProcessing(String username) {
-        String jwtToken = jwtServiceImpl
-                .generateJwtToken(username);
-        String refreshToken = jwtServiceImpl
-                .generateRefreshToken();
+    registeredUser.setPassword(passwordEncoder.encode(passwordResetRequestDTO.getNewPassword()));
+    userRepo.save(registeredUser);
+  }
 
-        try {
-            redisOperator.opsForValue()
-                    .set(
-                            "refresh_token$" + refreshToken,
-                            username,
-                            Duration
-                                    .ofDays(7)
-                    );
-        } catch (RuntimeException e) {
-            throw new RuntimeException(
-                    "Unable to save token on handleTokenProcessing() " + e.getMessage()
-            );
-        }
+  @Transactional
+  public void verifyUserEmail(
+      AccountVerificationRequestDTO accountVerificationRequestDTO, String email) {
+    User registeredUser = userServiceImpl.checkAndGetUserByEmail(email);
+    String storedOtp = redisOperator.opsForValue().getAndDelete("email_verify_otp$".concat(email));
 
-        return List.of(
-                ResponseCookie.from("jwt-token", jwtToken)
-                        .path("/api/v1")
-                        .httpOnly(true)
-                        .secure(tokenCookieProperties.isSecure())
-                        .sameSite(tokenCookieProperties.getSameSite())
-                        .maxAge(Duration.ofMinutes(20))
-                        .build(),
-                ResponseCookie.from("refresh-token", refreshToken)
-                        .path("/api/v1/")
-                        .httpOnly(true)
-                        .secure(tokenCookieProperties.isSecure())
-                        .sameSite(tokenCookieProperties.getSameSite())
-                        .maxAge(Duration.ofDays(7))
-                        .build()
-        );
+    if (storedOtp == null) {
+      throw new InvalidOtpException(
+          "Otp expired for account verification, please create a new one.");
     }
 
-    @Transactional
-    public void modifyUserPassword(PasswordResetRequestDTO passwordResetRequestDTO) {
-        User registeredUser = userServiceImpl
-                .checkAndGetUserByEmail(passwordResetRequestDTO.getEmail());
-        String storedOtp = redisOperator.opsForValue()
-                .getAndDelete(
-                        "pass_reset_otp$"
-                                .concat(passwordResetRequestDTO.getEmail())
-                );
-
-        if (storedOtp == null) {
-            throw new InvalidOtpException(
-                    "Otp expired for password reset, please create a new one."
-            );
-        }
-
-        if (!passwordEncoder
-                .matches(passwordResetRequestDTO.getOtp(), storedOtp)
-        ) {
-            throw new InvalidOtpException(
-                    "Otp for password reset " + passwordResetRequestDTO.getOtp() + " is not valid"
-            );
-        }
-
-        registeredUser
-                .setPassword(
-                        passwordEncoder
-                                .encode(passwordResetRequestDTO.getNewPassword())
-                );
-        userRepo
-                .save(registeredUser);
+    if (!passwordEncoder.matches(accountVerificationRequestDTO.getOtp(), storedOtp)) {
+      throw new InvalidOtpException(
+          "Otp for account verification "
+              + accountVerificationRequestDTO.getOtp()
+              + " is not valid");
     }
 
-    @Transactional
-    public void verifyUserEmail(AccountVerificationRequestDTO accountVerificationRequestDTO, String email) {
-        User registeredUser = userServiceImpl
-                .checkAndGetUserByEmail(email);
-        String storedOtp = redisOperator.opsForValue()
-                .getAndDelete(
-                        "email_verify_otp$"
-                                .concat(email)
-                );
+    registeredUser.setAccountVerified(true);
+    registeredUser.setRole(RoleType.VERIFIED_USER);
+    userRepo.save(registeredUser);
+  }
 
-        if (storedOtp == null) {
-            throw new InvalidOtpException(
-                    "Otp expired for account verification, please create a new one."
-            );
+  private String extractToken(Cookie[] cookies) {
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (cookie.getName().equals("refresh-token")) {
+          return cookie.getValue();
         }
-
-        if (!passwordEncoder
-                .matches(
-                        accountVerificationRequestDTO.getOtp(),
-                        storedOtp
-                )
-        ) {
-            throw new InvalidOtpException(
-                    "Otp for account verification " + accountVerificationRequestDTO.getOtp() + " is not valid"
-            );
-        }
-
-        registeredUser
-                .setAccountVerified(true);
-        registeredUser
-                .setRole(RoleType.VERIFIED_USER);
-        userRepo
-                .save(registeredUser);
+      }
     }
-
-    private String extractToken(Cookie[] cookies) {
-        if (cookies != null) {
-            for (Cookie cookie : cookies) {
-                if (cookie.getName()
-                        .equals("refresh-token")
-                ) {
-                    return cookie.getValue();
-                }
-            }
-        }
-        return "";
-    }
+    return "";
+  }
 }

@@ -14,19 +14,16 @@ import org.springframework.stereotype.Service;
 @NullMarked
 public class CustomUserDetailsServiceImpl implements UserDetailsService {
 
-    private final UserRepository userRepo;
+  private final UserRepository userRepo;
 
-    @Override
-    public CustomUserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserDetailResponseDTO currUser = userRepo
-                .findUserForAuth(email)
-                .orElseThrow(() ->
-                        new UsernameNotFoundException(
-                                "User not found. Enter registered email"
-                        )
-                );
+  @Override
+  public CustomUserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    UserDetailResponseDTO currUser =
+        userRepo
+            .findUserForAuth(email)
+            .orElseThrow(
+                () -> new UsernameNotFoundException("User not found. Enter registered email"));
 
-
-        return new CustomUserDetails(currUser);
-    }
+    return new CustomUserDetails(currUser);
+  }
 }

@@ -20,29 +20,26 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("")
 @RequiredArgsConstructor
 @Tag(
-        name = "Vote Management",
-        description = "Endpoints for casting, modifying, and removing votes on posts"
-)
+    name = "Vote Management",
+    description = "Endpoints for casting, modifying, and removing votes on posts")
 @SecurityRequirement(name = "bearerAuth")
 @PreAuthorize("isFullyAuthenticated() && !hasAnyAuthority('ADMIN', 'USER')")
 public class VoteController {
 
-    private final VoteServiceImpl voteServiceImpl;
+  private final VoteServiceImpl voteServiceImpl;
 
-    @Operation(
-            summary = "Submit or toggle a vote",
-            description = "Allows a user to upvote or downvote a post (question or answer). Submitting the same vote again will remove it. Submitting a different vote will change it."
-    )
-    @PostMapping("/vote")
-    public ResponseEntity<@NonNull String> toggleVote(
-            @RequestBody VoteRequestDTO voteRequestDTO,
-            @AuthenticationPrincipal CustomUserDetails userDetails,
-            @RequestParam VoteType voteType
-    ) throws BadRequestException {
-        voteServiceImpl
-                .handleVote(voteRequestDTO, userDetails.getUserId(), voteType);
+  @Operation(
+      summary = "Submit or toggle a vote",
+      description =
+          "Allows a user to upvote or downvote a post (question or answer). Submitting the same vote again will remove it. Submitting a different vote will change it.")
+  @PostMapping("/vote")
+  public ResponseEntity<@NonNull String> toggleVote(
+      @RequestBody VoteRequestDTO voteRequestDTO,
+      @AuthenticationPrincipal CustomUserDetails userDetails,
+      @RequestParam VoteType voteType)
+      throws BadRequestException {
+    voteServiceImpl.handleVote(voteRequestDTO, userDetails.getUserId(), voteType);
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body("Vote has been updated");
-    }
+    return ResponseEntity.status(HttpStatus.OK).body("Vote has been updated");
+  }
 }

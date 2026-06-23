@@ -4,68 +4,55 @@ import com.project.hearmeout_backend.authentication_service.model.CustomUserDeta
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import javax.crypto.SecretKey;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import javax.crypto.SecretKey;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JwtServiceImpl {
 
-    private final SecretKey secretKey;
+  private final SecretKey secretKey;
 
-    public JwtServiceImpl(@Value("${jwt.secret}") String secretKey) {
-        this.secretKey = Keys
-                .hmacShaKeyFor(secretKey.getBytes());
-    }
+  public JwtServiceImpl(@Value("${jwt.secret}") String secretKey) {
+    this.secretKey = Keys.hmacShaKeyFor(secretKey.getBytes());
+  }
 
-    public String generateJwtToken(String username) {
-        return Jwts.builder()
-                .subject(username)
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30)))
-                .signWith(secretKey)
-                .compact();
-    }
+  public String generateJwtToken(String username) {
+    return Jwts.builder()
+        .subject(username)
+        .issuedAt(new Date())
+        .expiration(new Date(System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(30)))
+        .signWith(secretKey)
+        .compact();
+  }
 
-    public Claims parseToken(String token) {
-        return Jwts.parser()
-                .verifyWith(secretKey)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-    }
+  public Claims parseToken(String token) {
+    return Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
+  }
 
-    public String extractUsername(String token) {
-        return parseToken(token)
-                .getSubject();
-    }
+  public String extractUsername(String token) {
+    return parseToken(token).getSubject();
+  }
 
-    public Date extractExpiration(String token) {
-        return parseToken(token)
-                .getExpiration();
-    }
+  public Date extractExpiration(String token) {
+    return parseToken(token).getExpiration();
+  }
 
-    public boolean isTokenValid(String token, CustomUserDetails userDetails) {
-        return (
-                extractUsername(token).equals(userDetails.getUsername()) &&
-                        !extractExpiration(token).before(new Date())
-        );
-    }
+  public boolean isTokenValid(String token, CustomUserDetails userDetails) {
+    return (extractUsername(token).equals(userDetails.getUsername())
+        && !extractExpiration(token).before(new Date()));
+  }
 
-    public String generateRefreshToken() {
-        SecureRandom random = new SecureRandom();
+  public String generateRefreshToken() {
+    SecureRandom random = new SecureRandom();
 
-        byte[] bytes = new byte[64];
-        random
-                .nextBytes(bytes);
+    byte[] bytes = new byte[64];
+    random.nextBytes(bytes);
 
-        return Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(bytes);
-    }
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+  }
 }

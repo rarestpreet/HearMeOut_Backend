@@ -10,6 +10,6 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 public class TokenCookieProperties {
-    private String sameSite;
-    private boolean secure;
+  private String sameSite;
+  private boolean secure;
 }

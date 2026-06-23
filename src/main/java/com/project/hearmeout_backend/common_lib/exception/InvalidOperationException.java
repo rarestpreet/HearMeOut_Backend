@@ -1,7 +1,7 @@
 package com.project.hearmeout_backend.common_lib.exception;
 
 public class InvalidOperationException extends RuntimeException {
-    public InvalidOperationException(String message) {
-        super(message);
-    }
+  public InvalidOperationException(String message) {
+    super(message);
+  }
 }

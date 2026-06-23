@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class VoteRequestDTO {
 
-    @NotNull(message = "postId cannot be null")
-    @Schema(description = "The ID of the post (question or answer) being voted on")
-    private Long postId;
+  @NotNull(message = "postId cannot be null")
+  @Schema(description = "The ID of the post (question or answer) being voted on")
+  private Long postId;
 }

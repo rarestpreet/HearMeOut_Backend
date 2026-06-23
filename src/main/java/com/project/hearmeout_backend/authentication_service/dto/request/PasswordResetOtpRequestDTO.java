@@ -13,12 +13,11 @@ import lombok.Setter;
 @NoArgsConstructor
 public class PasswordResetOtpRequestDTO {
 
-    @Pattern(
-            regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
-            message = "Email must be valid"
-    )
-    @NotBlank(message = "Email is required")
-    @Email(message = "Email must be a valid email address")
-    @Schema(description = "The registered email address to send the password reset OTP to")
-    private String email;
+  @Pattern(
+      regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
+      message = "Email must be valid")
+  @NotBlank(message = "Email is required")
+  @Email(message = "Email must be a valid email address")
+  @Schema(description = "The registered email address to send the password reset OTP to")
+  private String email;
 }

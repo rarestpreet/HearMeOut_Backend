@@ -4,21 +4,21 @@ import com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileRe
 import com.project.hearmeout_backend.user_service.dto.response.UserDetailResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.user_service.model.User;
+import java.util.Optional;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
-
 @NullMarked
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    boolean existsByUsername(String username);
+  boolean existsByUsername(String username);
 
-    @Query("""
+  @Query(
+      """
                 SELECT new com.project.hearmeout_backend.user_service.dto.response.UserDetailResponseDTO(
                     u.id, u.username, u.email, u.password, u.roles
                 )
@@ -26,31 +26,33 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 WHERE u.email = :email
                 AND u.isAccountTerminated = false
             """)
-    Optional<UserDetailResponseDTO> findUserForAuth(@Param(value = "email") String email);
+  Optional<UserDetailResponseDTO> findUserForAuth(@Param(value = "email") String email);
 
-    @Query("""
+  @Query(
+      """
             SELECT new com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO(
                 u.id, u.username, u.email, u.reputation, u.createdAt, u.isAccountVerified, u.isAccountTerminated
             )
             FROM User u
             WHERE u.username = :username
             """)
-    Optional<UserProfileResponseDTO> getUserProfileByUsername(@Param("username") String username);
+  Optional<UserProfileResponseDTO> getUserProfileByUsername(@Param("username") String username);
 
-    @Query("""
+  @Query(
+      """
             SELECT new com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileResponseDTO(
                 u.username, u.id, u.isAccountVerified, u.roles
             )
             FROM User u
             WHERE u.id = :id
             """)
-    Optional<HomeUserProfileResponseDTO> getHomeUserProfileById(@Param("id") Long id);
+  Optional<HomeUserProfileResponseDTO> getHomeUserProfileById(@Param("id") Long id);
 
-    boolean existsByUsernameOrEmail(String username, String email);
+  boolean existsByUsernameOrEmail(String username, String email);
 
-    Optional<User> findByUsername(String username);
+  Optional<User> findByUsername(String username);
 
-    Optional<User> findByEmail(String email);
+  Optional<User> findByEmail(String email);
 
-    boolean existsByEmail(String email);
+  boolean existsByEmail(String email);
 }
