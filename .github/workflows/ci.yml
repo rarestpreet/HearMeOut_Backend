@@ -21,6 +21,9 @@ jobs:
           java-version: 21
           cache: maven #reduce latency during build
 
+      - name: Make Maven Wrapper Executable
+        run: chmod +x mvnw #required to provide maven wrapper script execute permission
+
       - name: Run Tests
         run: ./mvnw clean test #everyone use same maven version
 
