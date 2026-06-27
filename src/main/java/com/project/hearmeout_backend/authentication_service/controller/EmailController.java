@@ -2,7 +2,8 @@ package com.project.hearmeout_backend.authentication_service.controller;
 
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetOtpRequestDTO;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
-import com.project.hearmeout_backend.authentication_service.service.implementation.EmailServiceImpl;
+import com.project.hearmeout_backend.common_lib.event_dto.PasswordResetOtpEvent;
+import com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent;
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
 import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
 import io.swagger.v3.oas.annotations.Operation;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
     description = "Endpoints for sending verification and password reset emails")
 public class EmailController {
 
-  private final EmailServiceImpl emailServiceImpl;
+  private final KafkaTemplate<@NonNull String, @NonNull VerificationOtpEvent>
+      kafkaTemplateUserVerification;
+  private final KafkaTemplate<@NonNull String, @NonNull PasswordResetOtpEvent>
+      kafkaTemplateUserPasswordReset;
 
   @Operation(
       summary = "Send account verification OTP",
@@ -43,7 +48,8 @@ public class EmailController {
       timeoutInMinutes = 1)
   public ResponseEntity<@NonNull String> sendAccountVerificationOtp(
       @AuthenticationPrincipal CustomUserDetails userDetails) {
-    emailServiceImpl.sendAccountVerificationMail(userDetails.getUsername());
+    kafkaTemplateUserVerification.send(
+        "verificationOtpEvent", new VerificationOtpEvent(userDetails.getUsername()));
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }
@@ -57,7 +63,8 @@ public class EmailController {
   @PreAuthorize("!hasAuthority('ADMIN')")
   public ResponseEntity<@NonNull String> sendResetPasswordOtp(
       @Valid @RequestBody PasswordResetOtpRequestDTO passwordResetOtpRequestDTO) {
-    emailServiceImpl.sendPasswordResetMail(passwordResetOtpRequestDTO.getEmail());
+    kafkaTemplateUserPasswordReset.send(
+        "passwordResetOtpEvent", new PasswordResetOtpEvent(passwordResetOtpRequestDTO.getEmail()));
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }

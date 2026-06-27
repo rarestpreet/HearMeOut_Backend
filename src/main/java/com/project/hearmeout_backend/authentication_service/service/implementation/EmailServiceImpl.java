@@ -28,6 +28,7 @@ public class EmailServiceImpl {
       throw new RuntimeException(
           "Error sending welcome mail for %s: %s".formatted(receiverMail, e.getMessage()));
     }
+    log.info("Welcome mail sent successfully to: {}", receiverMail);
   }
 
   public void sendPasswordResetMail(String receiverMail) {
@@ -46,6 +47,7 @@ public class EmailServiceImpl {
       throw new RuntimeException(
           "Error sending password reset mail to %s: %s".formatted(receiverMail, e.getMessage()));
     }
+    log.info("Password reset mail sent successfully to: {}", receiverMail);
   }
 
   public void sendAccountVerificationMail(String receiverMail) {
@@ -65,5 +67,6 @@ public class EmailServiceImpl {
           "Error sending account verification mail to %s: %s"
               .formatted(receiverMail, e.getMessage()));
     }
+    log.info("Account verification mail sent successfully to: {}", receiverMail);
   }
 }

@@ -7,6 +7,7 @@ import com.project.hearmeout_backend.authentication_service.dto.request.Password
 import com.project.hearmeout_backend.authentication_service.dto.request.RegisterRequestDTO;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
+import com.project.hearmeout_backend.common_lib.event_dto.UserRegisteredEvent;
 import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOtpException;
 import com.project.hearmeout_backend.common_lib.exception.TokenInvalidException;
@@ -23,10 +24,12 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -46,10 +49,11 @@ public class SecurityServiceImpl {
   private final HttpServletRequest httpServletRequest;
   private final JwtServiceImpl jwtServiceImpl;
   private final TokenCookieProperties tokenCookieProperties;
-  private final EmailServiceImpl emailServiceImpl;
   private final UserServiceImpl userServiceImpl;
   private final StringRedisTemplate redisOperator;
   private final CustomUserDetailsServiceImpl customUserDetailsServiceImpl;
+  private final KafkaTemplate<@NonNull String, @NonNull UserRegisteredEvent>
+      kafkaTemplateUserRegistration;
 
   @Transactional
   public void createNewUser(RegisterRequestDTO registerRequestDTO)
@@ -66,8 +70,9 @@ public class SecurityServiceImpl {
     userRepo.save(user);
     log.info("Successfully created new user account for email: {}", registerRequestDTO.getEmail());
 
-    emailServiceImpl.sendWelcomeMail(
-        registerRequestDTO.getEmail(), registerRequestDTO.getUsername());
+    kafkaTemplateUserRegistration.send(
+        "userRegisteredEvent",
+        new UserRegisteredEvent(registerRequestDTO.getEmail(), registerRequestDTO.getUsername()));
   }
 
   public List<ResponseCookie> terminateSession(String email) {
