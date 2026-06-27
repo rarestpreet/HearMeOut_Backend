@@ -95,7 +95,8 @@ public class TagServiceImplTest {
   @Test
   void updateTag_Success_OnlyDescriptionModified() {
     // Arrange
-    Tag existingTag = Tag.builder().name("java").description("Old description").usageCount(5L).build();
+    Tag existingTag =
+        Tag.builder().name("java").description("Old description").usageCount(5L).build();
     existingTag.setId(1L);
 
     TagModificationRequestDTO modificationDTO = new TagModificationRequestDTO();
@@ -126,9 +127,7 @@ public class TagServiceImplTest {
 
     // Act & Assert
     TagNotFoundException exception =
-        assertThrows(
-            TagNotFoundException.class,
-            () -> tagService.updateTag(99L, modificationDTO));
+        assertThrows(TagNotFoundException.class, () -> tagService.updateTag(99L, modificationDTO));
 
     assertEquals("Tag with id 99 not found", exception.getMessage());
     verify(tagRepo, never()).save(any());
@@ -154,9 +153,7 @@ public class TagServiceImplTest {
 
     // Act & Assert
     TagNotFoundException exception =
-        assertThrows(
-            TagNotFoundException.class,
-            () -> tagService.deleteTag(99L));
+        assertThrows(TagNotFoundException.class, () -> tagService.deleteTag(99L));
 
     assertEquals("Tag with id 99 not found", exception.getMessage());
     verify(tagRepo, never()).deleteById(any());

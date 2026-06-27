@@ -1,6 +1,5 @@
 package com.project.hearmeout_backend.service.implementation;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -69,7 +68,8 @@ public class PostServiceImplTest {
     // Arrange
     QuestionSubmitRequestDTO dto = new QuestionSubmitRequestDTO();
     dto.setTitle("How to use Spring Boot with Java for building REST APIs effectively?");
-    dto.setBody("I am trying to build a REST API using Spring Boot. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
+    dto.setBody(
+        "I am trying to build a REST API using Spring Boot. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
     dto.setTagIds(List.of(1L, 2L));
 
     when(userServiceImpl.checkAndGetUserByUserId(1L)).thenReturn(author);
@@ -88,7 +88,8 @@ public class PostServiceImplTest {
     // Arrange
     QuestionSubmitRequestDTO dto = new QuestionSubmitRequestDTO();
     dto.setTitle("How to use Spring Boot with Java for building REST APIs effectively?");
-    dto.setBody("I am trying to build a REST API using Spring Boot. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
+    dto.setBody(
+        "I am trying to build a REST API using Spring Boot. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
     dto.setTagIds(List.of(1L, 99L));
 
     when(userServiceImpl.checkAndGetUserByUserId(1L)).thenReturn(author);
@@ -116,7 +117,8 @@ public class PostServiceImplTest {
 
     QuestionSubmitRequestDTO dto = new QuestionSubmitRequestDTO();
     dto.setTitle("Updated title for the question about Spring Boot and Java REST APIs?");
-    dto.setBody("Updated body content with more details about building REST APIs. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
+    dto.setBody(
+        "Updated body content with more details about building REST APIs. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
     dto.setTagIds(List.of(1L, 2L));
 
     when(postRepo.findById(10L)).thenReturn(java.util.Optional.of(question));
@@ -145,7 +147,8 @@ public class PostServiceImplTest {
 
     QuestionSubmitRequestDTO dto = new QuestionSubmitRequestDTO();
     dto.setTitle("Updated title for the question about Spring Boot and Kotlin REST APIs?");
-    dto.setBody("Updated body content about building REST APIs with Kotlin. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
+    dto.setBody(
+        "Updated body content about building REST APIs with Kotlin. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
     dto.setTagIds(List.of(2L, 3L));
 
     when(postRepo.findById(10L)).thenReturn(java.util.Optional.of(question));
@@ -174,7 +177,8 @@ public class PostServiceImplTest {
 
     QuestionSubmitRequestDTO dto = new QuestionSubmitRequestDTO();
     dto.setTitle("Updated title for a completely different question about Kotlin programming?");
-    dto.setBody("Completely rewritten body about Kotlin programming. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
+    dto.setBody(
+        "Completely rewritten body about Kotlin programming. I need help with configuring controllers, services, and repositories. Can someone provide a detailed guide on how to set up the project structure and implement CRUD operations?");
     dto.setTagIds(List.of(3L));
 
     when(postRepo.findById(10L)).thenReturn(java.util.Optional.of(question));
@@ -202,7 +206,8 @@ public class PostServiceImplTest {
 
     QuestionSubmitRequestDTO dto = new QuestionSubmitRequestDTO();
     dto.setTitle("Should not matter because the question is closed and cannot be modified");
-    dto.setBody("This body should also not matter because the question is already resolved and closed for further modifications. No changes should be applied to this question.");
+    dto.setBody(
+        "This body should also not matter because the question is already resolved and closed for further modifications. No changes should be applied to this question.");
     dto.setTagIds(List.of(3L));
 
     when(postRepo.findById(10L)).thenReturn(java.util.Optional.of(question));
@@ -231,14 +236,14 @@ public class PostServiceImplTest {
 
     QuestionSubmitRequestDTO dto = new QuestionSubmitRequestDTO();
     dto.setTitle("Should not matter because this user is not the author of the question");
-    dto.setBody("This body should also not matter because the user trying to modify this question is not the original author. Only the original author can modify their own questions.");
+    dto.setBody(
+        "This body should also not matter because the user trying to modify this question is not the original author. Only the original author can modify their own questions.");
     dto.setTagIds(List.of(3L));
 
     when(postRepo.findById(10L)).thenReturn(java.util.Optional.of(question));
 
     // Act & Assert
-    assertThrows(
-        InvalidOperationException.class, () -> postService.updateQuestion(10L, dto, 2L));
+    assertThrows(InvalidOperationException.class, () -> postService.updateQuestion(10L, dto, 2L));
 
     verify(tagRepo, never()).incrementUsageCount(any());
     verify(tagRepo, never()).decrementUsageCount(any());
@@ -309,8 +314,7 @@ public class PostServiceImplTest {
     when(postRepo.findById(10L)).thenReturn(java.util.Optional.of(question));
 
     // Act & Assert
-    assertThrows(
-        InvalidOperationException.class, () -> postService.deleteQuestion(10L, 1L));
+    assertThrows(InvalidOperationException.class, () -> postService.deleteQuestion(10L, 1L));
 
     verify(tagRepo, never()).decrementUsageCount(any());
     verify(postRepo, never()).delete(any(Post.class));
