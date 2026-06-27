@@ -2,7 +2,6 @@ package com.project.hearmeout_backend.feed_service.dto.response;
 
 import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

@@ -1,7 +1,6 @@
 package com.project.hearmeout_backend.user_service.dto.response;
 
 import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
