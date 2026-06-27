@@ -19,4 +19,6 @@ public class Tag extends BaseModel {
   @Lob
   @Column(length = 100)
   private String description;
+
+  @Builder.Default private Long usageCount = 0L;
 }

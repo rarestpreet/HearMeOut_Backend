@@ -1,11 +1,16 @@
 package com.project.hearmeout_backend.post_service.controller;
 
 import com.project.hearmeout_backend.post_service.dto.request.TagCreationRequestDTO;
+import com.project.hearmeout_backend.post_service.dto.request.TagModificationRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO;
 import com.project.hearmeout_backend.post_service.service.implementation.TagServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
@@ -20,7 +25,8 @@ import org.springframework.web.bind.annotation.*;
 @NullMarked
 @Tag(
     name = "Tag Management",
-    description = "Endpoints for fetching and creating tags used for categorizing posts")
+    description =
+        "Endpoints for fetching, creating, updating, and deleting tags used for categorizing posts")
 @SecurityRequirement(name = "bearerAuth")
 public class TagController {
   private final TagServiceImpl tagServiceImpl;
@@ -37,11 +43,45 @@ public class TagController {
   @Operation(
       summary = "Create a tag",
       description = "Creates a new tag. Only users with ADMIN authority can perform this action.")
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Tag created successfully"),
+    @ApiResponse(responseCode = "400", description = "Validation failed"),
+    @ApiResponse(responseCode = "403", description = "Access denied — ADMIN role required")
+  })
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('ADMIN')")
   @PostMapping("")
-  public ResponseEntity<String> createTag(@RequestBody TagCreationRequestDTO tag) {
+  public ResponseEntity<String> createTag(@Valid @RequestBody TagCreationRequestDTO tag) {
     tagServiceImpl.createNewTag(tag);
 
     return ResponseEntity.status(HttpStatus.OK).body("tag created successfully");
+  }
+
+  @Operation(
+      summary = "Update a tag",
+      description =
+          "Updates an existing tag's name and/or description. Only users with ADMIN authority can perform this action. Supports partial updates — only non-null fields are applied.")
+  @PreAuthorize("isFullyAuthenticated() && hasAuthority('ADMIN')")
+  @PutMapping("{tagId}")
+  public ResponseEntity<String> updateTag(
+      @Parameter(description = "The ID of the tag to update", required = true) @PathVariable
+          Long tagId,
+      @Valid @RequestBody TagModificationRequestDTO tagModificationRequestDTO) {
+    tagServiceImpl.updateTag(tagId, tagModificationRequestDTO);
+
+    return ResponseEntity.status(HttpStatus.OK).body("tag updated successfully");
+  }
+
+  @Operation(
+      summary = "Delete a tag",
+      description =
+          "Permanently removes a tag from the system. Only users with ADMIN authority can perform this action.")
+  @PreAuthorize("isFullyAuthenticated() && hasAuthority('ADMIN')")
+  @DeleteMapping("{tagId}")
+  public ResponseEntity<String> deleteTag(
+      @Parameter(description = "The ID of the tag to delete", required = true) @PathVariable
+          Long tagId) {
+    tagServiceImpl.deleteTag(tagId);
+
+    return ResponseEntity.status(HttpStatus.OK).body("tag deleted successfully");
   }
 }

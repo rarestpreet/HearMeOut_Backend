@@ -19,4 +19,7 @@ public class TagResponseDTO {
 
   @Schema(description = "A brief description explaining the tag's purpose")
   private String description;
+
+  @Schema(description = "Count of questions that used this tag")
+  private Long usageCount;
 }

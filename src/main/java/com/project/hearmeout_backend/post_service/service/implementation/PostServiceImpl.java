@@ -26,6 +26,7 @@ import com.project.hearmeout_backend.post_service.repository.TagRepository;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -67,6 +68,8 @@ public class PostServiceImpl {
 
     Post newPost = PostMapper.questionToPostEntity(questionSubmitRequestDTO, author, tags);
     postRepo.save(newPost);
+
+    tagRepo.incrementUsageCount(questionSubmitRequestDTO.getTagIds());
   }
 
   @Transactional
@@ -266,10 +269,25 @@ public class PostServiceImpl {
       throw new InvalidOperationException("Cannot modify this question, already resolved.");
     }
 
-    List<Tag> tags = tagRepo.findAllById(questionSubmitRequestDTO.getTagIds());
+    List<Long> oldTagIds = question.getTags().stream().map(Tag::getId).toList();
+    List<Long> newTagIds = questionSubmitRequestDTO.getTagIds();
 
-    if (tags.size() != questionSubmitRequestDTO.getTagIds().size()) {
+    List<Tag> tags = tagRepo.findAllById(newTagIds);
+
+    if (tags.size() != newTagIds.size()) {
       throw new TagNotFoundException("Some tags do not exist");
+    }
+
+    List<Long> removedTagIds =
+        new ArrayList<>(oldTagIds.stream().filter(id -> !newTagIds.contains(id)).toList());
+    List<Long> addedTagIds =
+        new ArrayList<>(newTagIds.stream().filter(id -> !oldTagIds.contains(id)).toList());
+
+    if (!removedTagIds.isEmpty()) {
+      tagRepo.decrementUsageCount(removedTagIds);
+    }
+    if (!addedTagIds.isEmpty()) {
+      tagRepo.incrementUsageCount(addedTagIds);
     }
 
     question.setTitle(questionSubmitRequestDTO.getTitle());
@@ -360,6 +378,11 @@ public class PostServiceImpl {
 
     if (Objects.equals(question.getStatus(), PostStatus.CLOSED)) {
       throw new InvalidOperationException("Cannot delete this question, already resolved.");
+    }
+
+    List<Long> tagIds = question.getTags().stream().map(Tag::getId).toList();
+    if (!tagIds.isEmpty()) {
+      tagRepo.decrementUsageCount(tagIds);
     }
 
     User questionAuthor = userServiceImpl.checkAndGetUserByUserId(question.getAuthor().getId());
