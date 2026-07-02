@@ -23,22 +23,11 @@ spring:
           auth: true
           starttls:
             enable: true
-  kafka:
-    bootstrap-servers: ${KAFKA_URL:localhost:9092}
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      properties:
-        spring.json.type.mapping: "userRegistered:com.project.hearmeout_backend.common_lib.event_dto.UserRegisteredEvent,passwordResetOtp:com.project.hearmeout_backend.common_lib.event_dto.PasswordResetOtpEvent,verificationOtp:com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent"
-    consumer:
-      key-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.ErrorHandlingDeserializer
-      auto-offset-reset: latest
-      properties:
-        spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
-        spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        spring.json.trusted.packages: "com.project.hearmeout_backend.common_lib.event_dto"
-        spring.json.type.mapping: "userRegistered:com.project.hearmeout_backend.common_lib.event_dto.UserRegisteredEvent,passwordResetOtp:com.project.hearmeout_backend.common_lib.event_dto.PasswordResetOtpEvent,verificationOtp:com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent"
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USER:guest}
+    password: ${RABBITMQ_PASS:guest}
 
 jwt:
   secret: ${SECRET_KEY}

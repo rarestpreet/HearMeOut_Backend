@@ -29,7 +29,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
-import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -52,8 +52,7 @@ public class SecurityServiceImpl {
   private final UserServiceImpl userServiceImpl;
   private final StringRedisTemplate redisOperator;
   private final CustomUserDetailsServiceImpl customUserDetailsServiceImpl;
-  private final KafkaTemplate<@NonNull String, @NonNull UserRegisteredEvent>
-      kafkaTemplateUserRegistration;
+  private final RabbitTemplate rabbitTemplate;
 
   @Transactional
   public void createNewUser(RegisterRequestDTO registerRequestDTO)
@@ -70,8 +69,9 @@ public class SecurityServiceImpl {
     userRepo.save(user);
     log.info("Successfully created new user account for email: {}", registerRequestDTO.getEmail());
 
-    kafkaTemplateUserRegistration.send(
-        "userRegisteredEvent",
+    rabbitTemplate.convertAndSend(
+        "email.exchange",
+        "email.welcome",
         new UserRegisteredEvent(registerRequestDTO.getEmail(), registerRequestDTO.getUsername()));
   }
 
