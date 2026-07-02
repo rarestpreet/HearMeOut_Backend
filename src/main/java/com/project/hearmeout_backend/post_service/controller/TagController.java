@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.*;
     name = "Tag Management",
     description =
         "Endpoints for fetching, creating, updating, and deleting tags used for categorizing posts")
-@SecurityRequirement(name = "bearerAuth")
 public class TagController {
   private final TagServiceImpl tagServiceImpl;
 
@@ -42,13 +41,23 @@ public class TagController {
 
   @Operation(
       summary = "Create a tag",
-      description = "Creates a new tag. Only users with ADMIN authority can perform this action.")
+      description =
+          """
+          Creates a new tag. Only users with ADMIN authority can perform this action.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN
+          - Denied Roles: VERIFIED_USER, USER, GUEST
+          """)
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Tag created successfully"),
     @ApiResponse(responseCode = "400", description = "Validation failed"),
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Access denied — ADMIN role required")
   })
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('ADMIN')")
+  @SecurityRequirement(name = "bearerAuth")
   @PostMapping("")
   public ResponseEntity<String> createTag(@Valid @RequestBody TagCreationRequestDTO tag) {
     tagServiceImpl.createNewTag(tag);
@@ -59,8 +68,20 @@ public class TagController {
   @Operation(
       summary = "Update a tag",
       description =
-          "Updates an existing tag's name and/or description. Only users with ADMIN authority can perform this action. Supports partial updates — only non-null fields are applied.")
+          """
+          Updates an existing tag's name and/or description. Only users with ADMIN authority can perform this action. Supports partial updates — only non-null fields are applied.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN
+          - Denied Roles: VERIFIED_USER, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('ADMIN')")
+  @SecurityRequirement(name = "bearerAuth")
   @PutMapping("{tagId}")
   public ResponseEntity<String> updateTag(
       @Parameter(description = "The ID of the tag to update", required = true) @PathVariable
@@ -74,8 +95,20 @@ public class TagController {
   @Operation(
       summary = "Delete a tag",
       description =
-          "Permanently removes a tag from the system. Only users with ADMIN authority can perform this action.")
+          """
+          Permanently removes a tag from the system. Only users with ADMIN authority can perform this action.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN
+          - Denied Roles: VERIFIED_USER, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('ADMIN')")
+  @SecurityRequirement(name = "bearerAuth")
   @DeleteMapping("{tagId}")
   public ResponseEntity<String> deleteTag(
       @Parameter(description = "The ID of the tag to delete", required = true) @PathVariable

@@ -11,6 +11,9 @@ import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistExcept
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
 import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -53,9 +56,21 @@ public class SecurityController {
   @Operation(
       summary = "Logout user",
       description =
-          "Logs out the currently authenticated user by invalidating their session cookie.")
+          """
+          Logs out the currently authenticated user by invalidating their session cookie.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN, USER, VERIFIED_USER
+          - Denied Roles: GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("logout")
   @PreAuthorize("isFullyAuthenticated()")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> logoutUser(
       @AuthenticationPrincipal CustomUserDetails currUser) {
     List<ResponseCookie> clearedCookie =
@@ -91,9 +106,21 @@ public class SecurityController {
   @Operation(
       summary = "Reset user password",
       description =
-          "Resets the user's password using a valid OTP and terminates their current session.")
+          """
+          Resets the user's password using a valid OTP and terminates their current session.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: USER, VERIFIED_USER
+          - Denied Roles: ADMIN, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("password-reset")
   @PreAuthorize("!hasAuthority('ADMIN')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> resetPassword(
       @Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO) {
     securityServiceImpl.modifyUserPassword(passwordResetRequestDTO);
@@ -112,9 +139,21 @@ public class SecurityController {
   @Operation(
       summary = "Verify user account",
       description =
-          "Verifies the user's account using a valid OTP sent to their email. Requires authentication.")
+          """
+          Verifies the user's account using a valid OTP sent to their email. Requires authentication.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: USER
+          - Denied Roles: VERIFIED_USER, ADMIN, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("verify-account")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('USER')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> verifyAccount(
       @Valid @RequestBody AccountVerificationRequestDTO accountVerificationRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails) {

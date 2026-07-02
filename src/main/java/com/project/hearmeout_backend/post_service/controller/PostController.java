@@ -10,6 +10,8 @@ import com.project.hearmeout_backend.post_service.dto.request.QuestionSubmitRequ
 import com.project.hearmeout_backend.post_service.dto.response.QuestionPostResponseDTO;
 import com.project.hearmeout_backend.post_service.service.implementation.PostServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,7 +36,18 @@ public class PostController {
   @Operation(
       summary = "Ask a new question",
       description =
-          "Creates a new question post with title, body, and tags. Requires user authentication.")
+          """
+          Creates a new question post with title, body, and tags. Requires user authentication.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("/ask")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
@@ -49,7 +62,19 @@ public class PostController {
 
   @Operation(
       summary = "Submit an answer",
-      description = "Adds a new answer to a specific question. Requires user authentication.")
+      description =
+          """
+          Adds a new answer to a specific question. Requires user authentication.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("/{postId}/answer")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
@@ -81,9 +106,21 @@ public class PostController {
   @Operation(
       summary = "Accept an answer",
       description =
-          "Toggles the accepted status of an answer. Only the question author can accept an answer.")
+          """
+          Toggles the accepted status of an answer. Only the question author can accept an answer.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("/toggleStatus")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> toggleAnswerStatus(
       @Valid @RequestBody AcceptAnswerRequestDTO acceptAnswerRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
@@ -95,9 +132,21 @@ public class PostController {
   @Operation(
       summary = "Update an answer",
       description =
-          "Modifies the content of an existing answer. Only the answer author can update it.")
+          """
+          Modifies the content of an existing answer. Only the answer author can update it.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PutMapping("/answer/{answerId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> modifyAnswer(
       @PathVariable Long answerId,
       @Valid @RequestBody AnswerSubmitRequestDTO answerSubmitRequestDTO,
@@ -109,9 +158,22 @@ public class PostController {
 
   @Operation(
       summary = "Delete an answer",
-      description = "Removes an existing answer by its ID. Only the answer author can delete it.")
+      description =
+          """
+          Removes an existing answer by its ID. Only the answer author can delete it.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @DeleteMapping("/answer/{answerId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> removeAnswer(
       @PathVariable Long answerId, @AuthenticationPrincipal CustomUserDetails userDetails) {
     postServiceImpl.deleteAnswer(answerId, userDetails.getUserId());
@@ -122,9 +184,21 @@ public class PostController {
   @Operation(
       summary = "Update a question",
       description =
-          "Modifies an existing question's title, body, and tags. Only the question author can update it.")
+          """
+          Modifies an existing question's title, body, and tags. Only the question author can update it.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PutMapping("/question/{questionId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> modifyQuestion(
       @PathVariable Long questionId,
       @Valid @RequestBody QuestionSubmitRequestDTO questionSubmitRequestDTO,
@@ -137,9 +211,21 @@ public class PostController {
   @Operation(
       summary = "Delete a question",
       description =
-          "Removes an existing question by its ID. Only the question author can delete it.")
+          """
+          Removes an existing question by its ID. Only the question author can delete it.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @DeleteMapping("/question/{questionId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
+  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> removeQuestion(
       @PathVariable Long questionId, @AuthenticationPrincipal CustomUserDetails userDetails) {
     postServiceImpl.deleteQuestion(questionId, userDetails.getUserId());

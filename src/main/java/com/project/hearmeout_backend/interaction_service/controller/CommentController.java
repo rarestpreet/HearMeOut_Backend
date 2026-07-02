@@ -7,6 +7,8 @@ import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.interaction_service.dto.request.CommentRequestDTO;
 import com.project.hearmeout_backend.interaction_service.service.implementation.CommentServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -34,7 +36,19 @@ public class CommentController {
 
   @Operation(
       summary = "Add a comment",
-      description = "Creates a new comment on a specific post. The user must be authenticated.")
+      description =
+          """
+          Creates a new comment on a specific post. The user must be authenticated.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER, USER
+          - Denied Roles: ADMIN, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("")
   public ResponseEntity<@NonNull String> postComment(
       @Valid @RequestBody CommentRequestDTO commentRequestDTO,
@@ -48,7 +62,18 @@ public class CommentController {
   @Operation(
       summary = "Delete a comment",
       description =
-          "Removes an existing comment by its ID. Only the author of the comment can delete it.")
+          """
+          Removes an existing comment by its ID. Only the author of the comment can delete it.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER, USER
+          - Denied Roles: ADMIN, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @DeleteMapping("/{commentId}")
   public ResponseEntity<@NonNull String> deleteComment(
       @PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails userDetails)
@@ -61,7 +86,18 @@ public class CommentController {
   @Operation(
       summary = "Update a comment",
       description =
-          "Modifies the content of an existing comment. Only the author can update their own comment.")
+          """
+          Modifies the content of an existing comment. Only the author can update their own comment.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER, USER
+          - Denied Roles: ADMIN, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PutMapping("/{commentId}")
   public ResponseEntity<@NonNull String> updateComment(
       @PathVariable Long commentId,

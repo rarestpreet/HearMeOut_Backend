@@ -34,5 +34,4 @@ public class RabbitMQMessageListener {
     log.info("Initiate account verification mail sender for: {}", event.email());
     emailServiceImpl.sendAccountVerificationMail(event.email());
   }
-
 }

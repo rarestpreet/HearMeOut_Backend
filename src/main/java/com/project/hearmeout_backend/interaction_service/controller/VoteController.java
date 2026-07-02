@@ -5,6 +5,8 @@ import com.project.hearmeout_backend.interaction_service.dto.request.VoteRequest
 import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
 import com.project.hearmeout_backend.interaction_service.service.implementation.VoteServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.NonNull;
@@ -31,7 +33,18 @@ public class VoteController {
   @Operation(
       summary = "Submit or toggle a vote",
       description =
-          "Allows a user to upvote or downvote a post (question or answer). Submitting the same vote again will remove it. Submitting a different vote will change it.")
+          """
+          Allows a user to upvote or downvote a post (question or answer). Submitting the same vote again will remove it. Submitting a different vote will change it.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PostMapping("/vote")
   public ResponseEntity<@NonNull String> toggleVote(
       @RequestBody VoteRequestDTO voteRequestDTO,

@@ -12,6 +12,8 @@ import com.project.hearmeout_backend.user_service.dto.response.UserProfileRespon
 import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(
     name = "User Profile Management",
     description = "Endpoints for viewing and managing user profiles and their activity")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController {
 
   private final UserServiceImpl userServiceImpl;
@@ -39,7 +42,19 @@ public class UserController {
 
   @Operation(
       summary = "Get user profile",
-      description = "Retrieves the public profile information of a user by their username.")
+      description =
+          """
+          Retrieves the public profile information of a user by their username.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN, USER, VERIFIED_USER
+          - Denied Roles: GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @GetMapping("")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'USER', 'VERIFIED_USER')")
   public ResponseEntity<@NonNull UserProfileResponseDTO> userProfile(
@@ -55,7 +70,19 @@ public class UserController {
   // add pagination and sorting (from recent to older)
   @Operation(
       summary = "Get user questions",
-      description = "Retrieves a list of all questions asked by the specified user.")
+      description =
+          """
+          Retrieves a list of all questions asked by the specified user.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN, VERIFIED_USER
+          - Denied Roles: USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @GetMapping("/questions")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
   public ResponseEntity<@NonNull List<UserQuestionResponseDTO>> userQuestions(
@@ -68,7 +95,19 @@ public class UserController {
   // add pagination and sorting (from recent to older)
   @Operation(
       summary = "Get user answers",
-      description = "Retrieves a list of all answers provided by the specified user.")
+      description =
+          """
+          Retrieves a list of all answers provided by the specified user.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN, VERIFIED_USER
+          - Denied Roles: USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @GetMapping("/answers")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
   public ResponseEntity<@NonNull List<UserAnswerResponseDTO>> userAnswers(
@@ -81,7 +120,19 @@ public class UserController {
   // add pagination and sorting (from recent to older)
   @Operation(
       summary = "Get user comments",
-      description = "Retrieves a list of all comments made by the specified user.")
+      description =
+          """
+          Retrieves a list of all comments made by the specified user.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: ADMIN, VERIFIED_USER
+          - Denied Roles: USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @GetMapping("/comments")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
   public ResponseEntity<@NonNull List<UserCommentResponseDTO>> userComments(
@@ -94,10 +145,20 @@ public class UserController {
   @Operation(
       summary = "Update user profile",
       description =
-          "Modifies the authenticated user's profile details such as username and email. Terminates the current session upon success.")
+          """
+          Modifies the authenticated user's profile details such as username and email. Terminates the current session upon success.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @PutMapping("")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
-  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> updateUserProfile(
       @PathVariable String username,
       @Valid @RequestBody UserProfileModificationRequestDTO userProfileModificationRequestDTO,
@@ -124,10 +185,20 @@ public class UserController {
   @Operation(
       summary = "Delete user account",
       description =
-          "Permanently deletes the authenticated user's account and terminates their current session.")
+          """
+          Permanently deletes the authenticated user's account and terminates their current session.
+
+          **Access Control**
+          - Authentication: Required
+          - Allowed Roles: VERIFIED_USER
+          - Denied Roles: ADMIN, USER, GUEST
+          """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Insufficient permissions")
+  })
   @DeleteMapping("")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
-  @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> deleteUser(
       @PathVariable String username, @AuthenticationPrincipal CustomUserDetails currUser)
       throws UserNotFoundException {
