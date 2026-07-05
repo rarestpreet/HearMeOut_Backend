@@ -7,10 +7,9 @@ import com.project.hearmeout_backend.post_service.model.Post;
 import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
-import java.util.List;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -90,5 +89,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         WHERE a.parent.id = :questionId AND a.postType = :postType
     """)
   Page<PostAnswerResponseDTO> findAnswersDTOByQuestionId(
-      @Param("questionId") Long questionId, @Param("postType") PostType postType, Pageable pageable);
+      @Param("questionId") Long questionId,
+      @Param("postType") PostType postType,
+      Pageable pageable);
 }

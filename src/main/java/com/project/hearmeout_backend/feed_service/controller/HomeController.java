@@ -7,7 +7,6 @@ import com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileRe
 import com.project.hearmeout_backend.feed_service.service.implementation.HomeServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.List;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

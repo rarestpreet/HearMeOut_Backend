@@ -259,7 +259,8 @@ public class HomeServiceImplTest {
     assertEquals(feedPost.size(), result.getData().size());
 
     for (int i = 0; i < feedPost.size(); i++) {
-      assertEquals(feedPost.get(i).getNavigationPostId(), result.getData().get(i).getNavigationPostId());
+      assertEquals(
+          feedPost.get(i).getNavigationPostId(), result.getData().get(i).getNavigationPostId());
       assertEquals(feedPost.get(i).getTitle(), result.getData().get(i).getTitle());
     }
   }
@@ -321,7 +322,8 @@ public class HomeServiceImplTest {
     assertEquals(feedPost.size(), result.getData().size());
 
     for (int i = 0; i < feedPost.size(); i++) {
-      assertEquals(feedPost.get(i).getNavigationPostId(), result.getData().get(i).getNavigationPostId());
+      assertEquals(
+          feedPost.get(i).getNavigationPostId(), result.getData().get(i).getNavigationPostId());
       assertEquals(feedPost.get(i).getTitle(), result.getData().get(i).getTitle());
     }
   }
