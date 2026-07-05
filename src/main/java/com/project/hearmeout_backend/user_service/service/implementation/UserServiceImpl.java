@@ -1,6 +1,8 @@
 package com.project.hearmeout_backend.user_service.service.implementation;
 
 import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
+import com.project.hearmeout_backend.common_lib.dto.PageData;
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
@@ -18,6 +20,9 @@ import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,26 +76,65 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public List<UserQuestionResponseDTO> getUserQuestions(String username)
+  public PagedResponse<UserQuestionResponseDTO> getUserQuestions(String username, int limit, int offset)
       throws UserNotFoundException {
     checkAndGetUserByUsername(username);
+    int page = offset / limit;
+    Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    return postRepo.findUserQuestionByUsername(username, PostType.QUESTION);
+    Page<UserQuestionResponseDTO> userQuestionsPage = postRepo.findUserQuestionByUsername(username, PostType.QUESTION, pageable);
+
+    return PagedResponse.<UserQuestionResponseDTO>builder()
+        .data(userQuestionsPage.getContent())
+        .pageData(
+            PageData.builder()
+                .hasMore(userQuestionsPage.hasNext())
+                .total(userQuestionsPage.getTotalElements())
+                .offset(offset)
+                .limit(limit)
+                .build())
+        .build();
   }
 
   @Transactional(readOnly = true)
-  public List<UserAnswerResponseDTO> getUserAnswers(String username) throws UserNotFoundException {
+  public PagedResponse<UserAnswerResponseDTO> getUserAnswers(String username, int limit, int offset) throws UserNotFoundException {
     checkAndGetUserByUsername(username);
+    int page = offset / limit;
+    Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    return postRepo.findUserAnswerByUsername(username, PostType.ANSWER);
+    Page<UserAnswerResponseDTO> userAnswersPage = postRepo.findUserAnswerByUsername(username, PostType.ANSWER, pageable);
+    
+    return PagedResponse.<UserAnswerResponseDTO>builder()
+        .data(userAnswersPage.getContent())
+        .pageData(
+            PageData.builder()
+                .hasMore(userAnswersPage.hasNext())
+                .total(userAnswersPage.getTotalElements())
+                .offset(offset)
+                .limit(limit)
+                .build())
+        .build();
   }
 
   @Transactional(readOnly = true)
-  public List<UserCommentResponseDTO> getUserComments(String username)
+  public PagedResponse<UserCommentResponseDTO> getUserComments(String username, int limit, int offset)
       throws UserNotFoundException {
     checkAndGetUserByUsername(username);
+    int page = offset / limit;
+    Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    return commentRepo.findUserCommentsByUsername(username);
+    Page<UserCommentResponseDTO> userCommentsPage = commentRepo.findUserCommentsByUsername(username, pageable);
+
+    return PagedResponse.<UserCommentResponseDTO>builder()
+        .data(userCommentsPage.getContent())
+        .pageData(
+            PageData.builder()
+                .hasMore(userCommentsPage.hasNext())
+                .total(userCommentsPage.getTotalElements())
+                .offset(offset)
+                .limit(limit)
+                .build())
+        .build();
   }
 
   @Transactional

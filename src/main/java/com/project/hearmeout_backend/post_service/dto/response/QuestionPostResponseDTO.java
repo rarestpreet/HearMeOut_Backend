@@ -43,6 +43,10 @@ public class QuestionPostResponseDTO {
   @Schema(description = "list of comments on the post")
   private List<CommentResponseDTO> comments;
 
+  private boolean hasMoreAnswers;
+
+  private boolean hasMoreComments;
+
   @Schema(description = "timestamp of when the post was created")
   @JsonFormat(pattern = "dd-MM-yyyy")
   private LocalDateTime updatedAt;

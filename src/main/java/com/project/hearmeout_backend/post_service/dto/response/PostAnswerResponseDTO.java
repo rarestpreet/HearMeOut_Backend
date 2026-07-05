@@ -40,6 +40,8 @@ public class PostAnswerResponseDTO {
   @Schema(description = "list of comments on the answer")
   private List<CommentResponseDTO> comments;
 
+  private boolean hasMoreComments;
+
   @Schema(description = "The net vote score of the answer (upvotes minus downvotes)")
   private int score;
 

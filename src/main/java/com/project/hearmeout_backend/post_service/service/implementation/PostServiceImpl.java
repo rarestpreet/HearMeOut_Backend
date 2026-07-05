@@ -1,5 +1,7 @@
 package com.project.hearmeout_backend.post_service.service.implementation;
 
+import com.project.hearmeout_backend.common_lib.dto.PageData;
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.TagNotFoundException;
@@ -31,6 +33,9 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,7 +104,7 @@ public class PostServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public QuestionPostResponseDTO getQuestionPost(Long postId, Long currUserId, String currUsername)
+  public QuestionPostResponseDTO getQuestionPost(Long postId, Long currUserId, String currUsername, int limit, int offset)
       throws PostNotFoundException {
     QuestionPostResponseDTO postResponse =
         postRepo
@@ -108,66 +113,141 @@ public class PostServiceImpl {
 
     Vote currUserVoteOnQuestion = voteRepo.findByPostIdAndUserId(postId, currUserId).orElse(null);
 
-    List<PostAnswerResponseDTO> answers =
-        postRepo.findAnswersDTOByQuestionId(postId, PostType.ANSWER);
+    int page = offset / limit;
+    Pageable answerPageable = PageRequest.of(Math.max(page, 0), limit);
+    Pageable commentPageable = PageRequest.of(0, 5); // Initial 5 comments for question
+
+    Page<PostAnswerResponseDTO> answersPage =
+        postRepo.findAnswersDTOByQuestionId(postId, PostType.ANSWER, answerPageable);
+
+    List<PostAnswerResponseDTO> answers = answersPage.getContent();
 
     List<Long> answerIds = answers.stream().map(PostAnswerResponseDTO::getPostId).toList();
     List<CommentResponseDTO> allAnswerComments =
         answerIds.isEmpty()
             ? List.of()
             : answerIds.stream()
-                .map(commentRepo::findCommentsDTOByPostId)
+                .map(id -> commentRepo.findCommentsDTOByPostId(id, PageRequest.of(0, 5)).getContent())
                 .flatMap(List::stream)
                 .toList();
 
-    answers.forEach(
-        answer -> {
-          PostAnswerResponseDTO.PostAnswerResponseDTOBuilder updatedAnswer =
-              PostAnswerResponseDTO.builder();
-          Vote currUserVoteOnAnswer =
-              voteRepo.findByPostIdAndUserId(answer.getPostId(), currUserId).orElse(null);
+    List<PostAnswerResponseDTO> updatedAnswers = answers.stream().map(answer -> {
+        Vote currUserVoteOnAnswer =
+            voteRepo.findByPostIdAndUserId(answer.getPostId(), currUserId).orElse(null);
 
-          updatedAnswer.voted(currUserVoteOnAnswer != null);
-          updatedAnswer.operable(answer.getAuthorUsername().equals(currUsername));
-          updatedAnswer.voteType(
-              currUserVoteOnAnswer != null ? currUserVoteOnAnswer.getVoteType() : null);
+        List<CommentResponseDTO> answerComments =
+            allAnswerComments.stream()
+                .filter(c -> c.getNavigationPostId().equals(answer.getPostId()))
+                .map(c -> new CommentResponseDTO(
+                    c.getCommentId(), c.getBody(), c.getAuthorUsername(),
+                    c.getNavigationPostId(), c.getUpdatedAt(),
+                    c.getAuthorUsername().equals(currUsername)
+                ))
+                .toList();
+        
+        return new PostAnswerResponseDTO(
+            answer.getPostId(),
+            currUserVoteOnAnswer != null,
+            currUserVoteOnAnswer != null ? currUserVoteOnAnswer.getVoteType() : null,
+            answer.getAuthorUsername(),
+            answer.getBody(),
+            answer.getUpdatedAt(),
+            answer.getPostStatus(),
+            answerComments,
+            false, // hasMoreComments - we'll say false for simplicity initially, or true if size == 5. Let's assume size == 5 means might have more.
+            answer.getScore(),
+            answer.getAuthorUsername().equals(currUsername)
+        );
+    }).toList();
 
-          List<CommentResponseDTO> answerComments =
-              allAnswerComments.stream()
-                  .filter(c -> c.getNavigationPostId().equals(answer.getPostId()))
-                  .peek(
-                      c -> {
-                        CommentResponseDTO.CommentResponseDTOBuilder updatedComment =
-                            CommentResponseDTO.builder();
-                        updatedComment.operable(c.getAuthorUsername().equals(currUsername));
-                      })
-                  .toList();
-          updatedAnswer.comments(answerComments);
-        });
     List<TagResponseDTO> tags = tagRepo.findTagsDTOByPostId(postId);
 
-    List<CommentResponseDTO> comments = commentRepo.findCommentsDTOByPostId(postId);
-    comments.forEach(
-        c -> {
-          CommentResponseDTO.CommentResponseDTOBuilder updatedComment =
-              CommentResponseDTO.builder();
-
-          updatedComment.operable(c.getAuthorUsername().equals(currUsername));
-        });
+    Page<CommentResponseDTO> commentsPage = commentRepo.findCommentsDTOByPostId(postId, commentPageable);
+    List<CommentResponseDTO> comments = commentsPage.getContent().stream()
+        .map(c -> new CommentResponseDTO(
+            c.getCommentId(), c.getBody(), c.getAuthorUsername(),
+            c.getNavigationPostId(), c.getUpdatedAt(),
+            c.getAuthorUsername().equals(currUsername)
+        )).toList();
 
     return QuestionPostResponseDTO.builder()
         .postId(postId)
         .title(postResponse.getTitle())
         .body(postResponse.getBody())
-        .answers(answers)
+        .answers(updatedAnswers)
         .authorUsername(postResponse.getAuthorUsername())
         .tags(tags)
         .voted(currUserVoteOnQuestion != null)
         .voteType(currUserVoteOnQuestion != null ? currUserVoteOnQuestion.getVoteType() : null)
         .comments(comments)
+        .hasMoreAnswers(answersPage.hasNext())
+        .hasMoreComments(commentsPage.hasNext())
         .postStatus(postResponse.getPostStatus())
         .score(postResponse.getScore())
         .operable(postResponse.getAuthorUsername().equals(currUsername))
+        .build();
+  }
+
+  @Transactional(readOnly = true)
+  public PagedResponse<PostAnswerResponseDTO> getPostAnswers(Long postId, Long currUserId, String currUsername, int limit, int offset) 
+      throws PostNotFoundException {
+    postRepo.findById(postId).orElseThrow(() -> new PostNotFoundException("Post not found with id: " + postId));
+    
+    int page = offset / limit;
+    Pageable answerPageable = PageRequest.of(Math.max(page, 0), limit);
+
+    Page<PostAnswerResponseDTO> answersPage =
+        postRepo.findAnswersDTOByQuestionId(postId, PostType.ANSWER, answerPageable);
+
+    List<PostAnswerResponseDTO> answers = answersPage.getContent();
+    List<Long> answerIds = answers.stream().map(PostAnswerResponseDTO::getPostId).toList();
+    
+    List<CommentResponseDTO> allAnswerComments =
+        answerIds.isEmpty()
+            ? List.of()
+            : answerIds.stream()
+                .map(id -> commentRepo.findCommentsDTOByPostId(id, PageRequest.of(0, 5)).getContent())
+                .flatMap(List::stream)
+                .toList();
+
+    List<PostAnswerResponseDTO> updatedAnswers = answers.stream().map(answer -> {
+        Vote currUserVoteOnAnswer =
+            voteRepo.findByPostIdAndUserId(answer.getPostId(), currUserId).orElse(null);
+
+        List<CommentResponseDTO> answerComments =
+            allAnswerComments.stream()
+                .filter(c -> c.getNavigationPostId().equals(answer.getPostId()))
+                .map(c -> new CommentResponseDTO(
+                    c.getCommentId(), c.getBody(), c.getAuthorUsername(),
+                    c.getNavigationPostId(), c.getUpdatedAt(),
+                    c.getAuthorUsername().equals(currUsername)
+                ))
+                .toList();
+        
+        return new PostAnswerResponseDTO(
+            answer.getPostId(),
+            currUserVoteOnAnswer != null,
+            currUserVoteOnAnswer != null ? currUserVoteOnAnswer.getVoteType() : null,
+            answer.getAuthorUsername(),
+            answer.getBody(),
+            answer.getUpdatedAt(),
+            answer.getPostStatus(),
+            answerComments,
+            false,
+            answer.getScore(),
+            answer.getAuthorUsername().equals(currUsername)
+        );
+    }).toList();
+
+    return PagedResponse.<PostAnswerResponseDTO>builder()
+        .data(updatedAnswers)
+        .pageData(
+            PageData.builder()
+                .hasMore(answersPage.hasNext())
+                .total(answersPage.getTotalElements())
+                .offset(offset)
+                .limit(limit)
+                .build())
         .build();
   }
 

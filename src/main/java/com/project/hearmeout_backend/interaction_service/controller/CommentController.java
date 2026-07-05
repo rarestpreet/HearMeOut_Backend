@@ -1,6 +1,8 @@
 package com.project.hearmeout_backend.interaction_service.controller;
 
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
+import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.common_lib.exception.CommentNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
@@ -57,6 +59,28 @@ public class CommentController {
     commentServiceImpl.createNewComment(commentRequestDTO, userDetails.getUserId());
 
     return ResponseEntity.status(HttpStatus.CREATED).body("Comment was added successfully");
+  }
+
+  @Operation(
+      summary = "Get comments for a post",
+      description =
+          """
+          Retrieves paginated comments for a specific post (question or answer).
+          """)
+  @GetMapping("")
+  @PreAuthorize("permitAll()")
+  public ResponseEntity<@NonNull PagedResponse<CommentResponseDTO>> getComments(
+      @RequestParam Long postId,
+      @RequestParam(defaultValue = "5") int limit,
+      @RequestParam(defaultValue = "0") int offset,
+      @AuthenticationPrincipal CustomUserDetails userDetails) throws PostNotFoundException {
+    
+    Long userId = userDetails == null ? null : userDetails.getUserId();
+    String username = userDetails == null ? null : userDetails.getUsername();
+
+    return ResponseEntity.status(HttpStatus.OK).body(
+        commentServiceImpl.getPostComments(postId, limit, offset, username)
+    );
   }
 
   @Operation(
