@@ -9,6 +9,7 @@ import com.project.hearmeout_backend.user_service.dto.response.UserAnswerRespons
 import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -30,8 +31,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 WHERE a.author.username = :username
                 AND a.postType = :postType
             """)
-  List<UserAnswerResponseDTO> findUserAnswerByUsername(
-      @Param("username") String username, @Param("postType") PostType postType);
+  Page<UserAnswerResponseDTO> findUserAnswerByUsername(
+      @Param("username") String username, @Param("postType") PostType postType, Pageable pageable);
 
   @Query(
       """
@@ -42,8 +43,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 WHERE q.author.username = :username
                 AND q.postType = :postType
             """)
-  List<UserQuestionResponseDTO> findUserQuestionByUsername(
-      @Param("username") String username, @Param("postType") PostType postType);
+  Page<UserQuestionResponseDTO> findUserQuestionByUsername(
+      @Param("username") String username, @Param("postType") PostType postType, Pageable pageable);
 
   @Query(
       """
@@ -54,7 +55,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         WHERE p.postType = :postType
         AND p.author.id != :userId
     """)
-  List<FeedQuestionResponseDTO> findFeedPostsDTOByPostTypeAndAuthorIdNot(
+  Page<FeedQuestionResponseDTO> findFeedPostsDTOByPostTypeAndAuthorIdNot(
       @Param("postType") PostType postType, @Param("userId") Long userId, Pageable pageable);
 
   @Query(
@@ -65,7 +66,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
         FROM Post p
         WHERE p.postType = :postType
     """)
-  List<FeedQuestionResponseDTO> findFeedPostsDTOByPostType(
+  Page<FeedQuestionResponseDTO> findFeedPostsDTOByPostType(
       @Param("postType") PostType postType, Pageable pageable);
 
   @Query(
@@ -86,8 +87,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             a.id, a.author.username, a.body, a.score, a.updatedAt, a.status
         )
         FROM Post a
-        WHERE a.parent.id = :parentId AND a.postType = :postType
+        WHERE a.parent.id = :questionId AND a.postType = :postType
     """)
-  List<PostAnswerResponseDTO> findAnswersDTOByQuestionId(
-      @Param("parentId") Long parentId, @Param("postType") PostType postType);
+  Page<PostAnswerResponseDTO> findAnswersDTOByQuestionId(
+      @Param("questionId") Long questionId, @Param("postType") PostType postType, Pageable pageable);
 }

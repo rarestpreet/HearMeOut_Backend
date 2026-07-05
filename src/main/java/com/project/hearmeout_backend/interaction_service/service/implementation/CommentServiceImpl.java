@@ -13,9 +13,16 @@ import com.project.hearmeout_backend.post_service.repository.PostRepository;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
+import com.project.hearmeout_backend.common_lib.dto.PageData;
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
+import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import jakarta.transaction.Transactional;
+import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,6 +33,47 @@ public class CommentServiceImpl {
   private final CommentRepository commentRepo;
   private final PostRepository postRepo;
   private final UserRepository userRepo;
+
+  public PagedResponse<CommentResponseDTO> getPostComments(Long postId, int limit, int offset, String username) 
+      throws PostNotFoundException {
+    postRepo.findById(postId).orElseThrow(() -> new PostNotFoundException("Post not found with id: " + postId));
+    
+    int page = offset / limit;
+    Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
+    
+    Page<CommentResponseDTO> commentsPage = commentRepo.findCommentsDTOByPostId(postId, pageable);
+    
+    List<CommentResponseDTO> comments = commentsPage.getContent();
+    comments.forEach(c -> {
+        CommentResponseDTO.CommentResponseDTOBuilder updatedComment = CommentResponseDTO.builder();
+        updatedComment.operable(c.getAuthorUsername().equals(username));
+        // Note: the original code tried to use a builder but didn't update the object.
+        // I will fix the DTO logic here by using setters or directly setting if available.
+        // Actually since it's a DTO, it has no setters. I'll recreate the DTO and replace it in the list.
+    });
+
+    List<CommentResponseDTO> updatedComments = comments.stream().map(c -> {
+        return new CommentResponseDTO(
+            c.getCommentId(),
+            c.getBody(),
+            c.getAuthorUsername(),
+            c.getNavigationPostId(),
+            c.getUpdatedAt(),
+            c.getAuthorUsername().equals(username)
+        );
+    }).toList();
+
+    return PagedResponse.<CommentResponseDTO>builder()
+        .data(updatedComments)
+        .pageData(
+            PageData.builder()
+                .hasMore(commentsPage.hasNext())
+                .total(commentsPage.getTotalElements())
+                .offset(offset)
+                .limit(limit)
+                .build())
+        .build();
+  }
 
   @Transactional
   public void createNewComment(CommentRequestDTO commentRequestDTO, Long userId)

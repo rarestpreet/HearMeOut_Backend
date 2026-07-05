@@ -1,5 +1,7 @@
 package com.project.hearmeout_backend.feed_service.service.implementation;
 
+import com.project.hearmeout_backend.common_lib.dto.PageData;
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.feed_service.dto.response.FeedQuestionResponseDTO;
 import com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileResponseDTO;
@@ -10,6 +12,7 @@ import com.project.hearmeout_backend.post_service.repository.TagRepository;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,17 +27,18 @@ public class HomeServiceImpl {
   private final UserRepository userRepo;
 
   @Transactional(readOnly = true)
-  public List<FeedQuestionResponseDTO> generateFeed(int pageNum, Long userId) {
-    Pageable pageable = PageRequest.of(Math.max(pageNum, 0), 10);
-    List<FeedQuestionResponseDTO> feedPosts;
+  public PagedResponse<FeedQuestionResponseDTO> generateFeed(int limit, int offset, Long userId) {
+    int page = offset / limit;
+    Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
+    Page<FeedQuestionResponseDTO> feedPostsPage;
 
     if (userId != null)
-      feedPosts =
+      feedPostsPage =
           postRepo.findFeedPostsDTOByPostTypeAndAuthorIdNot(PostType.QUESTION, userId, pageable);
-    else feedPosts = postRepo.findFeedPostsDTOByPostType(PostType.QUESTION, pageable);
+    else feedPostsPage = postRepo.findFeedPostsDTOByPostType(PostType.QUESTION, pageable);
 
-    feedPosts =
-        feedPosts.stream()
+    List<FeedQuestionResponseDTO> feedPosts =
+        feedPostsPage.getContent().stream()
             .map(
                 post -> {
                   List<TagResponseDTO> tags =
@@ -52,7 +56,16 @@ public class HomeServiceImpl {
                 })
             .toList();
 
-    return feedPosts;
+    return PagedResponse.<FeedQuestionResponseDTO>builder()
+        .data(feedPosts)
+        .pageData(
+            PageData.builder()
+                .hasMore(feedPostsPage.hasNext())
+                .total(feedPostsPage.getTotalElements())
+                .offset(offset)
+                .limit(limit)
+                .build())
+        .build();
   }
 
   @Transactional(readOnly = true)

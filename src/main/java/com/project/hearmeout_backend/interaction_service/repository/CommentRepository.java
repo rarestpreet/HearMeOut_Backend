@@ -4,6 +4,8 @@ import com.project.hearmeout_backend.interaction_service.dto.response.CommentRes
 import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -23,7 +25,8 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             JOIN c.post p
             WHERE c.author.username = :username
             """)
-  List<UserCommentResponseDTO> findUserCommentsByUsername(@Param("username") String username);
+  Page<UserCommentResponseDTO> findUserCommentsByUsername(
+      @Param("username") String username, Pageable pageable);
 
   @Query(
       """
@@ -34,5 +37,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         JOIN c.post p
         WHERE c.post.id = :postId
     """)
-  List<CommentResponseDTO> findCommentsDTOByPostId(@Param("postId") Long postId);
+  Page<CommentResponseDTO> findCommentsDTOByPostId(
+      @Param("postId") Long postId, Pageable pageable);
 }

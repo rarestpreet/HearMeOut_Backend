@@ -7,6 +7,8 @@ import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.post_service.dto.request.AcceptAnswerRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.request.AnswerSubmitRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.request.QuestionSubmitRequestDTO;
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
+import com.project.hearmeout_backend.post_service.dto.response.PostAnswerResponseDTO;
 import com.project.hearmeout_backend.post_service.dto.response.QuestionPostResponseDTO;
 import com.project.hearmeout_backend.post_service.service.implementation.PostServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,13 +96,33 @@ public class PostController {
           "Retrieves a specific question by its ID, including its answers, comments, and tags. User context is applied if authenticated.")
   @GetMapping("/{postId}")
   public ResponseEntity<@NonNull QuestionPostResponseDTO> getQuestion(
-      @PathVariable Long postId, @AuthenticationPrincipal CustomUserDetails userDetails)
+      @PathVariable Long postId, 
+      @RequestParam(defaultValue = "5") int limit,
+      @RequestParam(defaultValue = "0") int offset,
+      @AuthenticationPrincipal CustomUserDetails userDetails)
       throws PostNotFoundException {
     Long userId = userDetails == null ? 0L : userDetails.getUserId();
-    String username = userDetails == null ? "" : userDetails.getName();
+    String username = userDetails == null ? "" : userDetails.getUsername();
 
     return ResponseEntity.status(HttpStatus.OK)
-        .body(postServiceImpl.getQuestionPost(postId, userId, username));
+        .body(postServiceImpl.getQuestionPost(postId, userId, username, limit, offset));
+  }
+
+  @Operation(
+      summary = "Get paginated answers for a question",
+      description = "Retrieves paginated answers for a specific question. User context is applied if authenticated.")
+  @GetMapping("/{postId}/answers")
+  public ResponseEntity<@NonNull PagedResponse<PostAnswerResponseDTO>> getAnswers(
+      @PathVariable Long postId, 
+      @RequestParam(defaultValue = "5") int limit,
+      @RequestParam(defaultValue = "0") int offset,
+      @AuthenticationPrincipal CustomUserDetails userDetails)
+      throws PostNotFoundException {
+    Long userId = userDetails == null ? 0L : userDetails.getUserId();
+    String username = userDetails == null ? "" : userDetails.getUsername();
+
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(postServiceImpl.getPostAnswers(postId, userId, username, limit, offset));
   }
 
   @Operation(
