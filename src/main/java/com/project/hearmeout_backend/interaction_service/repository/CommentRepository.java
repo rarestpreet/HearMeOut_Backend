@@ -3,10 +3,9 @@ package com.project.hearmeout_backend.interaction_service.repository;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
-import java.util.List;
+import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -37,6 +36,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
         JOIN c.post p
         WHERE c.post.id = :postId
     """)
-  Page<CommentResponseDTO> findCommentsDTOByPostId(
-      @Param("postId") Long postId, Pageable pageable);
+  Page<CommentResponseDTO> findCommentsDTOByPostId(@Param("postId") Long postId, Pageable pageable);
 }

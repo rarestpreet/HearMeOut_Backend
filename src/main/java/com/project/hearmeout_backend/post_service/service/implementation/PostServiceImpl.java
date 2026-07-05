@@ -104,7 +104,8 @@ public class PostServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public QuestionPostResponseDTO getQuestionPost(Long postId, Long currUserId, String currUsername, int limit, int offset)
+  public QuestionPostResponseDTO getQuestionPost(
+      Long postId, Long currUserId, String currUsername, int limit, int offset)
       throws PostNotFoundException {
     QuestionPostResponseDTO postResponse =
         postRepo
@@ -127,48 +128,65 @@ public class PostServiceImpl {
         answerIds.isEmpty()
             ? List.of()
             : answerIds.stream()
-                .map(id -> commentRepo.findCommentsDTOByPostId(id, PageRequest.of(0, 5)).getContent())
+                .map(
+                    id ->
+                        commentRepo.findCommentsDTOByPostId(id, PageRequest.of(0, 5)).getContent())
                 .flatMap(List::stream)
                 .toList();
 
-    List<PostAnswerResponseDTO> updatedAnswers = answers.stream().map(answer -> {
-        Vote currUserVoteOnAnswer =
-            voteRepo.findByPostIdAndUserId(answer.getPostId(), currUserId).orElse(null);
+    List<PostAnswerResponseDTO> updatedAnswers =
+        answers.stream()
+            .map(
+                answer -> {
+                  Vote currUserVoteOnAnswer =
+                      voteRepo.findByPostIdAndUserId(answer.getPostId(), currUserId).orElse(null);
 
-        List<CommentResponseDTO> answerComments =
-            allAnswerComments.stream()
-                .filter(c -> c.getNavigationPostId().equals(answer.getPostId()))
-                .map(c -> new CommentResponseDTO(
-                    c.getCommentId(), c.getBody(), c.getAuthorUsername(),
-                    c.getNavigationPostId(), c.getUpdatedAt(),
-                    c.getAuthorUsername().equals(currUsername)
-                ))
-                .toList();
-        
-        return new PostAnswerResponseDTO(
-            answer.getPostId(),
-            currUserVoteOnAnswer != null,
-            currUserVoteOnAnswer != null ? currUserVoteOnAnswer.getVoteType() : null,
-            answer.getAuthorUsername(),
-            answer.getBody(),
-            answer.getUpdatedAt(),
-            answer.getPostStatus(),
-            answerComments,
-            false, // hasMoreComments - we'll say false for simplicity initially, or true if size == 5. Let's assume size == 5 means might have more.
-            answer.getScore(),
-            answer.getAuthorUsername().equals(currUsername)
-        );
-    }).toList();
+                  List<CommentResponseDTO> answerComments =
+                      allAnswerComments.stream()
+                          .filter(c -> c.getNavigationPostId().equals(answer.getPostId()))
+                          .map(
+                              c ->
+                                  new CommentResponseDTO(
+                                      c.getCommentId(),
+                                      c.getBody(),
+                                      c.getAuthorUsername(),
+                                      c.getNavigationPostId(),
+                                      c.getUpdatedAt(),
+                                      c.getAuthorUsername().equals(currUsername)))
+                          .toList();
+
+                  return new PostAnswerResponseDTO(
+                      answer.getPostId(),
+                      currUserVoteOnAnswer != null,
+                      currUserVoteOnAnswer != null ? currUserVoteOnAnswer.getVoteType() : null,
+                      answer.getAuthorUsername(),
+                      answer.getBody(),
+                      answer.getUpdatedAt(),
+                      answer.getPostStatus(),
+                      answerComments,
+                      false, // hasMoreComments - we'll say false for simplicity initially, or true
+                      // if size == 5. Let's assume size == 5 means might have more.
+                      answer.getScore(),
+                      answer.getAuthorUsername().equals(currUsername));
+                })
+            .toList();
 
     List<TagResponseDTO> tags = tagRepo.findTagsDTOByPostId(postId);
 
-    Page<CommentResponseDTO> commentsPage = commentRepo.findCommentsDTOByPostId(postId, commentPageable);
-    List<CommentResponseDTO> comments = commentsPage.getContent().stream()
-        .map(c -> new CommentResponseDTO(
-            c.getCommentId(), c.getBody(), c.getAuthorUsername(),
-            c.getNavigationPostId(), c.getUpdatedAt(),
-            c.getAuthorUsername().equals(currUsername)
-        )).toList();
+    Page<CommentResponseDTO> commentsPage =
+        commentRepo.findCommentsDTOByPostId(postId, commentPageable);
+    List<CommentResponseDTO> comments =
+        commentsPage.getContent().stream()
+            .map(
+                c ->
+                    new CommentResponseDTO(
+                        c.getCommentId(),
+                        c.getBody(),
+                        c.getAuthorUsername(),
+                        c.getNavigationPostId(),
+                        c.getUpdatedAt(),
+                        c.getAuthorUsername().equals(currUsername)))
+            .toList();
 
     return QuestionPostResponseDTO.builder()
         .postId(postId)
@@ -189,10 +207,13 @@ public class PostServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<PostAnswerResponseDTO> getPostAnswers(Long postId, Long currUserId, String currUsername, int limit, int offset) 
+  public PagedResponse<PostAnswerResponseDTO> getPostAnswers(
+      Long postId, Long currUserId, String currUsername, int limit, int offset)
       throws PostNotFoundException {
-    postRepo.findById(postId).orElseThrow(() -> new PostNotFoundException("Post not found with id: " + postId));
-    
+    postRepo
+        .findById(postId)
+        .orElseThrow(() -> new PostNotFoundException("Post not found with id: " + postId));
+
     int page = offset / limit;
     Pageable answerPageable = PageRequest.of(Math.max(page, 0), limit);
 
@@ -201,43 +222,52 @@ public class PostServiceImpl {
 
     List<PostAnswerResponseDTO> answers = answersPage.getContent();
     List<Long> answerIds = answers.stream().map(PostAnswerResponseDTO::getPostId).toList();
-    
+
     List<CommentResponseDTO> allAnswerComments =
         answerIds.isEmpty()
             ? List.of()
             : answerIds.stream()
-                .map(id -> commentRepo.findCommentsDTOByPostId(id, PageRequest.of(0, 5)).getContent())
+                .map(
+                    id ->
+                        commentRepo.findCommentsDTOByPostId(id, PageRequest.of(0, 5)).getContent())
                 .flatMap(List::stream)
                 .toList();
 
-    List<PostAnswerResponseDTO> updatedAnswers = answers.stream().map(answer -> {
-        Vote currUserVoteOnAnswer =
-            voteRepo.findByPostIdAndUserId(answer.getPostId(), currUserId).orElse(null);
+    List<PostAnswerResponseDTO> updatedAnswers =
+        answers.stream()
+            .map(
+                answer -> {
+                  Vote currUserVoteOnAnswer =
+                      voteRepo.findByPostIdAndUserId(answer.getPostId(), currUserId).orElse(null);
 
-        List<CommentResponseDTO> answerComments =
-            allAnswerComments.stream()
-                .filter(c -> c.getNavigationPostId().equals(answer.getPostId()))
-                .map(c -> new CommentResponseDTO(
-                    c.getCommentId(), c.getBody(), c.getAuthorUsername(),
-                    c.getNavigationPostId(), c.getUpdatedAt(),
-                    c.getAuthorUsername().equals(currUsername)
-                ))
-                .toList();
-        
-        return new PostAnswerResponseDTO(
-            answer.getPostId(),
-            currUserVoteOnAnswer != null,
-            currUserVoteOnAnswer != null ? currUserVoteOnAnswer.getVoteType() : null,
-            answer.getAuthorUsername(),
-            answer.getBody(),
-            answer.getUpdatedAt(),
-            answer.getPostStatus(),
-            answerComments,
-            false,
-            answer.getScore(),
-            answer.getAuthorUsername().equals(currUsername)
-        );
-    }).toList();
+                  List<CommentResponseDTO> answerComments =
+                      allAnswerComments.stream()
+                          .filter(c -> c.getNavigationPostId().equals(answer.getPostId()))
+                          .map(
+                              c ->
+                                  new CommentResponseDTO(
+                                      c.getCommentId(),
+                                      c.getBody(),
+                                      c.getAuthorUsername(),
+                                      c.getNavigationPostId(),
+                                      c.getUpdatedAt(),
+                                      c.getAuthorUsername().equals(currUsername)))
+                          .toList();
+
+                  return new PostAnswerResponseDTO(
+                      answer.getPostId(),
+                      currUserVoteOnAnswer != null,
+                      currUserVoteOnAnswer != null ? currUserVoteOnAnswer.getVoteType() : null,
+                      answer.getAuthorUsername(),
+                      answer.getBody(),
+                      answer.getUpdatedAt(),
+                      answer.getPostStatus(),
+                      answerComments,
+                      false,
+                      answer.getScore(),
+                      answer.getAuthorUsername().equals(currUsername));
+                })
+            .toList();
 
     return PagedResponse.<PostAnswerResponseDTO>builder()
         .data(updatedAnswers)

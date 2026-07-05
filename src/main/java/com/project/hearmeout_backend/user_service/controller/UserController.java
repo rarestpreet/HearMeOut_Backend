@@ -89,8 +89,10 @@ public class UserController {
   public ResponseEntity<@NonNull PagedResponse<UserQuestionResponseDTO>> userQuestions(
       @PathVariable String username,
       @RequestParam(defaultValue = "5") int limit,
-      @RequestParam(defaultValue = "0") int offset) throws UserNotFoundException {
-    PagedResponse<UserQuestionResponseDTO> userQuestions = userServiceImpl.getUserQuestions(username, limit, offset);
+      @RequestParam(defaultValue = "0") int offset)
+      throws UserNotFoundException {
+    PagedResponse<UserQuestionResponseDTO> userQuestions =
+        userServiceImpl.getUserQuestions(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(userQuestions);
   }
@@ -116,8 +118,10 @@ public class UserController {
   public ResponseEntity<@NonNull PagedResponse<UserAnswerResponseDTO>> userAnswers(
       @PathVariable String username,
       @RequestParam(defaultValue = "5") int limit,
-      @RequestParam(defaultValue = "0") int offset) throws UserNotFoundException {
-    PagedResponse<UserAnswerResponseDTO> userAnswer = userServiceImpl.getUserAnswers(username, limit, offset);
+      @RequestParam(defaultValue = "0") int offset)
+      throws UserNotFoundException {
+    PagedResponse<UserAnswerResponseDTO> userAnswer =
+        userServiceImpl.getUserAnswers(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(userAnswer);
   }
@@ -143,8 +147,10 @@ public class UserController {
   public ResponseEntity<@NonNull PagedResponse<UserCommentResponseDTO>> userComments(
       @PathVariable String username,
       @RequestParam(defaultValue = "5") int limit,
-      @RequestParam(defaultValue = "0") int offset) throws UserNotFoundException {
-    PagedResponse<UserCommentResponseDTO> comments = userServiceImpl.getUserComments(username, limit, offset);
+      @RequestParam(defaultValue = "0") int offset)
+      throws UserNotFoundException {
+    PagedResponse<UserCommentResponseDTO> comments =
+        userServiceImpl.getUserComments(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(comments);
   }

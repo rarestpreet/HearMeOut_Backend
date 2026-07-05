@@ -17,7 +17,6 @@ import com.project.hearmeout_backend.user_service.dto.response.UserProfileRespon
 import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
-import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -76,13 +75,14 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<UserQuestionResponseDTO> getUserQuestions(String username, int limit, int offset)
-      throws UserNotFoundException {
+  public PagedResponse<UserQuestionResponseDTO> getUserQuestions(
+      String username, int limit, int offset) throws UserNotFoundException {
     checkAndGetUserByUsername(username);
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    Page<UserQuestionResponseDTO> userQuestionsPage = postRepo.findUserQuestionByUsername(username, PostType.QUESTION, pageable);
+    Page<UserQuestionResponseDTO> userQuestionsPage =
+        postRepo.findUserQuestionByUsername(username, PostType.QUESTION, pageable);
 
     return PagedResponse.<UserQuestionResponseDTO>builder()
         .data(userQuestionsPage.getContent())
@@ -97,13 +97,15 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<UserAnswerResponseDTO> getUserAnswers(String username, int limit, int offset) throws UserNotFoundException {
+  public PagedResponse<UserAnswerResponseDTO> getUserAnswers(String username, int limit, int offset)
+      throws UserNotFoundException {
     checkAndGetUserByUsername(username);
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    Page<UserAnswerResponseDTO> userAnswersPage = postRepo.findUserAnswerByUsername(username, PostType.ANSWER, pageable);
-    
+    Page<UserAnswerResponseDTO> userAnswersPage =
+        postRepo.findUserAnswerByUsername(username, PostType.ANSWER, pageable);
+
     return PagedResponse.<UserAnswerResponseDTO>builder()
         .data(userAnswersPage.getContent())
         .pageData(
@@ -117,13 +119,14 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<UserCommentResponseDTO> getUserComments(String username, int limit, int offset)
-      throws UserNotFoundException {
+  public PagedResponse<UserCommentResponseDTO> getUserComments(
+      String username, int limit, int offset) throws UserNotFoundException {
     checkAndGetUserByUsername(username);
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    Page<UserCommentResponseDTO> userCommentsPage = commentRepo.findUserCommentsByUsername(username, pageable);
+    Page<UserCommentResponseDTO> userCommentsPage =
+        commentRepo.findUserCommentsByUsername(username, pageable);
 
     return PagedResponse.<UserCommentResponseDTO>builder()
         .data(userCommentsPage.getContent())

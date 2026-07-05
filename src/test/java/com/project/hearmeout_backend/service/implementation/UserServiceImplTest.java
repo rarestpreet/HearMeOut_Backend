@@ -24,10 +24,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,6 +33,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
@@ -258,13 +258,15 @@ public class UserServiceImplTest {
     int limit = 5;
     int offset = 0;
     Pageable pageable = PageRequest.of(0, limit);
-    Page<UserQuestionResponseDTO> page = new PageImpl<>(questionResponse, pageable, questionResponse.size());
+    Page<UserQuestionResponseDTO> page =
+        new PageImpl<>(questionResponse, pageable, questionResponse.size());
 
     when(postRepo.findUserQuestionByUsername(username, PostType.QUESTION, pageable))
         .thenReturn(page);
 
     // Act
-    PagedResponse<UserQuestionResponseDTO> result = userService.getUserQuestions(username, limit, offset);
+    PagedResponse<UserQuestionResponseDTO> result =
+        userService.getUserQuestions(username, limit, offset);
 
     // Assert
     assertEquals(questionResponse, result.getData());
@@ -298,12 +300,14 @@ public class UserServiceImplTest {
     int limit = 5;
     int offset = 0;
     Pageable pageable = PageRequest.of(0, limit);
-    Page<UserAnswerResponseDTO> page = new PageImpl<>(answerResponse, pageable, answerResponse.size());
+    Page<UserAnswerResponseDTO> page =
+        new PageImpl<>(answerResponse, pageable, answerResponse.size());
 
     when(postRepo.findUserAnswerByUsername(username, PostType.ANSWER, pageable)).thenReturn(page);
 
     // Act
-    PagedResponse<UserAnswerResponseDTO> result = userService.getUserAnswers(username, limit, offset);
+    PagedResponse<UserAnswerResponseDTO> result =
+        userService.getUserAnswers(username, limit, offset);
 
     // Assert
     assertEquals(answerResponse, result.getData());
@@ -337,12 +341,14 @@ public class UserServiceImplTest {
     int limit = 5;
     int offset = 0;
     Pageable pageable = PageRequest.of(0, limit);
-    Page<UserCommentResponseDTO> page = new PageImpl<>(commentResponse, pageable, commentResponse.size());
+    Page<UserCommentResponseDTO> page =
+        new PageImpl<>(commentResponse, pageable, commentResponse.size());
 
     when(commentRepo.findUserCommentsByUsername(username, pageable)).thenReturn(page);
 
     // Act
-    PagedResponse<UserCommentResponseDTO> result = userService.getUserComments(username, limit, offset);
+    PagedResponse<UserCommentResponseDTO> result =
+        userService.getUserComments(username, limit, offset);
 
     // Assert
     assertEquals(commentResponse, result.getData());

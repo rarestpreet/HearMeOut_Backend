@@ -10,8 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageData {
-    private boolean hasMore;
-    private long total;
-    private int offset;
-    private int limit;
+  private boolean hasMore;
+  private long total;
+  private int offset;
+  private int limit;
 }
