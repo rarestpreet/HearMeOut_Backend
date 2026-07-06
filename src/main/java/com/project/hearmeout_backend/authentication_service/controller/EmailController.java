@@ -15,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,7 +64,11 @@ public class EmailController {
     rabbitTemplate.convertAndSend(
         "email.exchange",
         "email.verification-otp",
-        new VerificationOtpEvent(userDetails.getUsername()));
+        new VerificationOtpEvent(userDetails.getUsername()),
+        message -> {
+          message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+          return message;
+        });
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }
@@ -91,7 +96,11 @@ public class EmailController {
     rabbitTemplate.convertAndSend(
         "email.exchange",
         "email.password-reset",
-        new PasswordResetOtpEvent(passwordResetOtpRequestDTO.getEmail()));
+        new PasswordResetOtpEvent(passwordResetOtpRequestDTO.getEmail()),
+        message -> {
+          message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
+          return message;
+        });
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }

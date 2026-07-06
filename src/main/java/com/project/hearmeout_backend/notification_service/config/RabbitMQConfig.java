@@ -1,9 +1,6 @@
 package com.project.hearmeout_backend.notification_service.config;
 
-import org.springframework.amqp.core.Binding;
-import org.springframework.amqp.core.BindingBuilder;
-import org.springframework.amqp.core.DirectExchange;
-import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.*;
 import org.springframework.amqp.support.converter.JacksonJsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.context.annotation.Bean;
@@ -35,7 +32,7 @@ public class RabbitMQConfig {
 
   @Bean
   public Queue welcomeQueue() {
-    return new Queue(WELCOME_QUEUE, true);
+    return QueueBuilder.durable(WELCOME_QUEUE).build();
   }
 
   @Bean
@@ -45,7 +42,7 @@ public class RabbitMQConfig {
 
   @Bean
   public Queue verificationQueue() {
-    return new Queue(VERIFICATION_QUEUE, true);
+    return QueueBuilder.durable(VERIFICATION_QUEUE).build();
   }
 
   @Bean
@@ -55,7 +52,7 @@ public class RabbitMQConfig {
 
   @Bean
   public Queue passwordResetQueue() {
-    return new Queue(PASSWORD_RESET_QUEUE, true);
+    return QueueBuilder.durable(PASSWORD_RESET_QUEUE).build();
   }
 
   @Bean
