@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
@@ -71,7 +72,11 @@ public class SecurityServiceImpl {
     rabbitTemplate.convertAndSend(
         "email.exchange",
         "email.welcome",
-        new UserRegisteredEvent(registerRequestDTO.getEmail(), registerRequestDTO.getUsername()));
+        new UserRegisteredEvent(registerRequestDTO.getEmail(), registerRequestDTO.getUsername()),
+        message -> {
+          message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
+          return message;
+        });
   }
 
   public List<ResponseCookie> terminateSession(String email) {
