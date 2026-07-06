@@ -2,6 +2,7 @@ package com.project.hearmeout_backend.user_service.controller;
 
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.authentication_service.service.implementation.SecurityServiceImpl;
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
@@ -85,9 +86,13 @@ public class UserController {
   })
   @GetMapping("/questions")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
-  public ResponseEntity<@NonNull List<UserQuestionResponseDTO>> userQuestions(
-      @PathVariable String username) throws UserNotFoundException {
-    List<UserQuestionResponseDTO> userQuestions = userServiceImpl.getUserQuestions(username);
+  public ResponseEntity<@NonNull PagedResponse<UserQuestionResponseDTO>> userQuestions(
+      @PathVariable String username,
+      @RequestParam(defaultValue = "5") int limit,
+      @RequestParam(defaultValue = "0") int offset)
+      throws UserNotFoundException {
+    PagedResponse<UserQuestionResponseDTO> userQuestions =
+        userServiceImpl.getUserQuestions(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(userQuestions);
   }
@@ -110,9 +115,13 @@ public class UserController {
   })
   @GetMapping("/answers")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
-  public ResponseEntity<@NonNull List<UserAnswerResponseDTO>> userAnswers(
-      @PathVariable String username) throws UserNotFoundException {
-    List<UserAnswerResponseDTO> userAnswer = userServiceImpl.getUserAnswers(username);
+  public ResponseEntity<@NonNull PagedResponse<UserAnswerResponseDTO>> userAnswers(
+      @PathVariable String username,
+      @RequestParam(defaultValue = "5") int limit,
+      @RequestParam(defaultValue = "0") int offset)
+      throws UserNotFoundException {
+    PagedResponse<UserAnswerResponseDTO> userAnswer =
+        userServiceImpl.getUserAnswers(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(userAnswer);
   }
@@ -135,9 +144,13 @@ public class UserController {
   })
   @GetMapping("/comments")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
-  public ResponseEntity<@NonNull List<UserCommentResponseDTO>> userComments(
-      @PathVariable String username) throws UserNotFoundException {
-    List<UserCommentResponseDTO> comments = userServiceImpl.getUserComments(username);
+  public ResponseEntity<@NonNull PagedResponse<UserCommentResponseDTO>> userComments(
+      @PathVariable String username,
+      @RequestParam(defaultValue = "5") int limit,
+      @RequestParam(defaultValue = "0") int offset)
+      throws UserNotFoundException {
+    PagedResponse<UserCommentResponseDTO> comments =
+        userServiceImpl.getUserComments(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(comments);
   }

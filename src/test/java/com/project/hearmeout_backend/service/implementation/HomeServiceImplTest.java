@@ -3,6 +3,7 @@ package com.project.hearmeout_backend.service.implementation;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.feed_service.dto.response.FeedQuestionResponseDTO;
 import com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileResponseDTO;
@@ -26,6 +27,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
@@ -211,9 +214,11 @@ public class HomeServiceImplTest {
   public void generateFeed_GuestUser(int pageNum, Long userId) {
     // Arrange
     pageNum = Math.max(0, pageNum);
-    Pageable pageable = PageRequest.of(pageNum, 10);
+    int limit = 10;
+    int offset = pageNum * 10;
+    Pageable pageable = PageRequest.of(pageNum, limit);
 
-    int start = pageNum * 10;
+    int start = offset;
 
     List<Post> questions =
         postList.stream()
@@ -244,17 +249,19 @@ public class HomeServiceImplTest {
             when(tagRepo.findTagsDTOByPostId(post.getNavigationPostId()))
                 .thenReturn(post.getTags()));
 
-    when(postRepo.findFeedPostsDTOByPostType(PostType.QUESTION, pageable)).thenReturn(feedPost);
+    Page<FeedQuestionResponseDTO> pageImpl = new PageImpl<>(feedPost, pageable, questions.size());
+    when(postRepo.findFeedPostsDTOByPostType(PostType.QUESTION, pageable)).thenReturn(pageImpl);
 
     // Act
-    List<FeedQuestionResponseDTO> result = homeService.generateFeed(pageNum, userId);
+    PagedResponse<FeedQuestionResponseDTO> result = homeService.generateFeed(limit, offset, userId);
 
     // Assert
-    assertEquals(feedPost.size(), result.size());
+    assertEquals(feedPost.size(), result.getData().size());
 
     for (int i = 0; i < feedPost.size(); i++) {
-      assertEquals(feedPost.get(i).getNavigationPostId(), result.get(i).getNavigationPostId());
-      assertEquals(feedPost.get(i).getTitle(), result.get(i).getTitle());
+      assertEquals(
+          feedPost.get(i).getNavigationPostId(), result.getData().get(i).getNavigationPostId());
+      assertEquals(feedPost.get(i).getTitle(), result.getData().get(i).getTitle());
     }
   }
 
@@ -263,9 +270,11 @@ public class HomeServiceImplTest {
   public void generateFeed_AuthenticatedUser(int pageNum, Long userId) {
     // Arrange
     pageNum = Math.max(0, pageNum);
-    Pageable pageable = PageRequest.of(pageNum, 10);
+    int limit = 10;
+    int offset = pageNum * 10;
+    Pageable pageable = PageRequest.of(pageNum, limit);
 
-    int start = pageNum * 10;
+    int start = offset;
 
     User currUser =
         userList.stream().filter(user -> Objects.equals(user.getId(), userId)).findFirst().get();
@@ -302,18 +311,20 @@ public class HomeServiceImplTest {
             when(tagRepo.findTagsDTOByPostId(post.getNavigationPostId()))
                 .thenReturn(post.getTags()));
 
+    Page<FeedQuestionResponseDTO> pageImpl = new PageImpl<>(feedPost, pageable, questions.size());
     when(postRepo.findFeedPostsDTOByPostTypeAndAuthorIdNot(PostType.QUESTION, userId, pageable))
-        .thenReturn(feedPost);
+        .thenReturn(pageImpl);
 
     // Act
-    List<FeedQuestionResponseDTO> result = homeService.generateFeed(pageNum, userId);
+    PagedResponse<FeedQuestionResponseDTO> result = homeService.generateFeed(limit, offset, userId);
 
     // Assert
-    assertEquals(feedPost.size(), result.size());
+    assertEquals(feedPost.size(), result.getData().size());
 
     for (int i = 0; i < feedPost.size(); i++) {
-      assertEquals(feedPost.get(i).getNavigationPostId(), result.get(i).getNavigationPostId());
-      assertEquals(feedPost.get(i).getTitle(), result.get(i).getTitle());
+      assertEquals(
+          feedPost.get(i).getNavigationPostId(), result.getData().get(i).getNavigationPostId());
+      assertEquals(feedPost.get(i).getTitle(), result.getData().get(i).getTitle());
     }
   }
 }

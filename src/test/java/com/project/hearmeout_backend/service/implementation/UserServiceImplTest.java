@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.interaction_service.model.Comment;
@@ -32,6 +33,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 public class UserServiceImplTest {
@@ -250,14 +255,21 @@ public class UserServiceImplTest {
                         .build())
             .toList();
 
-    when(postRepo.findUserQuestionByUsername(username, PostType.QUESTION))
-        .thenReturn(questionResponse);
+    int limit = 5;
+    int offset = 0;
+    Pageable pageable = PageRequest.of(0, limit);
+    Page<UserQuestionResponseDTO> page =
+        new PageImpl<>(questionResponse, pageable, questionResponse.size());
+
+    when(postRepo.findUserQuestionByUsername(username, PostType.QUESTION, pageable))
+        .thenReturn(page);
 
     // Act
-    List<UserQuestionResponseDTO> result = userService.getUserQuestions(username);
+    PagedResponse<UserQuestionResponseDTO> result =
+        userService.getUserQuestions(username, limit, offset);
 
     // Assert
-    assertEquals(questionResponse, result);
+    assertEquals(questionResponse, result.getData());
   }
 
   @ParameterizedTest
@@ -285,13 +297,20 @@ public class UserServiceImplTest {
                         .build())
             .toList();
 
-    when(postRepo.findUserAnswerByUsername(username, PostType.ANSWER)).thenReturn(answerResponse);
+    int limit = 5;
+    int offset = 0;
+    Pageable pageable = PageRequest.of(0, limit);
+    Page<UserAnswerResponseDTO> page =
+        new PageImpl<>(answerResponse, pageable, answerResponse.size());
+
+    when(postRepo.findUserAnswerByUsername(username, PostType.ANSWER, pageable)).thenReturn(page);
 
     // Act
-    List<UserAnswerResponseDTO> result = userService.getUserAnswers(username);
+    PagedResponse<UserAnswerResponseDTO> result =
+        userService.getUserAnswers(username, limit, offset);
 
     // Assert
-    assertEquals(answerResponse, result);
+    assertEquals(answerResponse, result.getData());
   }
 
   @ParameterizedTest
@@ -319,13 +338,20 @@ public class UserServiceImplTest {
                         .build())
             .toList();
 
-    when(commentRepo.findUserCommentsByUsername(username)).thenReturn(commentResponse);
+    int limit = 5;
+    int offset = 0;
+    Pageable pageable = PageRequest.of(0, limit);
+    Page<UserCommentResponseDTO> page =
+        new PageImpl<>(commentResponse, pageable, commentResponse.size());
+
+    when(commentRepo.findUserCommentsByUsername(username, pageable)).thenReturn(page);
 
     // Act
-    List<UserCommentResponseDTO> result = userService.getUserComments(username);
+    PagedResponse<UserCommentResponseDTO> result =
+        userService.getUserComments(username, limit, offset);
 
     // Assert
-    assertEquals(commentResponse, result);
+    assertEquals(commentResponse, result.getData());
   }
 
   @ParameterizedTest
