@@ -1,5 +1,6 @@
 package com.project.hearmeout_backend.authentication_service.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.hearmeout_backend.authentication_service.dto.request.AccountVerificationRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.LoginRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetRequestDTO;
@@ -47,7 +48,7 @@ public class SecurityController {
   @PostMapping("register")
   public ResponseEntity<@NonNull String> registerUser(
       @Valid @RequestBody RegisterRequestDTO registerRequestDTO)
-      throws UserAlreadyExistException, EmailAlreadyExistException {
+      throws UserAlreadyExistException, EmailAlreadyExistException, JsonProcessingException {
     securityServiceImpl.createNewUser(registerRequestDTO);
 
     return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
