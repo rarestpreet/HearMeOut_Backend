@@ -1,4 +1,4 @@
-package com.project.hearmeout_backend.authentication_service.service.implementation;
+package com.project.hearmeout_backend.common_lib.service.implementation;
 
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;

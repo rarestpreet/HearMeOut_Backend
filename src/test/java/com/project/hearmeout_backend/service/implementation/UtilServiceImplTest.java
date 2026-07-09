@@ -3,8 +3,8 @@ package com.project.hearmeout_backend.service.implementation;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import com.project.hearmeout_backend.authentication_service.service.implementation.UtilServiceImpl;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
+import com.project.hearmeout_backend.common_lib.service.implementation.UtilServiceImpl;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;

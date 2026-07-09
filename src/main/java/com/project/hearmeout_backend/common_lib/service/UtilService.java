@@ -1,3 +1,3 @@
-package com.project.hearmeout_backend.authentication_service.service;
+package com.project.hearmeout_backend.common_lib.service;
 
 public interface UtilService {}
