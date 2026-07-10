@@ -1,11 +1,13 @@
 package com.project.hearmeout_backend.authentication_service.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetOtpRequestDTO;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
-import com.project.hearmeout_backend.common_lib.event_dto.PasswordResetOtpEvent;
 import com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent;
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
 import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
+import com.project.hearmeout_backend.notification_service.config.CustomRabbitTemplate;
+import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -15,8 +17,6 @@ import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
     description = "Endpoints for sending verification and password reset emails")
 public class EmailController {
 
-  private final RabbitTemplate rabbitTemplate;
+  private final CustomRabbitTemplate rabbitTemplate;
 
   @Operation(
       summary = "Send account verification OTP",
@@ -60,15 +60,12 @@ public class EmailController {
       timeoutInMinutes = 1)
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> sendAccountVerificationOtp(
-      @AuthenticationPrincipal CustomUserDetails userDetails) {
-    rabbitTemplate.convertAndSend(
-        "email.exchange",
-        "email.verification-otp",
-        new VerificationOtpEvent(userDetails.getUsername()),
-        message -> {
-          message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
-          return message;
-        });
+      @AuthenticationPrincipal CustomUserDetails userDetails) throws JsonProcessingException {
+
+    rabbitTemplate.send(
+        RabbitMQConfig.EMAIL_EXCHANGE,
+        RabbitMQConfig.VERIFICATION_EMAIL_ROUTING_KEY,
+        new VerificationOtpEvent(userDetails.getUsername()));
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }
@@ -92,15 +89,12 @@ public class EmailController {
   @RateLimiter(limitType = RateLimits.PASSWORD_RESET_OTP, requestAllowed = 1, timeoutInMinutes = 1)
   @PreAuthorize("!hasAuthority('ADMIN')")
   public ResponseEntity<@NonNull String> sendResetPasswordOtp(
-      @Valid @RequestBody PasswordResetOtpRequestDTO passwordResetOtpRequestDTO) {
-    rabbitTemplate.convertAndSend(
-        "email.exchange",
-        "email.password-reset",
-        new PasswordResetOtpEvent(passwordResetOtpRequestDTO.getEmail()),
-        message -> {
-          message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.PERSISTENT);
-          return message;
-        });
+      @Valid @RequestBody PasswordResetOtpRequestDTO requestDTO) throws JsonProcessingException {
+
+    rabbitTemplate.send(
+        RabbitMQConfig.EMAIL_EXCHANGE,
+        RabbitMQConfig.PASSWORD_RESET_EMAIL_ROUTING_KEY,
+        new VerificationOtpEvent(requestDTO.getEmail()));
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }

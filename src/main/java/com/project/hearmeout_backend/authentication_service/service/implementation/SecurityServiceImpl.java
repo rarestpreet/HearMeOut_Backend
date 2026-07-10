@@ -1,5 +1,6 @@
 package com.project.hearmeout_backend.authentication_service.service.implementation;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.hearmeout_backend.authentication_service.config.TokenCookieProperties;
 import com.project.hearmeout_backend.authentication_service.dto.request.AccountVerificationRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.LoginRequestDTO;
@@ -12,6 +13,8 @@ import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistExcep
 import com.project.hearmeout_backend.common_lib.exception.InvalidOtpException;
 import com.project.hearmeout_backend.common_lib.exception.TokenInvalidException;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
+import com.project.hearmeout_backend.notification_service.config.CustomRabbitTemplate;
+import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import com.project.hearmeout_backend.user_service.mapper.UserMapper;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
@@ -26,8 +29,6 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.MessageDeliveryMode;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -52,11 +53,11 @@ public class SecurityServiceImpl {
   private final UserServiceImpl userServiceImpl;
   private final StringRedisTemplate redisOperator;
   private final CustomUserDetailsServiceImpl customUserDetailsServiceImpl;
-  private final RabbitTemplate rabbitTemplate;
+  private final CustomRabbitTemplate rabbitTemplate;
 
   @Transactional
   public void createNewUser(RegisterRequestDTO registerRequestDTO)
-      throws UserAlreadyExistException, EmailAlreadyExistException {
+      throws UserAlreadyExistException, EmailAlreadyExistException, JsonProcessingException {
     if (userRepo.existsByUsernameOrEmail(
         registerRequestDTO.getUsername(), registerRequestDTO.getEmail())) {
       throw new UserAlreadyExistException("User with similar username or email already exist");
@@ -69,14 +70,10 @@ public class SecurityServiceImpl {
     userRepo.save(user);
     log.info("Successfully created new user account for email: {}", registerRequestDTO.getEmail());
 
-    rabbitTemplate.convertAndSend(
-        "email.exchange",
-        "email.welcome",
-        new UserRegisteredEvent(registerRequestDTO.getEmail(), registerRequestDTO.getUsername()),
-        message -> {
-          message.getMessageProperties().setDeliveryMode(MessageDeliveryMode.NON_PERSISTENT);
-          return message;
-        });
+    rabbitTemplate.send(
+        RabbitMQConfig.EMAIL_EXCHANGE,
+        RabbitMQConfig.WELCOME_EMAIL_ROUTING_KEY,
+        new UserRegisteredEvent(registerRequestDTO.getEmail(), registerRequestDTO.getUsername()));
   }
 
   public List<ResponseCookie> terminateSession(String email) {
