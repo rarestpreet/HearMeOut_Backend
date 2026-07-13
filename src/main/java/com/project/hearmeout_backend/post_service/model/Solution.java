@@ -1,6 +1,6 @@
 package com.project.hearmeout_backend.post_service.model;
 
-import com.project.hearmeout_backend.common.model.Post;
+import com.project.hearmeout_backend.common_lib.model.Post;
 import com.project.hearmeout_backend.post_service.model.enums.SolutionStatus;
 import jakarta.persistence.*;
 import lombok.*;

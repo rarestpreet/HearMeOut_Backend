@@ -11,7 +11,7 @@ public class ErrorReportMapper {
 
   public static ErrorReport toEntity(
       ErrorReportSubmitRequestDTO dto, User author, List<Tag> tags) {
-    return ErrorReport.builder()
+    ErrorReport report = ErrorReport.builder()
         .title(dto.getTitle())
         .description(dto.getDescription())
         .reproductionSteps(dto.getReproductionSteps())
@@ -22,14 +22,18 @@ public class ErrorReportMapper {
         .filePath(dto.getFilePath())
         .relevantCode(dto.getRelevantCode())
         .relevantLog(dto.getRelevantLog())
-        .language(dto.getLanguage())
-        .languageVersion(dto.getLanguageVersion())
-        .framework(dto.getFramework())
-        .frameworkVersion(dto.getFrameworkVersion())
-        .os(dto.getOs())
-        .osVersion(dto.getOsVersion())
         .status(ErrorReportStatus.OPEN)
         .tags(tags)
         .build();
+    
+    report.setAuthor(author);
+    report.setLanguage(dto.getLanguage());
+    report.setLanguageVersion(dto.getLanguageVersion());
+    report.setFramework(dto.getFramework());
+    report.setFrameworkVersion(dto.getFrameworkVersion());
+    report.setOs(dto.getOs());
+    report.setOsVersion(dto.getOsVersion());
+
+    return report;
   }
 }

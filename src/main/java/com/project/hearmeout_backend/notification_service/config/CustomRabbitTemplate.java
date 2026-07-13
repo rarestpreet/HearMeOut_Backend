@@ -13,6 +13,7 @@ import org.springframework.amqp.core.MessageDeliveryMode;
 import org.springframework.amqp.core.ReturnedMessage;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -29,10 +30,10 @@ public class CustomRabbitTemplate {
   private final TaskScheduler taskScheduler;
 
   public CustomRabbitTemplate(
-      RabbitTemplate rabbitTemplate,
-      PendingMessageStore pendingMessageStore,
-      PublisherDLQPublisher dlqPublisher,
-      TaskScheduler taskScheduler) {
+          RabbitTemplate rabbitTemplate,
+          PendingMessageStore pendingMessageStore,
+          PublisherDLQPublisher dlqPublisher,
+          TaskScheduler taskScheduler) {
     this.rabbitTemplate = rabbitTemplate;
     this.pendingMessageStore = pendingMessageStore;
     this.dlqPublisher = dlqPublisher;

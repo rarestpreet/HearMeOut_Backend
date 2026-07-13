@@ -6,11 +6,11 @@ import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.feed_service.dto.response.FeedErrorReportResponseDTO;
 import com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileResponseDTO;
 import com.project.hearmeout_backend.post_service.dto.response.ReportTagResponseDTO;
-import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
 import com.project.hearmeout_backend.post_service.repository.TagRepository;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import java.util.List;
+import java.util.UUID;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -23,27 +23,26 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class HomeServiceImpl {
 
-  private final ErrorReportRepository postRepo;
+  private final ErrorReportRepository errorReportRepo;
   private final TagRepository tagRepo;
   private final UserRepository userRepo;
 
   @Transactional(readOnly = true)
-  public PagedResponse<FeedErrorReportResponseDTO> generateFeed(int limit, int offset, Long userId) {
+  public PagedResponse<FeedErrorReportResponseDTO> generateFeed(int limit, int offset, UUID userId) {
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
     Page<FeedErrorReportResponseDTO> feedPostsPage;
 
     if (userId != null)
-      feedPostsPage =
-          postRepo.findFeedErrorReportDTOByAuthorIdNot(PostType.ERROR_REPORT, userId, pageable);
-    else feedPostsPage = postRepo.findFeedErrorReportDTO(PostType.ERROR_REPORT, pageable);
+      feedPostsPage = errorReportRepo.findFeedErrorReportsByAuthorIdNot(userId, pageable);
+    else feedPostsPage = errorReportRepo.findFeedErrorReports(pageable);
 
     List<FeedErrorReportResponseDTO> feedPosts =
         feedPostsPage.getContent().stream()
             .map(
                 post -> {
                   List<ReportTagResponseDTO> tags =
-                      tagRepo.findTagsDTOByPostId(post.getNavigationId());
+                      tagRepo.findTagsByErrorReportId(post.getNavigationId());
 
                   return FeedErrorReportResponseDTO.builder()
                       .updatedAt(post.getUpdatedAt())
@@ -53,6 +52,7 @@ public class HomeServiceImpl {
                       .tags(tags)
                       .navigationId(post.getNavigationId())
                       .authorUsername(post.getAuthorUsername())
+                      .viewCount(post.getViewCount())
                       .build();
                 })
             .toList();
@@ -70,7 +70,7 @@ public class HomeServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public HomeUserProfileResponseDTO getUserProfile(Long userId) {
+  public HomeUserProfileResponseDTO getUserProfile(UUID userId) {
     if (userId == null) {
       return HomeUserProfileResponseDTO.builder()
           .username(null)
