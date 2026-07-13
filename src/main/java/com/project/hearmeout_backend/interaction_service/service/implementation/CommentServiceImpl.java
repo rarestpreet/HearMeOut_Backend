@@ -94,8 +94,7 @@ public class CommentServiceImpl {
   public Comment checkAndGetComment(UUID commentId) throws CommentNotFoundException {
     return commentRepo
         .findById(commentId)
-        .orElseThrow(
-            () -> new CommentNotFoundException("Comment not found with id: " + commentId));
+        .orElseThrow(() -> new CommentNotFoundException("Comment not found with id: " + commentId));
   }
 
   @Transactional

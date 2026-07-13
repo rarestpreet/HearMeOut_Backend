@@ -147,8 +147,7 @@ public class SolutionController {
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> deleteSolution(
-      @PathVariable UUID solutionId,
-      @AuthenticationPrincipal CustomUserDetails userDetails) {
+      @PathVariable UUID solutionId, @AuthenticationPrincipal CustomUserDetails userDetails) {
     solutionServiceImpl.deleteSolution(solutionId, userDetails.getUserId());
 
     return ResponseEntity.status(HttpStatus.OK).body("Solution deleted successfully");

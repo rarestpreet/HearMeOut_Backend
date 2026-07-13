@@ -122,8 +122,7 @@ public class ErrorReportController {
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> deleteErrorReport(
-      @PathVariable UUID errorReportId,
-      @AuthenticationPrincipal CustomUserDetails userDetails) {
+      @PathVariable UUID errorReportId, @AuthenticationPrincipal CustomUserDetails userDetails) {
     errorReportServiceImpl.deleteErrorReport(errorReportId, userDetails.getUserId());
 
     return ResponseEntity.status(HttpStatus.OK).body("Error report deleted successfully");

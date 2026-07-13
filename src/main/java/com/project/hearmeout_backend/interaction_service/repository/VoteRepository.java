@@ -16,11 +16,9 @@ public interface VoteRepository extends JpaRepository<Vote, UUID> {
   Optional<Vote> findByParentIdAndParentTypeAndUserId(
       UUID parentId, PostType parentType, UUID userId);
 
-  boolean existsByParentIdAndParentTypeAndUserId(
-      UUID parentId, PostType parentType, UUID userId);
+  boolean existsByParentIdAndParentTypeAndUserId(UUID parentId, PostType parentType, UUID userId);
 
-  void deleteByParentIdAndParentTypeAndUserId(
-      UUID parentId, PostType parentType, UUID userId);
+  void deleteByParentIdAndParentTypeAndUserId(UUID parentId, PostType parentType, UUID userId);
 
   List<Vote> findAllByParentIdAndParentType(UUID parentId, PostType parentType);
 }

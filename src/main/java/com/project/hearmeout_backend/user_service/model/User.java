@@ -30,14 +30,11 @@ public class User extends BaseModel {
   @Column(nullable = false, length = 20)
   private String password;
 
-  @Builder.Default
-  private int reputation = 0;
+  @Builder.Default private int reputation = 0;
 
-  @Builder.Default
-  private boolean isAccountVerified = false;
+  @Builder.Default private boolean isAccountVerified = false;
 
-  @Builder.Default
-  private boolean isAccountTerminated = false;
+  @Builder.Default private boolean isAccountTerminated = false;
 
   private RoleType role;
 
@@ -60,10 +57,10 @@ public class User extends BaseModel {
   private LocalDateTime usernameUpdatedAt;
 
   @Override
-    public void onCreate() {
-      super.onCreate();
-      this.usernameUpdatedAt = LocalDateTime.now();
-      this.emailUpdatedAt = LocalDateTime.now();
+  public void onCreate() {
+    super.onCreate();
+    this.usernameUpdatedAt = LocalDateTime.now();
+    this.emailUpdatedAt = LocalDateTime.now();
   }
 
   public void markUpdatedAt(boolean isEmailUpdated, boolean isUsernameUpdated) {
@@ -77,12 +74,15 @@ public class User extends BaseModel {
 
   public long emailUpdateCooldown() {
     return Math.max(
-        0, 7 - ChronoUnit.DAYS.between(this.emailUpdatedAt.toLocalDate(), java.time.LocalDate.now()));
+        0,
+        7 - ChronoUnit.DAYS.between(this.emailUpdatedAt.toLocalDate(), java.time.LocalDate.now()));
   }
 
   public long usernameUpdateCooldown() {
     return Math.max(
         0,
-        7 - ChronoUnit.DAYS.between(this.usernameUpdatedAt.toLocalDate(), java.time.LocalDate.now()));
+        7
+            - ChronoUnit.DAYS.between(
+                this.usernameUpdatedAt.toLocalDate(), java.time.LocalDate.now()));
   }
 }

@@ -11,7 +11,6 @@ import com.project.hearmeout_backend.post_service.repository.TagRepository;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import java.util.List;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,7 +27,8 @@ public class HomeServiceImpl {
   private final UserRepository userRepo;
 
   @Transactional(readOnly = true)
-  public PagedResponse<FeedErrorReportResponseDTO> generateFeed(int limit, int offset, UUID userId) {
+  public PagedResponse<FeedErrorReportResponseDTO> generateFeed(
+      int limit, int offset, UUID userId) {
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
     Page<FeedErrorReportResponseDTO> feedPostsPage;

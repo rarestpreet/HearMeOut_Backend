@@ -54,7 +54,13 @@ public class CommentServiceImplTest {
     errorReport.setId(reportId);
 
     commentId = UUID.randomUUID();
-    comment = Comment.builder().author(author).body("Old Body").parentId(reportId).parentType(PostType.ERROR_REPORT).build();
+    comment =
+        Comment.builder()
+            .author(author)
+            .body("Old Body")
+            .parentId(reportId)
+            .parentType(PostType.ERROR_REPORT)
+            .build();
     comment.setId(commentId);
 
     commentRequestDTO = new CommentRequestDTO();
@@ -79,7 +85,10 @@ public class CommentServiceImplTest {
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(errorReportRepo.existsById(reportId)).thenReturn(false);
 
-    InvalidOperationException exception = assertThrows(InvalidOperationException.class, () -> commentService.createNewComment(commentRequestDTO, authorId));
+    InvalidOperationException exception =
+        assertThrows(
+            InvalidOperationException.class,
+            () -> commentService.createNewComment(commentRequestDTO, authorId));
 
     assertEquals("Error report not found: " + reportId, exception.getMessage());
     verify(commentRepo, never()).save(any(Comment.class));
@@ -104,7 +113,10 @@ public class CommentServiceImplTest {
 
     when(commentRepo.findById(commentId)).thenReturn(Optional.of(comment));
 
-    InvalidOperationException exception = assertThrows(InvalidOperationException.class, () -> commentService.updateCommentBody(commentId, newBody, otherUserId));
+    InvalidOperationException exception =
+        assertThrows(
+            InvalidOperationException.class,
+            () -> commentService.updateCommentBody(commentId, newBody, otherUserId));
 
     assertEquals("Operation only allowed for account owner", exception.getMessage());
     verify(commentRepo, never()).save(any(Comment.class));

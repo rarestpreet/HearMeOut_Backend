@@ -50,21 +50,18 @@ public class SolutionServiceImpl {
   public Solution checkAndGetSolution(UUID solutionId) throws PostNotFoundException {
     return solutionRepo
         .findById(solutionId)
-        .orElseThrow(
-            () -> new PostNotFoundException("Solution not found with id: " + solutionId));
+        .orElseThrow(() -> new PostNotFoundException("Solution not found with id: " + solutionId));
   }
 
   @Transactional
-  public void submitSolution(
-      UUID errorReportId, SolutionSubmitRequestDTO dto, UUID userId)
+  public void submitSolution(UUID errorReportId, SolutionSubmitRequestDTO dto, UUID userId)
       throws UserNotFoundException, PostNotFoundException {
     ErrorReport errorReport =
         errorReportRepo
             .findById(errorReportId)
             .orElseThrow(
                 () ->
-                    new PostNotFoundException(
-                        "Error report not found with id: " + errorReportId));
+                    new PostNotFoundException("Error report not found with id: " + errorReportId));
 
     if (Objects.equals(userId, errorReport.getAuthor().getId())) {
       throw new InvalidOperationException("You cannot submit a solution to your own error report.");
@@ -93,9 +90,7 @@ public class SolutionServiceImpl {
     errorReportRepo
         .findById(errorReportId)
         .orElseThrow(
-            () ->
-                new PostNotFoundException(
-                    "Error report not found with id: " + errorReportId));
+            () -> new PostNotFoundException("Error report not found with id: " + errorReportId));
 
     int page = offset / limit;
     Pageable solutionPageable = PageRequest.of(Math.max(page, 0), limit);
@@ -293,8 +288,7 @@ public class SolutionServiceImpl {
     }
 
     User solutionAuthor = userServiceImpl.checkAndGetUserByUserId(solution.getAuthor().getId());
-    List<Vote> votes =
-        voteRepo.findAllByParentIdAndParentType(solutionId, PostType.SOLUTION);
+    List<Vote> votes = voteRepo.findAllByParentIdAndParentType(solutionId, PostType.SOLUTION);
 
     votes.forEach(
         vote -> {

@@ -43,9 +43,9 @@ public class HomeServiceImplTest {
 
   @InjectMocks private HomeServiceImpl homeService;
 
-    private List<ErrorReport> postList;
+  private List<ErrorReport> postList;
 
-    private UUID user1Id, user2Id, user3Id;
+  private UUID user1Id, user2Id, user3Id;
 
   @BeforeEach
   public void setUp() {
@@ -63,7 +63,7 @@ public class HomeServiceImplTest {
     User user3 = User.builder().username("test3").email("test3@gmail.com").build();
     user3.setId(user3Id);
 
-      List<User> userList = List.of(user1, user2, user3);
+    List<User> userList = List.of(user1, user2, user3);
 
     // TAGS
     Tag tag1 = Tag.builder().name("Test1").build();
@@ -78,7 +78,7 @@ public class HomeServiceImplTest {
     Tag tag4 = Tag.builder().name("Test4").build();
     tag4.setId(UUID.randomUUID());
 
-      List<Tag> tagList = List.of(tag1, tag2, tag3, tag4);
+    List<Tag> tagList = List.of(tag1, tag2, tag3, tag4);
 
     // POSTS
     ErrorReport post1 = ErrorReport.builder().title("Answer 1").build();
@@ -93,7 +93,8 @@ public class HomeServiceImplTest {
     post3.setId(UUID.randomUUID());
     post3.setAuthor(user1);
 
-    ErrorReport post4 = ErrorReport.builder().title("Question 3").tags(List.of(tag1, tag3, tag4)).build();
+    ErrorReport post4 =
+        ErrorReport.builder().title("Question 3").tags(List.of(tag1, tag3, tag4)).build();
     post4.setId(UUID.randomUUID());
     post4.setAuthor(user2);
 
@@ -149,10 +150,7 @@ public class HomeServiceImplTest {
     // Arrange
     UUID validId = user1Id;
     HomeUserProfileResponseDTO currUser =
-        HomeUserProfileResponseDTO.builder()
-            .userNavigationId(validId)
-            .username("test1")
-            .build();
+        HomeUserProfileResponseDTO.builder().userNavigationId(validId).username("test1").build();
 
     when(userRepo.getHomeUserProfileById(validId)).thenReturn(Optional.of(currUser));
 
@@ -172,16 +170,21 @@ public class HomeServiceImplTest {
     int offset = pageNum * 10;
     Pageable pageable = PageRequest.of(pageNum, limit);
 
-      List<FeedErrorReportResponseDTO> feedPost =
+    List<FeedErrorReportResponseDTO> feedPost =
         postList
             .subList(Math.min(offset, postList.size()), Math.min(offset + 10, postList.size()))
             .stream()
             .map(
                 post -> {
                   List<ReportTagResponseDTO> tags =
-                      post.getTags() == null ? List.of() : post.getTags().stream()
-                          .map(tag -> new ReportTagResponseDTO(tag.getId(), tag.getName(), tag.getDescription()))
-                          .toList();
+                      post.getTags() == null
+                          ? List.of()
+                          : post.getTags().stream()
+                              .map(
+                                  tag ->
+                                      new ReportTagResponseDTO(
+                                          tag.getId(), tag.getName(), tag.getDescription()))
+                              .toList();
 
                   return FeedErrorReportResponseDTO.builder()
                       .navigationId(post.getId())
@@ -200,14 +203,14 @@ public class HomeServiceImplTest {
     when(errorReportRepo.findFeedErrorReports(pageable)).thenReturn(pageImpl);
 
     // Act
-    PagedResponse<FeedErrorReportResponseDTO> result = homeService.generateFeed(limit, offset, null);
+    PagedResponse<FeedErrorReportResponseDTO> result =
+        homeService.generateFeed(limit, offset, null);
 
     // Assert
     assertEquals(feedPost.size(), result.getData().size());
 
     for (int i = 0; i < feedPost.size(); i++) {
-      assertEquals(
-          feedPost.get(i).getNavigationId(), result.getData().get(i).getNavigationId());
+      assertEquals(feedPost.get(i).getNavigationId(), result.getData().get(i).getNavigationId());
       assertEquals(feedPost.get(i).getTitle(), result.getData().get(i).getTitle());
     }
   }
@@ -221,20 +224,24 @@ public class HomeServiceImplTest {
     Pageable pageable = PageRequest.of(pageNum, limit);
     UUID userId = user3Id; // Let's use user3
 
-    List<ErrorReport> filteredPosts = postList.stream()
+    List<ErrorReport> filteredPosts =
+        postList.stream()
             .filter(post -> !Objects.equals(post.getAuthor().getId(), userId))
             .toList();
 
     List<FeedErrorReportResponseDTO> feedPost =
-        filteredPosts
-            .subList(0, Math.min(10, filteredPosts.size()))
-            .stream()
+        filteredPosts.subList(0, Math.min(10, filteredPosts.size())).stream()
             .map(
                 post -> {
                   List<ReportTagResponseDTO> tags =
-                      post.getTags() == null ? List.of() : post.getTags().stream()
-                          .map(tag -> new ReportTagResponseDTO(tag.getId(), tag.getName(), tag.getDescription()))
-                          .toList();
+                      post.getTags() == null
+                          ? List.of()
+                          : post.getTags().stream()
+                              .map(
+                                  tag ->
+                                      new ReportTagResponseDTO(
+                                          tag.getId(), tag.getName(), tag.getDescription()))
+                              .toList();
 
                   return FeedErrorReportResponseDTO.builder()
                       .navigationId(post.getId())
@@ -249,19 +256,19 @@ public class HomeServiceImplTest {
             when(tagRepo.findTagsByErrorReportId(post.getNavigationId()))
                 .thenReturn(post.getTags()));
 
-    Page<FeedErrorReportResponseDTO> pageImpl = new PageImpl<>(feedPost, pageable, filteredPosts.size());
-    when(errorReportRepo.findFeedErrorReportsByAuthorIdNot(userId, pageable))
-        .thenReturn(pageImpl);
+    Page<FeedErrorReportResponseDTO> pageImpl =
+        new PageImpl<>(feedPost, pageable, filteredPosts.size());
+    when(errorReportRepo.findFeedErrorReportsByAuthorIdNot(userId, pageable)).thenReturn(pageImpl);
 
     // Act
-    PagedResponse<FeedErrorReportResponseDTO> result = homeService.generateFeed(limit, offset, userId);
+    PagedResponse<FeedErrorReportResponseDTO> result =
+        homeService.generateFeed(limit, offset, userId);
 
     // Assert
     assertEquals(feedPost.size(), result.getData().size());
 
     for (int i = 0; i < feedPost.size(); i++) {
-      assertEquals(
-          feedPost.get(i).getNavigationId(), result.getData().get(i).getNavigationId());
+      assertEquals(feedPost.get(i).getNavigationId(), result.getData().get(i).getNavigationId());
       assertEquals(feedPost.get(i).getTitle(), result.getData().get(i).getTitle());
     }
   }

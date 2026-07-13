@@ -32,11 +32,7 @@ public class CommentResponseDTO {
 
   // Constructor for JPA projection
   public CommentResponseDTO(
-      UUID commentId,
-      String body,
-      String authorUsername,
-      UUID parentId,
-      LocalDateTime updatedAt) {
+      UUID commentId, String body, String authorUsername, UUID parentId, LocalDateTime updatedAt) {
     this.commentId = commentId;
     this.body = body;
     this.authorUsername = authorUsername;

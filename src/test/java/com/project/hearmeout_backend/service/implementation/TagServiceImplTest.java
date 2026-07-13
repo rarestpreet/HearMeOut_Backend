@@ -29,11 +29,9 @@ import org.springframework.data.domain.Pageable;
 @ExtendWith(MockitoExtension.class)
 public class TagServiceImplTest {
 
-  @Mock
-  private TagRepository tagRepo;
+  @Mock private TagRepository tagRepo;
 
-  @InjectMocks
-  private TagServiceImpl tagService;
+  @InjectMocks private TagServiceImpl tagService;
 
   @Test
   public void createTag() {
@@ -56,21 +54,22 @@ public class TagServiceImplTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = { 0, 1, 2, -3 })
+  @ValueSource(ints = {0, 1, 2, -3})
   void getTags(int pageNum) {
     // Arrange
-    List<TagResponseDTO> tagList = List.of(
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test1").usageCount(3).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test2").usageCount(0).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test3").usageCount(5).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test4").usageCount(1).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test5").usageCount(0).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test6").usageCount(2).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test7").usageCount(0).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test8").usageCount(7).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test9").usageCount(0).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test10").usageCount(4).build(),
-        TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test11").usageCount(1).build());
+    List<TagResponseDTO> tagList =
+        List.of(
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test1").usageCount(3).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test2").usageCount(0).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test3").usageCount(5).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test4").usageCount(1).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test5").usageCount(0).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test6").usageCount(2).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test7").usageCount(0).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test8").usageCount(7).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test9").usageCount(0).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test10").usageCount(4).build(),
+            TagResponseDTO.builder().tagId(UUID.randomUUID()).name("Test11").usageCount(1).build());
 
     pageNum = Math.max(0, pageNum);
     Pageable pageable = PageRequest.of(pageNum, 10);
@@ -97,7 +96,8 @@ public class TagServiceImplTest {
   @Test
   void updateTag_Success_OnlyDescriptionModified() {
     // Arrange
-    Tag existingTag = Tag.builder().name("java").description("Old description").usageCount(5).build();
+    Tag existingTag =
+        Tag.builder().name("java").description("Old description").usageCount(5).build();
     UUID tagId = UUID.randomUUID();
     existingTag.setId(tagId);
 
@@ -129,8 +129,9 @@ public class TagServiceImplTest {
     when(tagRepo.findById(invalidTagId)).thenReturn(Optional.empty());
 
     // Act & Assert
-    TagNotFoundException exception = assertThrows(TagNotFoundException.class,
-        () -> tagService.updateTag(invalidTagId, modificationDTO));
+    TagNotFoundException exception =
+        assertThrows(
+            TagNotFoundException.class, () -> tagService.updateTag(invalidTagId, modificationDTO));
 
     assertEquals("Tag with id " + invalidTagId + " not found", exception.getMessage());
     verify(tagRepo, never()).save(any());
@@ -157,7 +158,8 @@ public class TagServiceImplTest {
     when(tagRepo.existsById(invalidTagId)).thenReturn(false);
 
     // Act & Assert
-    TagNotFoundException exception = assertThrows(TagNotFoundException.class, () -> tagService.deleteTag(invalidTagId));
+    TagNotFoundException exception =
+        assertThrows(TagNotFoundException.class, () -> tagService.deleteTag(invalidTagId));
 
     assertEquals("Tag with id " + invalidTagId + " not found", exception.getMessage());
     verify(tagRepo, never()).deleteById(any());

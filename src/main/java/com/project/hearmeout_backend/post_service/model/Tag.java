@@ -21,8 +21,7 @@ public class Tag extends BaseModel {
   @Column(length = 200)
   private String description;
 
-  @Builder.Default
-  private int usageCount = 0;
+  @Builder.Default private int usageCount = 0;
 
   @ManyToMany(mappedBy = "tags")
   @Builder.Default

@@ -17,7 +17,6 @@ import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +56,8 @@ public class SolutionServiceImplTest {
     solutionAuthor.setId(solutionAuthorId);
 
     reportId = UUID.randomUUID();
-    errorReport = ErrorReport.builder().status(ErrorReportStatus.OPEN).solutions(new ArrayList<>()).build();
+    errorReport =
+        ErrorReport.builder().status(ErrorReportStatus.OPEN).solutions(new ArrayList<>()).build();
     errorReport.setId(reportId);
     errorReport.setAuthor(reportAuthor);
 
@@ -88,17 +88,21 @@ public class SolutionServiceImplTest {
     SolutionSubmitRequestDTO dto = new SolutionSubmitRequestDTO();
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(errorReport));
 
-    assertThrows(InvalidOperationException.class, () -> solutionService.submitSolution(reportId, dto, reportAuthorId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> solutionService.submitSolution(reportId, dto, reportAuthorId));
   }
 
   @Test
   void submitSolution_ResolvedReport_ThrowsException() {
     errorReport.setStatus(ErrorReportStatus.RESOLVED);
     SolutionSubmitRequestDTO dto = new SolutionSubmitRequestDTO();
-    
+
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(errorReport));
 
-    assertThrows(InvalidOperationException.class, () -> solutionService.submitSolution(reportId, dto, solutionAuthorId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> solutionService.submitSolution(reportId, dto, solutionAuthorId));
   }
 
   // ===================== handleSolutionStatus tests =====================
@@ -130,7 +134,9 @@ public class SolutionServiceImplTest {
     when(userServiceImpl.checkAndGetUserByUserId(solutionAuthorId)).thenReturn(solutionAuthor);
     when(userServiceImpl.checkAndGetUserByUserId(reportAuthorId)).thenReturn(reportAuthor);
 
-    assertThrows(InvalidOperationException.class, () -> solutionService.handleSolutionStatus(dto, otherUserId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> solutionService.handleSolutionStatus(dto, otherUserId));
   }
 
   // ===================== updateSolution tests =====================
@@ -154,7 +160,9 @@ public class SolutionServiceImplTest {
 
     when(solutionRepo.findById(solutionId)).thenReturn(Optional.of(solution));
 
-    assertThrows(InvalidOperationException.class, () -> solutionService.updateSolution(solutionId, dto, otherUserId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> solutionService.updateSolution(solutionId, dto, otherUserId));
   }
 
   @Test
@@ -164,6 +172,8 @@ public class SolutionServiceImplTest {
 
     when(solutionRepo.findById(solutionId)).thenReturn(Optional.of(solution));
 
-    assertThrows(InvalidOperationException.class, () -> solutionService.updateSolution(solutionId, dto, solutionAuthorId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> solutionService.updateSolution(solutionId, dto, solutionAuthorId));
   }
 }

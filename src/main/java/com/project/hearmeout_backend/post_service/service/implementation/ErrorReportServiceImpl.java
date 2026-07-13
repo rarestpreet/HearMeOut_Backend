@@ -1,7 +1,5 @@
 package com.project.hearmeout_backend.post_service.service.implementation;
 
-import com.project.hearmeout_backend.common_lib.dto.PageData;
-import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.TagNotFoundException;
@@ -87,13 +85,11 @@ public class ErrorReportServiceImpl {
             .findErrorReportDetailsDTO(errorReportId)
             .orElseThrow(
                 () ->
-                    new PostNotFoundException(
-                        "Error report not found with id: " + errorReportId));
+                    new PostNotFoundException("Error report not found with id: " + errorReportId));
 
     Vote currUserVote =
         voteRepo
-            .findByParentIdAndParentTypeAndUserId(
-                errorReportId, PostType.ERROR_REPORT, currUserId)
+            .findByParentIdAndParentTypeAndUserId(errorReportId, PostType.ERROR_REPORT, currUserId)
             .orElse(null);
 
     int page = offset / limit;
@@ -158,13 +154,16 @@ public class ErrorReportServiceImpl {
                 })
             .toList();
 
-    List<TagResponseDTO> tags = tagRepo.findTagsByErrorReportId(errorReportId).stream()
-        .map(t -> TagResponseDTO.builder()
-            .tagId(t.getTagId())
-            .name(t.getName())
-            .description(t.getDescription())
-            .build())
-        .toList();
+    List<TagResponseDTO> tags =
+        tagRepo.findTagsByErrorReportId(errorReportId).stream()
+            .map(
+                t ->
+                    TagResponseDTO.builder()
+                        .tagId(t.getTagId())
+                        .name(t.getName())
+                        .description(t.getDescription())
+                        .build())
+            .toList();
 
     Page<CommentResponseDTO> commentsPage =
         commentRepo.findCommentsByParent(errorReportId, PostType.ERROR_REPORT, commentPageable);

@@ -101,10 +101,12 @@ public class ErrorReportServiceImplTest {
     dto.setTagIds(List.of(tag1Id, fakeTagId));
 
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
-    when(tagRepo.findAllById(List.of(tag1Id, fakeTagId))).thenReturn(List.of(tag1)); // Only returns tag1
+    when(tagRepo.findAllById(List.of(tag1Id, fakeTagId)))
+        .thenReturn(List.of(tag1)); // Only returns tag1
 
     // Act & Assert
-    assertThrows(TagNotFoundException.class, () -> errorReportService.submitErrorReport(dto, authorId));
+    assertThrows(
+        TagNotFoundException.class, () -> errorReportService.submitErrorReport(dto, authorId));
 
     verify(tagRepo, never()).incrementUsageCount(any());
     verify(errorReportRepo, never()).save(any(ErrorReport.class));
@@ -187,7 +189,9 @@ public class ErrorReportServiceImplTest {
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(report));
 
     // Act & Assert
-    assertThrows(InvalidOperationException.class, () -> errorReportService.updateErrorReport(reportId, dto, otherUserId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> errorReportService.updateErrorReport(reportId, dto, otherUserId));
 
     verify(tagRepo, never()).incrementUsageCount(any());
     verify(tagRepo, never()).decrementUsageCount(any());
@@ -210,7 +214,9 @@ public class ErrorReportServiceImplTest {
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(report));
 
     // Act & Assert
-    assertThrows(InvalidOperationException.class, () -> errorReportService.updateErrorReport(reportId, dto, authorId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> errorReportService.updateErrorReport(reportId, dto, authorId));
   }
 
   // ===================== deleteErrorReport tests =====================
@@ -252,7 +258,9 @@ public class ErrorReportServiceImplTest {
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(report));
 
     // Act & Assert
-    assertThrows(InvalidOperationException.class, () -> errorReportService.deleteErrorReport(reportId, authorId));
+    assertThrows(
+        InvalidOperationException.class,
+        () -> errorReportService.deleteErrorReport(reportId, authorId));
 
     verify(tagRepo, never()).decrementUsageCount(any());
     verify(errorReportRepo, never()).delete(any(ErrorReport.class));

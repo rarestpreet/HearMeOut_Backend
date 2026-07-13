@@ -24,7 +24,7 @@ public class VerificationOtpConsumer {
   private final EmailServiceImpl emailService;
   private final ConsumerRetryDispatcher retryDispatcher;
   private final UtilServiceImpl utilService;
-  private final RedisTemplate<Object, Object> redisTemplate;
+  private final RedisTemplate<String, String> redisTemplate;
 
   @RabbitListener(queues = RabbitMQConfig.VERIFICATION_EMAIL_QUEUE, ackMode = "MANUAL")
   public void consume(Message message, Channel channel, @Payload VerificationOtpEvent payload)

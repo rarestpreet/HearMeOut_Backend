@@ -15,12 +15,10 @@ import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.user_service.dto.request.UserProfileModificationRequestDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
-import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserErrorReportResponseDTO;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -56,13 +54,31 @@ public class UserServiceImplTest {
     user2Id = UUID.randomUUID();
     user3Id = UUID.randomUUID();
 
-    User user1 = User.builder().username("test1").email("test1@gmail.com").emailUpdatedAt(LocalDateTime.now().minusDays(30)).usernameUpdatedAt(LocalDateTime.now().minusDays(30)).build();
+    User user1 =
+        User.builder()
+            .username("test1")
+            .email("test1@gmail.com")
+            .emailUpdatedAt(LocalDateTime.now().minusDays(30))
+            .usernameUpdatedAt(LocalDateTime.now().minusDays(30))
+            .build();
     user1.setId(user1Id);
 
-    User user2 = User.builder().username("test2").email("test2@gmail.com").emailUpdatedAt(LocalDateTime.now().minusDays(30)).usernameUpdatedAt(LocalDateTime.now().minusDays(30)).build();
+    User user2 =
+        User.builder()
+            .username("test2")
+            .email("test2@gmail.com")
+            .emailUpdatedAt(LocalDateTime.now().minusDays(30))
+            .usernameUpdatedAt(LocalDateTime.now().minusDays(30))
+            .build();
     user2.setId(user2Id);
 
-    User user3 = User.builder().username("test3").email("test3@gmail.com").emailUpdatedAt(LocalDateTime.now().minusDays(30)).usernameUpdatedAt(LocalDateTime.now().minusDays(30)).build();
+    User user3 =
+        User.builder()
+            .username("test3")
+            .email("test3@gmail.com")
+            .emailUpdatedAt(LocalDateTime.now().minusDays(30))
+            .usernameUpdatedAt(LocalDateTime.now().minusDays(30))
+            .build();
     user3.setId(user3Id);
 
     userList = List.of(user1, user2, user3);
@@ -73,7 +89,9 @@ public class UserServiceImplTest {
     String username = "test5";
     when(userRepo.getUserProfileByUsername(username)).thenReturn(Optional.empty());
 
-    UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> userService.getUserProfile(username, user1Id));
+    UserNotFoundException exception =
+        assertThrows(
+            UserNotFoundException.class, () -> userService.getUserProfile(username, user1Id));
     assertEquals("User not found with username: " + username, exception.getMessage());
   }
 
@@ -82,25 +100,33 @@ public class UserServiceImplTest {
     UUID randomId = UUID.randomUUID();
     when(userRepo.findById(randomId)).thenReturn(Optional.empty());
 
-    UserNotFoundException exception = assertThrows(UserNotFoundException.class, () -> userService.checkAndGetUserByUserId(randomId));
+    UserNotFoundException exception =
+        assertThrows(
+            UserNotFoundException.class, () -> userService.checkAndGetUserByUserId(randomId));
     assertEquals("User not found with id: " + randomId, exception.getMessage());
   }
 
   @Test
   public void updateUserDetails_DuplicateUsername() {
-    UserProfileModificationRequestDTO requestDTO = new UserProfileModificationRequestDTO("test3", "test4@gmail.com");
+    UserProfileModificationRequestDTO requestDTO =
+        new UserProfileModificationRequestDTO("test3", "test4@gmail.com");
     User userProfile = userList.get(0);
 
     doReturn(userProfile).when(userService).checkAndGetUserByUserId(user1Id);
     doReturn(true).when(userRepo).existsByUsername(requestDTO.getUsername());
 
-    UserAlreadyExistException exception = assertThrows(UserAlreadyExistException.class, () -> userService.updateUserDetails(requestDTO, user1Id));
-    assertEquals("User already exist with username: " + requestDTO.getUsername(), exception.getMessage());
+    UserAlreadyExistException exception =
+        assertThrows(
+            UserAlreadyExistException.class,
+            () -> userService.updateUserDetails(requestDTO, user1Id));
+    assertEquals(
+        "User already exist with username: " + requestDTO.getUsername(), exception.getMessage());
   }
 
   @Test
   public void updateUserDetails_SuccessfulUpdate() {
-    UserProfileModificationRequestDTO requestDTO = new UserProfileModificationRequestDTO("test4", "test4@gmail.com");
+    UserProfileModificationRequestDTO requestDTO =
+        new UserProfileModificationRequestDTO("test4", "test4@gmail.com");
     User userProfile = userList.get(0);
 
     doReturn(userProfile).when(userService).checkAndGetUserByUserId(user1Id);
@@ -118,12 +144,16 @@ public class UserServiceImplTest {
     User userProfile = userList.get(0);
     doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
 
-    UserErrorReportResponseDTO responseDTO = UserErrorReportResponseDTO.builder().title("Title").navigationId(UUID.randomUUID()).build();
-    Page<UserErrorReportResponseDTO> page = new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
-    
-    when(errorReportRepo.findUserErrorReportsByUsername(eq(username), any(Pageable.class))).thenReturn(page);
+    UserErrorReportResponseDTO responseDTO =
+        UserErrorReportResponseDTO.builder().title("Title").navigationId(UUID.randomUUID()).build();
+    Page<UserErrorReportResponseDTO> page =
+        new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
 
-    PagedResponse<UserErrorReportResponseDTO> result = userService.getUserErrorReports(username, 5, 0);
+    when(errorReportRepo.findUserErrorReportsByUsername(eq(username), any(Pageable.class)))
+        .thenReturn(page);
+
+    PagedResponse<UserErrorReportResponseDTO> result =
+        userService.getUserErrorReports(username, 5, 0);
 
     assertEquals(1, result.getData().size());
     assertEquals("Title", result.getData().get(0).getTitle());
@@ -135,10 +165,13 @@ public class UserServiceImplTest {
     User userProfile = userList.get(1);
     doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
 
-    UserAnswerResponseDTO responseDTO = UserAnswerResponseDTO.builder().navigationId(UUID.randomUUID()).build();
-    Page<UserAnswerResponseDTO> page = new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
-    
-    when(solutionRepo.findUserSolutionsByUsername(eq(username), any(Pageable.class))).thenReturn(page);
+    UserAnswerResponseDTO responseDTO =
+        UserAnswerResponseDTO.builder().navigationId(UUID.randomUUID()).build();
+    Page<UserAnswerResponseDTO> page =
+        new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
+
+    when(solutionRepo.findUserSolutionsByUsername(eq(username), any(Pageable.class)))
+        .thenReturn(page);
 
     PagedResponse<UserAnswerResponseDTO> result = userService.getUserSolutions(username, 5, 0);
 
@@ -151,10 +184,13 @@ public class UserServiceImplTest {
     User userProfile = userList.get(2);
     doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
 
-    UserCommentResponseDTO responseDTO = UserCommentResponseDTO.builder().parentId(UUID.randomUUID()).build();
-    Page<UserCommentResponseDTO> page = new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
-    
-    when(commentRepo.findUserCommentsByUsername(eq(username), any(Pageable.class))).thenReturn(page);
+    UserCommentResponseDTO responseDTO =
+        UserCommentResponseDTO.builder().parentId(UUID.randomUUID()).build();
+    Page<UserCommentResponseDTO> page =
+        new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
+
+    when(commentRepo.findUserCommentsByUsername(eq(username), any(Pageable.class)))
+        .thenReturn(page);
 
     PagedResponse<UserCommentResponseDTO> result = userService.getUserComments(username, 5, 0);
 

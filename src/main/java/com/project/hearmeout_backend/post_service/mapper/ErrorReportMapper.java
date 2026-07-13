@@ -9,23 +9,23 @@ import java.util.List;
 
 public class ErrorReportMapper {
 
-  public static ErrorReport toEntity(
-      ErrorReportSubmitRequestDTO dto, User author, List<Tag> tags) {
-    ErrorReport report = ErrorReport.builder()
-        .title(dto.getTitle())
-        .description(dto.getDescription())
-        .reproductionSteps(dto.getReproductionSteps())
-        .errorType(dto.getErrorType())
-        .repositoryUrl(dto.getRepositoryUrl())
-        .branch(dto.getBranch())
-        .commitHash(dto.getCommitHash())
-        .filePath(dto.getFilePath())
-        .relevantCode(dto.getRelevantCode())
-        .relevantLog(dto.getRelevantLog())
-        .status(ErrorReportStatus.OPEN)
-        .tags(tags)
-        .build();
-    
+  public static ErrorReport toEntity(ErrorReportSubmitRequestDTO dto, User author, List<Tag> tags) {
+    ErrorReport report =
+        ErrorReport.builder()
+            .title(dto.getTitle())
+            .description(dto.getDescription())
+            .reproductionSteps(dto.getReproductionSteps())
+            .errorType(dto.getErrorType())
+            .repositoryUrl(dto.getRepositoryUrl())
+            .branch(dto.getBranch())
+            .commitHash(dto.getCommitHash())
+            .filePath(dto.getFilePath())
+            .relevantCode(dto.getRelevantCode())
+            .relevantLog(dto.getRelevantLog())
+            .status(ErrorReportStatus.OPEN)
+            .tags(tags)
+            .build();
+
     report.setAuthor(author);
     report.setLanguage(dto.getLanguage());
     report.setLanguageVersion(dto.getLanguageVersion());

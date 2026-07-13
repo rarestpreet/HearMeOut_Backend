@@ -49,15 +49,17 @@ public class ErrorReport extends Post {
   @Column(nullable = false)
   private ErrorReportStatus status;
 
-  @Builder.Default
-  private int viewCount = 0;
+  @Builder.Default private int viewCount = 0;
 
   @OneToMany(mappedBy = "errorReport", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   private List<Solution> solutions = new ArrayList<>();
 
   @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "error_report_tag", joinColumns = @JoinColumn(name = "error_report_id"), inverseJoinColumns = @JoinColumn(name = "tag_id"))
+  @JoinTable(
+      name = "error_report_tag",
+      joinColumns = @JoinColumn(name = "error_report_id"),
+      inverseJoinColumns = @JoinColumn(name = "tag_id"))
   @Builder.Default
   private List<Tag> tags = new ArrayList<>();
 }

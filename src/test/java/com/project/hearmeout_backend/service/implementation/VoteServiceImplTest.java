@@ -74,7 +74,8 @@ public class VoteServiceImplTest {
     // Arrange
     errorReport.setAuthor(currUser);
 
-    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId)).thenReturn(Optional.empty());
+    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId))
+        .thenReturn(Optional.empty());
     when(userServiceImpl.checkAndGetUserByUserId(currUserId)).thenReturn(currUser);
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(errorReport));
 
@@ -90,7 +91,8 @@ public class VoteServiceImplTest {
   @Test
   void handleVote_NewUpvote() throws BadRequestException {
     // Arrange
-    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId)).thenReturn(Optional.empty());
+    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId))
+        .thenReturn(Optional.empty());
     when(userServiceImpl.checkAndGetUserByUserId(currUserId)).thenReturn(currUser);
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(errorReport));
@@ -118,7 +120,8 @@ public class VoteServiceImplTest {
 
   @Test
   void handleVote_NewDownvote() throws BadRequestException {
-    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId)).thenReturn(Optional.empty());
+    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId))
+        .thenReturn(Optional.empty());
     when(userServiceImpl.checkAndGetUserByUserId(currUserId)).thenReturn(currUser);
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(errorReport));
@@ -137,9 +140,16 @@ public class VoteServiceImplTest {
 
   @Test
   void handleVote_ExistingVoteRemoved_Upvote() throws BadRequestException {
-    Vote existingVote = Vote.builder().user(currUser).parentId(reportId).parentType(PostType.ERROR_REPORT).voteType(VoteType.UPVOTE).build();
+    Vote existingVote =
+        Vote.builder()
+            .user(currUser)
+            .parentId(reportId)
+            .parentType(PostType.ERROR_REPORT)
+            .voteType(VoteType.UPVOTE)
+            .build();
 
-    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId)).thenReturn(Optional.of(existingVote));
+    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId))
+        .thenReturn(Optional.of(existingVote));
     when(userServiceImpl.checkAndGetUserByUserId(currUserId)).thenReturn(currUser);
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(errorReport));
@@ -150,14 +160,22 @@ public class VoteServiceImplTest {
     assertEquals(4, errorReport.getScore());
     assertEquals(9, currUser.getReputation());
 
-    verify(voteRepo).deleteByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId);
+    verify(voteRepo)
+        .deleteByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId);
   }
 
   @Test
   void handleVote_ExistingVoteChanged_Upvote() throws BadRequestException {
-    Vote existingVote = Vote.builder().user(currUser).parentId(reportId).parentType(PostType.ERROR_REPORT).voteType(VoteType.DOWNVOTE).build();
+    Vote existingVote =
+        Vote.builder()
+            .user(currUser)
+            .parentId(reportId)
+            .parentType(PostType.ERROR_REPORT)
+            .voteType(VoteType.DOWNVOTE)
+            .build();
 
-    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId)).thenReturn(Optional.of(existingVote));
+    when(voteRepo.findByParentIdAndParentTypeAndUserId(reportId, PostType.ERROR_REPORT, currUserId))
+        .thenReturn(Optional.of(existingVote));
     when(userServiceImpl.checkAndGetUserByUserId(currUserId)).thenReturn(currUser);
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(errorReport));

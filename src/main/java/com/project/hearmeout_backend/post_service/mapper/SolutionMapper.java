@@ -10,14 +10,15 @@ public class SolutionMapper {
 
   public static Solution toEntity(
       SolutionSubmitRequestDTO dto, ErrorReport errorReport, User author) {
-    Solution solution = Solution.builder()
-        .errorReport(errorReport)
-        .probableCause(dto.getProbableCause())
-        .explanation(dto.getExplanation())
-        .codeChange(dto.getCodeChange())
-        .status(SolutionStatus.PENDING)
-        .build();
-    
+    Solution solution =
+        Solution.builder()
+            .errorReport(errorReport)
+            .probableCause(dto.getProbableCause())
+            .explanation(dto.getExplanation())
+            .codeChange(dto.getCodeChange())
+            .status(SolutionStatus.PENDING)
+            .build();
+
     solution.setAuthor(author);
     solution.setLanguage(dto.getLanguage());
     solution.setLanguageVersion(dto.getLanguageVersion());

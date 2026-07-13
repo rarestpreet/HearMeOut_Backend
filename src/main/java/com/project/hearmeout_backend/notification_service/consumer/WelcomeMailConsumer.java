@@ -22,7 +22,7 @@ public class WelcomeMailConsumer {
 
   private final EmailServiceImpl emailService;
   private final ConsumerRetryDispatcher retryDispatcher;
-  private final RedisTemplate<Object, Object> redisTemplate;
+  private final RedisTemplate<String, String> redisTemplate;
 
   @RabbitListener(queues = RabbitMQConfig.WELCOME_EMAIL_QUEUE, ackMode = "MANUAL")
   public void consume(Message message, Channel channel, @Payload UserRegisteredEvent payload)

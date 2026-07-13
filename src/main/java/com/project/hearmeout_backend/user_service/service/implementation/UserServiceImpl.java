@@ -13,8 +13,8 @@ import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.user_service.dto.request.UserProfileModificationRequestDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
-import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserErrorReportResponseDTO;
+import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import java.util.Objects;
@@ -99,8 +99,8 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<UserAnswerResponseDTO> getUserSolutions(String username, int limit, int offset)
-      throws UserNotFoundException {
+  public PagedResponse<UserAnswerResponseDTO> getUserSolutions(
+      String username, int limit, int offset) throws UserNotFoundException {
     checkAndGetUserByUsername(username);
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);

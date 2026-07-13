@@ -36,9 +36,7 @@ public class VoteServiceImpl {
     PostType parentType = voteRequestDTO.getParentType();
 
     Vote existingVote =
-        voteRepo
-            .findByParentIdAndParentTypeAndUserId(parentId, parentType, userId)
-            .orElse(null);
+        voteRepo.findByParentIdAndParentTypeAndUserId(parentId, parentType, userId).orElse(null);
 
     User currUser = userServiceImpl.checkAndGetUserByUserId(userId);
 
@@ -112,15 +110,13 @@ public class VoteServiceImpl {
     if (parentType == PostType.ERROR_REPORT) {
       return errorReportRepo
           .findById(parentId)
-          .orElseThrow(
-              () -> new InvalidOperationException("Error report not found: " + parentId))
+          .orElseThrow(() -> new InvalidOperationException("Error report not found: " + parentId))
           .getAuthor()
           .getId();
     } else {
       return solutionRepo
           .findById(parentId)
-          .orElseThrow(
-              () -> new InvalidOperationException("Solution not found: " + parentId))
+          .orElseThrow(() -> new InvalidOperationException("Solution not found: " + parentId))
           .getAuthor()
           .getId();
     }
