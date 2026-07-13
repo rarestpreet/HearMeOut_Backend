@@ -2,6 +2,7 @@ package com.project.hearmeout_backend.gateway.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,8 +19,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 public abstract class BaseModel {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.UUID)
+  private UUID id;
 
   @CreatedDate
   @Column(updatable = false, nullable = false)

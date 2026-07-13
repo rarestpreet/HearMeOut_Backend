@@ -1,17 +1,16 @@
 package com.project.hearmeout_backend.user_service.model;
 
 import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
+import com.project.hearmeout_backend.gateway.model.BaseModel;
 import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.interaction_service.model.Vote;
-import com.project.hearmeout_backend.post_service.model.Post;
+import com.project.hearmeout_backend.post_service.model.ErrorReport;
 import jakarta.persistence.*;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
 
 @Entity
 @Table(name = "user_data")
@@ -20,32 +19,31 @@ import org.springframework.data.annotation.CreatedDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class User {
-
-  @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+public class User extends BaseModel {
 
   @Column(nullable = false, unique = true, length = 20)
   private String username;
 
-  @Column(nullable = false, unique = true)
+  @Column(nullable = false, unique = true, length = 50)
   private String email;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 20)
   private String password;
 
-  @Builder.Default private int reputation = 0;
+  @Builder.Default
+  private int reputation = 0;
 
-  @Builder.Default private boolean isAccountVerified = false;
+  @Builder.Default
+  private boolean isAccountVerified = false;
 
-  @Builder.Default private boolean isAccountTerminated = false;
+  @Builder.Default
+  private boolean isAccountTerminated = false;
 
   private RoleType role;
 
   @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
-  private List<Post> posts = new ArrayList<>();
+  private List<ErrorReport> errorReports = new ArrayList<>();
 
   @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
@@ -55,37 +53,36 @@ public class User {
   @Builder.Default
   private List<Vote> votes = new ArrayList<>();
 
-  @CreatedDate
-  @Column(updatable = false, nullable = false)
-  private LocalDateTime createdAt;
+  @Column(nullable = false)
+  private LocalDateTime emailUpdatedAt;
 
   @Column(nullable = false)
-  private LocalDate emailUpdatedAt;
+  private LocalDateTime usernameUpdatedAt;
 
-  @Column(nullable = false)
-  private LocalDate usernameUpdatedAt;
-
-  @PrePersist
-  public void onCreate() {
-    this.createdAt = LocalDateTime.now();
-    this.usernameUpdatedAt = LocalDate.now();
-    this.emailUpdatedAt = LocalDate.now();
+  @Override
+    public void onCreate() {
+      super.onCreate();
+      this.usernameUpdatedAt = LocalDateTime.now();
+      this.emailUpdatedAt = LocalDateTime.now();
   }
 
   public void markUpdatedAt(boolean isEmailUpdated, boolean isUsernameUpdated) {
     if (isEmailUpdated) {
-      this.emailUpdatedAt = LocalDate.now();
+      this.emailUpdatedAt = LocalDateTime.now();
     }
     if (isUsernameUpdated) {
-      this.usernameUpdatedAt = LocalDate.now();
+      this.usernameUpdatedAt = LocalDateTime.now();
     }
   }
 
   public long emailUpdateCooldown() {
-    return Math.max(0, 7 - ChronoUnit.DAYS.between(this.emailUpdatedAt, LocalDate.now()));
+    return Math.max(
+        0, 7 - ChronoUnit.DAYS.between(this.emailUpdatedAt.toLocalDate(), java.time.LocalDate.now()));
   }
 
   public long usernameUpdateCooldown() {
-    return Math.max(0, 7 - ChronoUnit.DAYS.between(this.usernameUpdatedAt, LocalDate.now()));
+    return Math.max(
+        0,
+        7 - ChronoUnit.DAYS.between(this.usernameUpdatedAt.toLocalDate(), java.time.LocalDate.now()));
   }
 }
