@@ -8,16 +8,17 @@ import com.project.hearmeout_backend.common_lib.exception.InvalidOperationExcept
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
-import com.project.hearmeout_backend.post_service.model.enums.PostType;
-import com.project.hearmeout_backend.post_service.repository.PostRepository;
+import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
+import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.user_service.dto.request.UserProfileModificationRequestDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
-import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
+import com.project.hearmeout_backend.user_service.dto.response.UserErrorReportResponseDTO;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import java.util.Objects;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,10 +31,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserServiceImpl {
 
   private final UserRepository userRepo;
-  private final PostRepository postRepo;
+  private final ErrorReportRepository errorReportRepo;
+  private final SolutionRepository solutionRepo;
   private final CommentRepository commentRepo;
 
-  public UserProfileResponseDTO getUserProfile(String username, Long currUserId)
+  public UserProfileResponseDTO getUserProfile(String username, UUID currUserId)
       throws UserNotFoundException {
     UserProfileResponseDTO profileResponse =
         userRepo
@@ -54,7 +56,7 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public User checkAndGetUserByUserId(Long userId) throws UserNotFoundException {
+  public User checkAndGetUserByUserId(UUID userId) throws UserNotFoundException {
     return userRepo
         .findById(userId)
         .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
@@ -75,16 +77,16 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<UserQuestionResponseDTO> getUserQuestions(
+  public PagedResponse<UserErrorReportResponseDTO> getUserErrorReports(
       String username, int limit, int offset) throws UserNotFoundException {
     checkAndGetUserByUsername(username);
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    Page<UserQuestionResponseDTO> userQuestionsPage =
-        postRepo.findUserQuestionByUsername(username, PostType.QUESTION, pageable);
+    Page<UserErrorReportResponseDTO> userQuestionsPage =
+        errorReportRepo.findUserErrorReportsByUsername(username, pageable);
 
-    return PagedResponse.<UserQuestionResponseDTO>builder()
+    return PagedResponse.<UserErrorReportResponseDTO>builder()
         .data(userQuestionsPage.getContent())
         .pageData(
             PageData.builder()
@@ -97,14 +99,14 @@ public class UserServiceImpl {
   }
 
   @Transactional(readOnly = true)
-  public PagedResponse<UserAnswerResponseDTO> getUserAnswers(String username, int limit, int offset)
+  public PagedResponse<UserAnswerResponseDTO> getUserSolutions(String username, int limit, int offset)
       throws UserNotFoundException {
     checkAndGetUserByUsername(username);
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
     Page<UserAnswerResponseDTO> userAnswersPage =
-        postRepo.findUserAnswerByUsername(username, PostType.ANSWER, pageable);
+        solutionRepo.findUserSolutionsByUsername(username, pageable);
 
     return PagedResponse.<UserAnswerResponseDTO>builder()
         .data(userAnswersPage.getContent())
@@ -141,7 +143,7 @@ public class UserServiceImpl {
   }
 
   @Transactional
-  public boolean updateUserDetails(UserProfileModificationRequestDTO requestDTO, Long currUserId)
+  public boolean updateUserDetails(UserProfileModificationRequestDTO requestDTO, UUID currUserId)
       throws UserNotFoundException, UserAlreadyExistException, EmailAlreadyExistException {
     User currUser = checkAndGetUserByUserId(currUserId);
 
@@ -198,7 +200,7 @@ public class UserServiceImpl {
   }
 
   @Transactional
-  public void terminateUserAccount(Long currUserId) throws UserNotFoundException {
+  public void terminateUserAccount(UUID currUserId) throws UserNotFoundException {
     User currUser = checkAndGetUserByUserId(currUserId);
 
     /*

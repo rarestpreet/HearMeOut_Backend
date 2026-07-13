@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class TagResponseDTO {
+public class ReportTagResponseDTO {
   @Schema(description = "The unique identifier of the tag")
   private UUID tagId;
 
@@ -20,7 +20,4 @@ public class TagResponseDTO {
 
   @Schema(description = "A brief description explaining the tag's purpose")
   private String description;
-
-  @Schema(description = "Count of error reports that used this tag")
-  private int usageCount;
 }
