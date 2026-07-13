@@ -4,21 +4,20 @@ import com.project.hearmeout_backend.common_lib.dto.PageData;
 import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.CommentNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
-import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.interaction_service.dto.request.CommentRequestDTO;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.interaction_service.mapper.CommentMapper;
 import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
-import com.project.hearmeout_backend.post_service.model.Post;
-import com.project.hearmeout_backend.post_service.repository.PostRepository;
+import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -31,44 +30,27 @@ public class CommentServiceImpl {
 
   private final UserServiceImpl userServiceImpl;
   private final CommentRepository commentRepo;
-  private final PostRepository postRepo;
   private final UserRepository userRepo;
 
-  public PagedResponse<CommentResponseDTO> getPostComments(
-      Long postId, int limit, int offset, String username) throws PostNotFoundException {
-    postRepo
-        .findById(postId)
-        .orElseThrow(() -> new PostNotFoundException("Post not found with id: " + postId));
-
+  public PagedResponse<CommentResponseDTO> getComments(
+      UUID parentId, PostType parentType, int limit, int offset, String username) {
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
-    Page<CommentResponseDTO> commentsPage = commentRepo.findCommentsDTOByPostId(postId, pageable);
-
-    List<CommentResponseDTO> comments = commentsPage.getContent();
-    comments.forEach(
-        c -> {
-          CommentResponseDTO.CommentResponseDTOBuilder updatedComment =
-              CommentResponseDTO.builder();
-          updatedComment.operable(c.getAuthorUsername().equals(username));
-          // Note: the original code tried to use a builder but didn't update the object.
-          // I will fix the DTO logic here by using setters or directly setting if available.
-          // Actually since it's a DTO, it has no setters. I'll recreate the DTO and replace it in
-          // the list.
-        });
+    Page<CommentResponseDTO> commentsPage =
+        commentRepo.findCommentsByParent(parentId, parentType, pageable);
 
     List<CommentResponseDTO> updatedComments =
-        comments.stream()
+        commentsPage.getContent().stream()
             .map(
-                c -> {
-                  return new CommentResponseDTO(
-                      c.getCommentId(),
-                      c.getBody(),
-                      c.getAuthorUsername(),
-                      c.getNavigationPostId(),
-                      c.getUpdatedAt(),
-                      c.getAuthorUsername().equals(username));
-                })
+                c ->
+                    new CommentResponseDTO(
+                        c.getCommentId(),
+                        c.getBody(),
+                        c.getAuthorUsername(),
+                        c.getParentId(),
+                        c.getUpdatedAt(),
+                        c.getAuthorUsername().equals(username)))
             .toList();
 
     return PagedResponse.<CommentResponseDTO>builder()
@@ -84,18 +66,11 @@ public class CommentServiceImpl {
   }
 
   @Transactional
-  public void createNewComment(CommentRequestDTO commentRequestDTO, Long userId)
-      throws UserNotFoundException, PostNotFoundException {
+  public void createNewComment(CommentRequestDTO commentRequestDTO, UUID userId)
+      throws UserNotFoundException {
     User author = userServiceImpl.checkAndGetUserByUserId(userId);
-    Post post =
-        postRepo
-            .findById(commentRequestDTO.getPostId())
-            .orElseThrow(
-                () ->
-                    new PostNotFoundException(
-                        "Post not found with id: " + commentRequestDTO.getPostId()));
 
-    Comment newComment = CommentMapper.toCommentEntity(commentRequestDTO, post, author);
+    Comment newComment = CommentMapper.toCommentEntity(commentRequestDTO, author);
     commentRepo.save(newComment);
 
     author.setReputation(author.getReputation() + 2);
@@ -103,7 +78,7 @@ public class CommentServiceImpl {
   }
 
   @Transactional
-  public void removeComment(Long commentId, Long userId) throws CommentNotFoundException {
+  public void removeComment(UUID commentId, UUID userId) throws CommentNotFoundException {
     User author = userServiceImpl.checkAndGetUserByUserId(userId);
     Comment comment = checkAndGetComment(commentId);
 
@@ -116,14 +91,14 @@ public class CommentServiceImpl {
     userRepo.save(author);
   }
 
-  public Comment checkAndGetComment(Long commentId) throws CommentNotFoundException {
+  public Comment checkAndGetComment(UUID commentId) throws CommentNotFoundException {
     return commentRepo
         .findById(commentId)
         .orElseThrow(() -> new CommentNotFoundException("Comment not found with id: " + commentId));
   }
 
   @Transactional
-  public void updateCommentBody(Long commentId, String body, Long userId)
+  public void updateCommentBody(UUID commentId, String body, UUID userId)
       throws CommentNotFoundException {
     Comment comment = checkAndGetComment(commentId);
 

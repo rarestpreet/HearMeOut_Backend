@@ -3,6 +3,7 @@ package com.project.hearmeout_backend.interaction_service.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.*;
 
 @Getter
@@ -11,7 +12,7 @@ import lombok.*;
 @Builder
 public class CommentResponseDTO {
   @Schema(description = "The unique identifier of the comment")
-  private Long commentId;
+  private UUID commentId;
 
   @Schema(description = "The text content of the comment")
   private String body;
@@ -19,28 +20,23 @@ public class CommentResponseDTO {
   @Schema(description = "The username of the comment's author")
   private String authorUsername;
 
-  @Schema(description = "The ID of the parent post (question or answer) for navigation purposes")
-  private Long navigationPostId;
+  @Schema(description = "The ID of the parent entity for navigation purposes")
+  private UUID parentId;
 
-  @Schema(description = "timestamp of the last update")
+  @Schema(description = "Timestamp of the last update")
   @JsonFormat(pattern = "dd-MM-yyyy")
   private LocalDateTime updatedAt;
 
-  @Schema(
-      description =
-          "Indicates whether the current authenticated user has permission to edit or delete this comment")
+  @Schema(description = "Whether the current user can edit or delete this comment")
   private boolean operable;
 
+  // Constructor for JPA projection
   public CommentResponseDTO(
-      Long commentId,
-      String body,
-      String authorUsername,
-      Long navigationPostId,
-      LocalDateTime updatedAt) {
+      UUID commentId, String body, String authorUsername, UUID parentId, LocalDateTime updatedAt) {
     this.commentId = commentId;
     this.body = body;
     this.authorUsername = authorUsername;
-    this.navigationPostId = navigationPostId;
+    this.parentId = parentId;
     this.updatedAt = updatedAt;
   }
 }

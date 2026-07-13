@@ -1,13 +1,15 @@
 package com.project.hearmeout_backend.interaction_service.model;
 
 import com.project.hearmeout_backend.gateway.model.BaseModel;
-import com.project.hearmeout_backend.post_service.model.Post;
+import com.project.hearmeout_backend.interaction_service.model.enums.CommentType;
+import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.user_service.model.User;
 import jakarta.persistence.*;
+import java.util.UUID;
 import lombok.*;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comment")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,15 +17,20 @@ import lombok.*;
 @Builder
 public class Comment extends BaseModel {
 
-  @Lob
-  @Column(nullable = false, length = 200)
-  private String body;
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "author_id", nullable = false)
   private User author;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "post_id", nullable = false)
-  private Post post;
+  @Column(nullable = false)
+  private UUID parentId;
+
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private PostType parentType;
+
+  @Column(nullable = false)
+  private CommentType type;
+
+  @Column(columnDefinition = "TEXT", nullable = false)
+  private String body;
 }

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.http.HttpStatus;
@@ -85,7 +86,7 @@ public class TagController {
   @PutMapping("{tagId}")
   public ResponseEntity<String> updateTag(
       @Parameter(description = "The ID of the tag to update", required = true) @PathVariable
-          Long tagId,
+          UUID tagId,
       @Valid @RequestBody TagModificationRequestDTO tagModificationRequestDTO) {
     tagServiceImpl.updateTag(tagId, tagModificationRequestDTO);
 
@@ -112,7 +113,7 @@ public class TagController {
   @DeleteMapping("{tagId}")
   public ResponseEntity<String> deleteTag(
       @Parameter(description = "The ID of the tag to delete", required = true) @PathVariable
-          Long tagId) {
+          UUID tagId) {
     tagServiceImpl.deleteTag(tagId);
 
     return ResponseEntity.status(HttpStatus.OK).body("tag deleted successfully");

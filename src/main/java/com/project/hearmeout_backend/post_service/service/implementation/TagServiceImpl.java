@@ -7,8 +7,8 @@ import com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO;
 import com.project.hearmeout_backend.post_service.mapper.TagMapper;
 import com.project.hearmeout_backend.post_service.model.Tag;
 import com.project.hearmeout_backend.post_service.repository.TagRepository;
-import com.project.hearmeout_backend.post_service.service.TagService;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class TagServiceImpl implements TagService {
+public class TagServiceImpl {
 
   private final TagRepository tagRepo;
 
@@ -34,7 +34,7 @@ public class TagServiceImpl implements TagService {
   }
 
   @Transactional
-  public void updateTag(Long tagId, TagModificationRequestDTO tagModificationRequestDTO) {
+  public void updateTag(UUID tagId, TagModificationRequestDTO tagModificationRequestDTO) {
     Tag tag =
         tagRepo
             .findById(tagId)
@@ -46,7 +46,7 @@ public class TagServiceImpl implements TagService {
   }
 
   @Transactional
-  public void deleteTag(Long tagId) {
+  public void deleteTag(UUID tagId) {
     if (!tagRepo.existsById(tagId)) {
       throw new TagNotFoundException("Tag with id " + tagId + " not found");
     }

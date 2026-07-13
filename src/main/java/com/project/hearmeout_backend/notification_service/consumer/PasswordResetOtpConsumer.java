@@ -24,7 +24,7 @@ public class PasswordResetOtpConsumer {
   private final UtilServiceImpl utilService;
   private final EmailServiceImpl emailService;
   private final ConsumerRetryDispatcher retryDispatcher;
-  private final RedisTemplate<Object, Object> redisTemplate;
+  private final RedisTemplate<String, String> redisTemplate;
 
   @RabbitListener(queues = RabbitMQConfig.PASSWORD_RESET_EMAIL_QUEUE, ackMode = "MANUAL")
   public void consume(Message message, Channel channel, @Payload PasswordResetOtpEvent payload)

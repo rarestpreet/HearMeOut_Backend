@@ -1,8 +1,10 @@
 package com.project.hearmeout_backend.post_service.repository;
 
+import com.project.hearmeout_backend.post_service.dto.response.ReportTagResponseDTO;
 import com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO;
 import com.project.hearmeout_backend.post_service.model.Tag;
 import java.util.List;
+import java.util.UUID;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -13,18 +15,18 @@ import org.springframework.stereotype.Repository;
 
 @NullMarked
 @Repository
-public interface TagRepository extends JpaRepository<Tag, Long> {
+public interface TagRepository extends JpaRepository<Tag, UUID> {
 
   @Query(
       """
-          SELECT new com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO(
-              t.id, t.name, t.description, t.usageCount
+          SELECT new com.project.hearmeout_backend.post_service.dto.response.ReportTagResponseDTO(
+              t.id, t.name, t.description
           )
-          FROM Post p
-          JOIN p.tags t
-          WHERE p.id = :postId
+          FROM ErrorReport e
+          JOIN e.tags t
+          WHERE e.id = :errorReportId
       """)
-  List<TagResponseDTO> findTagsDTOByPostId(@Param("postId") Long postId);
+  List<ReportTagResponseDTO> findTagsByErrorReportId(@Param("errorReportId") UUID errorReportId);
 
   @Query(
       """
@@ -42,7 +44,7 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
          SET t.usageCount = t.usageCount + 1
         WHERE t.id IN :tagIds
       """)
-  void incrementUsageCount(@Param("tagIds") List<Long> tagIds);
+  void incrementUsageCount(@Param("tagIds") List<UUID> tagIds);
 
   @Modifying
   @Query(
@@ -51,5 +53,5 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
          SET t.usageCount = t.usageCount - 1
         WHERE t.id IN :tagIds
       """)
-  void decrementUsageCount(@Param("tagIds") List<Long> tagIds);
+  void decrementUsageCount(@Param("tagIds") List<UUID> tagIds);
 }

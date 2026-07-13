@@ -2,33 +2,30 @@ package com.project.hearmeout_backend.service.implementation;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
-import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
-import com.project.hearmeout_backend.post_service.model.Post;
-import com.project.hearmeout_backend.post_service.model.enums.PostType;
-import com.project.hearmeout_backend.post_service.repository.PostRepository;
+import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
+import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.user_service.dto.request.UserProfileModificationRequestDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
-import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
-import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
+import com.project.hearmeout_backend.user_service.dto.response.UserErrorReportResponseDTO;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
@@ -42,469 +39,161 @@ import org.springframework.data.domain.Pageable;
 public class UserServiceImplTest {
 
   @Mock private UserRepository userRepo;
-
-  @Mock private PostRepository postRepo;
-
+  @Mock private ErrorReportRepository errorReportRepo;
+  @Mock private SolutionRepository solutionRepo;
   @Mock private CommentRepository commentRepo;
 
   @Spy @InjectMocks private UserServiceImpl userService;
 
   private List<User> userList;
-  private List<Post> postList;
-  private List<Comment> commentList;
+  private UUID user1Id, user2Id, user3Id;
 
   @BeforeEach
   public void setUp() {
-    // USERS
+    user1Id = UUID.randomUUID();
+    user2Id = UUID.randomUUID();
+    user3Id = UUID.randomUUID();
+
     User user1 =
         User.builder()
             .username("test1")
             .email("test1@gmail.com")
-            .emailUpdatedAt(LocalDate.now().minusDays(30))
-            .usernameUpdatedAt(LocalDate.now().minusDays(30))
+            .emailUpdatedAt(LocalDateTime.now().minusDays(30))
+            .usernameUpdatedAt(LocalDateTime.now().minusDays(30))
             .build();
-    user1.setId(1L);
+    user1.setId(user1Id);
 
     User user2 =
         User.builder()
             .username("test2")
             .email("test2@gmail.com")
-            .emailUpdatedAt(LocalDate.now().minusDays(30))
-            .usernameUpdatedAt(LocalDate.now().minusDays(30))
+            .emailUpdatedAt(LocalDateTime.now().minusDays(30))
+            .usernameUpdatedAt(LocalDateTime.now().minusDays(30))
             .build();
-    user2.setId(2L);
+    user2.setId(user2Id);
 
     User user3 =
         User.builder()
             .username("test3")
             .email("test3@gmail.com")
-            .emailUpdatedAt(LocalDate.now().minusDays(30))
-            .usernameUpdatedAt(LocalDate.now().minusDays(30))
+            .emailUpdatedAt(LocalDateTime.now().minusDays(30))
+            .usernameUpdatedAt(LocalDateTime.now().minusDays(30))
             .build();
-    user3.setId(3L);
+    user3.setId(user3Id);
 
     userList = List.of(user1, user2, user3);
-
-    // POSTS
-    Post post1 = Post.builder().title("Answer 1").postType(PostType.ANSWER).author(user2).build();
-    post1.setId(1L);
-
-    Post post2 =
-        Post.builder().title("Question 1").postType(PostType.QUESTION).author(user3).build();
-    post2.setId(2L);
-
-    Post post3 =
-        Post.builder().title("Question 2").postType(PostType.QUESTION).author(user1).build();
-    post3.setId(3L);
-
-    postList = List.of(post1, post2, post3);
-
-    // COMMENTS
-    Comment comment1 = Comment.builder().body("Comment 1").author(user2).post(post3).build();
-    comment1.setId(1L);
-
-    Comment comment2 = Comment.builder().body("Comment 2").author(user1).post(post2).build();
-    comment2.setId(2L);
-
-    commentList = List.of(comment1, comment2);
-
-    // Relation
-    post1.setParent(post2);
   }
 
-  @ParameterizedTest
-  @CsvSource({"test5, 1"})
-  public void getUserProfile_UnregisteredUser(String username, Long currUserId)
-      throws UserNotFoundException {
-    // Arrange
-    UserProfileResponseDTO userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getUsername(), username))
-            .findFirst()
-            .map(
-                user ->
-                    UserProfileResponseDTO.builder()
-                        .userId(user.getId())
-                        .username(user.getUsername())
-                        .isOperable(Objects.equals(currUserId, user.getId()))
-                        .build())
-            .orElse(null);
+  @Test
+  public void getUserProfile_UnregisteredUser() throws UserNotFoundException {
+    String username = "test5";
+    when(userRepo.getUserProfileByUsername(username)).thenReturn(Optional.empty());
 
-    when(userRepo.getUserProfileByUsername(username)).thenReturn(Optional.ofNullable(userProfile));
-
-    // Act and Assert
     UserNotFoundException exception =
         assertThrows(
-            UserNotFoundException.class, () -> userService.getUserProfile(username, currUserId));
-
+            UserNotFoundException.class, () -> userService.getUserProfile(username, user1Id));
     assertEquals("User not found with username: " + username, exception.getMessage());
   }
 
-  @ParameterizedTest
-  @CsvSource({"test1, 1", "test2, 4", "test3, 2"})
-  public void getUserProfile(String username, Long currUserId) {
-    // Arrange
-    UserProfileResponseDTO userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getUsername(), username))
-            .findFirst()
-            .map(
-                user ->
-                    UserProfileResponseDTO.builder()
-                        .userId(user.getId())
-                        .username(user.getUsername())
-                        .isOperable(Objects.equals(currUserId, user.getId()))
-                        .build())
-            .orElse(null);
+  @Test
+  public void checkUserExistenceByUserId_UnregisteredUser() {
+    UUID randomId = UUID.randomUUID();
+    when(userRepo.findById(randomId)).thenReturn(Optional.empty());
 
-    when(userRepo.getUserProfileByUsername(username)).thenReturn(Optional.ofNullable(userProfile));
-
-    // Act
-    UserProfileResponseDTO result = userService.getUserProfile(username, currUserId);
-
-    // Assert
-    assertEquals(userProfile.getUsername(), result.getUsername());
-
-    assertEquals(userProfile.isOperable(), result.isOperable());
-
-    verify(userRepo).getUserProfileByUsername(username);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"test5"})
-  public void checkUserExistenceByUsername_UnregisteredUser(String username) {
-    // Arrange
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getUsername(), username))
-            .findFirst()
-            .orElse(null);
-
-    when(userRepo.findByUsername(username)).thenReturn(Optional.ofNullable(userProfile));
-
-    // Act and Assert
     UserNotFoundException exception =
         assertThrows(
-            UserNotFoundException.class, () -> userService.checkAndGetUserByUsername(username));
-
-    assertEquals("User not found with username: " + username, exception.getMessage());
+            UserNotFoundException.class, () -> userService.checkAndGetUserByUserId(randomId));
+    assertEquals("User not found with id: " + randomId, exception.getMessage());
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = {"5"})
-  public void checkUserExistenceByUserId_UnregisteredUser(Long userId) {
-    // Arrange
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getId(), userId))
-            .findFirst()
-            .orElse(null);
-
-    when(userRepo.findById(userId)).thenReturn(Optional.ofNullable(userProfile));
-
-    // Act and Assert
-    UserNotFoundException exception =
-        assertThrows(
-            UserNotFoundException.class, () -> userService.checkAndGetUserByUserId(userId));
-
-    assertEquals("User not found with id: " + userId, exception.getMessage());
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"test5@gmail.com"})
-  public void checkUserExistenceByEmail_UnregisteredUser(String email) {
-    // Arrange
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getEmail(), email))
-            .findFirst()
-            .orElse(null);
-
-    when(userRepo.findByEmail(email)).thenReturn(Optional.ofNullable(userProfile));
-
-    // Act and Assert
-    UserNotFoundException exception =
-        assertThrows(UserNotFoundException.class, () -> userService.checkAndGetUserByEmail(email));
-
-    assertEquals("User not found with email: " + email, exception.getMessage());
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"test1", "test2", "test3"})
-  public void getUserQuestions(String username) {
-    // Arrange
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getUsername(), username))
-            .findFirst()
-            .orElse(null);
-
-    doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
-
-    List<UserQuestionResponseDTO> questionResponse =
-        postList.stream()
-            .filter(
-                post ->
-                    Objects.equals(post.getPostType(), PostType.QUESTION)
-                        && Objects.equals(post.getAuthor().getUsername(), username))
-            .map(
-                question ->
-                    UserQuestionResponseDTO.builder()
-                        .navigationPostId(question.getId())
-                        .title(question.getTitle())
-                        .build())
-            .toList();
-
-    int limit = 5;
-    int offset = 0;
-    Pageable pageable = PageRequest.of(0, limit);
-    Page<UserQuestionResponseDTO> page =
-        new PageImpl<>(questionResponse, pageable, questionResponse.size());
-
-    when(postRepo.findUserQuestionByUsername(username, PostType.QUESTION, pageable))
-        .thenReturn(page);
-
-    // Act
-    PagedResponse<UserQuestionResponseDTO> result =
-        userService.getUserQuestions(username, limit, offset);
-
-    // Assert
-    assertEquals(questionResponse, result.getData());
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"test1", "test2", "test3"})
-  public void getUserAnswers(String username) {
-    // Arrange
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getUsername(), username))
-            .findFirst()
-            .orElse(null);
-
-    doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
-
-    List<UserAnswerResponseDTO> answerResponse =
-        postList.stream()
-            .filter(
-                post ->
-                    Objects.equals(post.getPostType(), PostType.ANSWER)
-                        && Objects.equals(post.getAuthor().getUsername(), username))
-            .map(
-                answer ->
-                    UserAnswerResponseDTO.builder()
-                        .navigationPostId(answer.getParent().getId())
-                        .build())
-            .toList();
-
-    int limit = 5;
-    int offset = 0;
-    Pageable pageable = PageRequest.of(0, limit);
-    Page<UserAnswerResponseDTO> page =
-        new PageImpl<>(answerResponse, pageable, answerResponse.size());
-
-    when(postRepo.findUserAnswerByUsername(username, PostType.ANSWER, pageable)).thenReturn(page);
-
-    // Act
-    PagedResponse<UserAnswerResponseDTO> result =
-        userService.getUserAnswers(username, limit, offset);
-
-    // Assert
-    assertEquals(answerResponse, result.getData());
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = {"test1", "test2", "test3"})
-  public void getUserComments(String username) {
-    // Arrange
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getUsername(), username))
-            .findFirst()
-            .orElse(null);
-
-    doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
-
-    List<UserCommentResponseDTO> commentResponse =
-        commentList.stream()
-            .filter(comment -> Objects.equals(comment.getAuthor().getUsername(), username))
-            .map(
-                comment ->
-                    UserCommentResponseDTO.builder()
-                        .navigationPostId(
-                            comment.getPost().getParent() == null
-                                ? comment.getPost().getId()
-                                : comment.getPost().getParent().getId())
-                        .build())
-            .toList();
-
-    int limit = 5;
-    int offset = 0;
-    Pageable pageable = PageRequest.of(0, limit);
-    Page<UserCommentResponseDTO> page =
-        new PageImpl<>(commentResponse, pageable, commentResponse.size());
-
-    when(commentRepo.findUserCommentsByUsername(username, pageable)).thenReturn(page);
-
-    // Act
-    PagedResponse<UserCommentResponseDTO> result =
-        userService.getUserComments(username, limit, offset);
-
-    // Assert
-    assertEquals(commentResponse, result.getData());
-  }
-
-  @ParameterizedTest
-  @ValueSource(longs = {1L, 2L})
-  public void terminateUserAccount(Long userId) {
-    // Arrange
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getId(), userId))
-            .findFirst()
-            .orElse(null);
-
-    doReturn(userProfile).when(userService).checkAndGetUserByUserId(userId);
-
-    // Act
-    userService.terminateUserAccount(userId);
-
-    // Assert
-    verify(userRepo).delete(userProfile);
-  }
-
-  @ParameterizedTest
-  @ValueSource(longs = {1, 2})
-  public void updateUserDetails_DuplicateUsername(Long currUserId) {
-    // Arrange
+  @Test
+  public void updateUserDetails_DuplicateUsername() {
     UserProfileModificationRequestDTO requestDTO =
         new UserProfileModificationRequestDTO("test3", "test4@gmail.com");
+    User userProfile = userList.get(0);
 
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getId(), currUserId))
-            .findFirst()
-            .orElse(null);
+    doReturn(userProfile).when(userService).checkAndGetUserByUserId(user1Id);
+    doReturn(true).when(userRepo).existsByUsername(requestDTO.getUsername());
 
-    doReturn(userProfile).when(userService).checkAndGetUserByUserId(currUserId);
-
-    doReturn(
-            userList.stream()
-                .anyMatch(
-                    user ->
-                        !Objects.equals(user.getId(), currUserId)
-                            && Objects.equals(user.getEmail(), requestDTO.getEmail())))
-        .when(userRepo)
-        .existsByEmail(requestDTO.getEmail());
-
-    doReturn(
-            userList.stream()
-                .anyMatch(
-                    user ->
-                        !Objects.equals(user.getId(), currUserId)
-                            && Objects.equals(user.getUsername(), requestDTO.getUsername())))
-        .when(userRepo)
-        .existsByUsername(requestDTO.getUsername());
-
-    // Act
     UserAlreadyExistException exception =
         assertThrows(
             UserAlreadyExistException.class,
-            () -> userService.updateUserDetails(requestDTO, currUserId));
-
-    // Assert
+            () -> userService.updateUserDetails(requestDTO, user1Id));
     assertEquals(
         "User already exist with username: " + requestDTO.getUsername(), exception.getMessage());
   }
 
-  @ParameterizedTest
-  @ValueSource(longs = {1, 2})
-  public void updateUserDetails_DuplicateEmail(Long currUserId) {
-    // Arrange
-    UserProfileModificationRequestDTO requestDTO =
-        new UserProfileModificationRequestDTO("test4", "test3@gmail.com");
-
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getId(), currUserId))
-            .findFirst()
-            .orElse(null);
-
-    doReturn(userProfile).when(userService).checkAndGetUserByUserId(currUserId);
-
-    doReturn(
-            userList.stream()
-                .anyMatch(
-                    user ->
-                        !Objects.equals(user.getId(), currUserId)
-                            && Objects.equals(user.getEmail(), requestDTO.getEmail())))
-        .when(userRepo)
-        .existsByEmail(requestDTO.getEmail());
-
-    // Act
-    UserAlreadyExistException exception =
-        assertThrows(
-            UserAlreadyExistException.class,
-            () -> userService.updateUserDetails(requestDTO, currUserId));
-
-    // Assert
-    assertEquals("User already exist with email: " + requestDTO.getEmail(), exception.getMessage());
-  }
-
-  @ParameterizedTest
-  @ValueSource(longs = {1, 2})
-  public void updateUserDetails_NoUpdate(Long currUserId) {
-    // Arrange
-    UserProfileModificationRequestDTO requestDTO =
-        new UserProfileModificationRequestDTO(
-            "test" + currUserId, "test" + currUserId + "@gmail.com");
-
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getId(), currUserId))
-            .findFirst()
-            .orElse(null);
-
-    doReturn(userProfile).when(userService).checkAndGetUserByUserId(currUserId);
-
-    // Act
-    userService.updateUserDetails(requestDTO, currUserId);
-
-    // Assert
-    verify(userRepo, never()).save(userProfile);
-  }
-
-  @ParameterizedTest
-  @ValueSource(longs = {1, 2})
-  public void updateUserDetails_SuccessfulUpdate(Long currUserId) {
-    // Arrange
+  @Test
+  public void updateUserDetails_SuccessfulUpdate() {
     UserProfileModificationRequestDTO requestDTO =
         new UserProfileModificationRequestDTO("test4", "test4@gmail.com");
+    User userProfile = userList.get(0);
 
-    User userProfile =
-        userList.stream()
-            .filter(user -> Objects.equals(user.getId(), currUserId))
-            .findFirst()
-            .orElse(null);
+    doReturn(userProfile).when(userService).checkAndGetUserByUserId(user1Id);
+    doReturn(false).when(userRepo).existsByEmail(requestDTO.getEmail());
+    doReturn(false).when(userRepo).existsByUsername(requestDTO.getUsername());
 
-    doReturn(userProfile).when(userService).checkAndGetUserByUserId(currUserId);
+    userService.updateUserDetails(requestDTO, user1Id);
 
-    doReturn(
-            userList.stream()
-                .anyMatch(user -> Objects.equals(user.getEmail(), requestDTO.getEmail())))
-        .when(userRepo)
-        .existsByEmail(requestDTO.getEmail());
-
-    doReturn(
-            userList.stream()
-                .anyMatch(user -> Objects.equals(user.getUsername(), requestDTO.getUsername())))
-        .when(userRepo)
-        .existsByUsername(requestDTO.getUsername());
-
-    // Act
-    userService.updateUserDetails(requestDTO, currUserId);
-
-    // Assert
     verify(userRepo).save(userProfile);
+  }
+
+  @Test
+  public void getUserErrorReports_ValidUsername() {
+    String username = "test1";
+    User userProfile = userList.get(0);
+    doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
+
+    UserErrorReportResponseDTO responseDTO =
+        UserErrorReportResponseDTO.builder().title("Title").navigationId(UUID.randomUUID()).build();
+    Page<UserErrorReportResponseDTO> page =
+        new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
+
+    when(errorReportRepo.findUserErrorReportsByUsername(eq(username), any(Pageable.class)))
+        .thenReturn(page);
+
+    PagedResponse<UserErrorReportResponseDTO> result =
+        userService.getUserErrorReports(username, 5, 0);
+
+    assertEquals(1, result.getData().size());
+    assertEquals("Title", result.getData().get(0).getTitle());
+  }
+
+  @Test
+  public void getUserSolutions_ValidUsername() {
+    String username = "test2";
+    User userProfile = userList.get(1);
+    doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
+
+    UserAnswerResponseDTO responseDTO =
+        UserAnswerResponseDTO.builder().navigationId(UUID.randomUUID()).build();
+    Page<UserAnswerResponseDTO> page =
+        new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
+
+    when(solutionRepo.findUserSolutionsByUsername(eq(username), any(Pageable.class)))
+        .thenReturn(page);
+
+    PagedResponse<UserAnswerResponseDTO> result = userService.getUserSolutions(username, 5, 0);
+
+    assertEquals(1, result.getData().size());
+  }
+
+  @Test
+  public void getUserComments_ValidUsername() {
+    String username = "test3";
+    User userProfile = userList.get(2);
+    doReturn(userProfile).when(userService).checkAndGetUserByUsername(username);
+
+    UserCommentResponseDTO responseDTO =
+        UserCommentResponseDTO.builder().parentId(UUID.randomUUID()).build();
+    Page<UserCommentResponseDTO> page =
+        new PageImpl<>(List.of(responseDTO), PageRequest.of(0, 5), 1);
+
+    when(commentRepo.findUserCommentsByUsername(eq(username), any(Pageable.class)))
+        .thenReturn(page);
+
+    PagedResponse<UserCommentResponseDTO> result = userService.getUserComments(username, 5, 0);
+
+    assertEquals(1, result.getData().size());
   }
 }

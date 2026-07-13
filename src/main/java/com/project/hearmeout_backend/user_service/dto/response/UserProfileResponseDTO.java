@@ -3,6 +3,7 @@ package com.project.hearmeout_backend.user_service.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import lombok.*;
 
 @Getter
@@ -11,7 +12,7 @@ import lombok.*;
 @Builder
 public class UserProfileResponseDTO {
   @Schema(description = "The unique identifier of the user")
-  private Long userId;
+  private UUID userId;
 
   @Schema(description = "The public username of the user")
   private String username;
@@ -41,7 +42,7 @@ public class UserProfileResponseDTO {
   private boolean isAccountTerminated;
 
   public UserProfileResponseDTO(
-      Long userId,
+      UUID userId,
       String username,
       String email,
       int reputation,

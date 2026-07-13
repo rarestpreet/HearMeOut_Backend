@@ -2,7 +2,7 @@ package com.project.hearmeout_backend.feed_service.controller;
 
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
-import com.project.hearmeout_backend.feed_service.dto.response.FeedQuestionResponseDTO;
+import com.project.hearmeout_backend.feed_service.dto.response.FeedErrorReportResponseDTO;
 import com.project.hearmeout_backend.feed_service.dto.response.HomeUserProfileResponseDTO;
 import com.project.hearmeout_backend.feed_service.service.implementation.HomeServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,7 +34,7 @@ public class HomeController {
       description =
           "Retrieves a paginated list of recent questions. Incorporates user-specific data like voting status if the user is authenticated.")
   @GetMapping("")
-  public ResponseEntity<@NonNull PagedResponse<FeedQuestionResponseDTO>> getQuestions(
+  public ResponseEntity<@NonNull PagedResponse<FeedErrorReportResponseDTO>> getQuestions(
       @RequestParam(defaultValue = "5") int limit,
       @RequestParam(defaultValue = "0") int offset,
       @AuthenticationPrincipal CustomUserDetails userDetails) {

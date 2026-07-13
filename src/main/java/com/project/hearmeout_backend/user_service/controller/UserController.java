@@ -9,8 +9,8 @@ import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.user_service.dto.request.UserProfileModificationRequestDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
+import com.project.hearmeout_backend.user_service.dto.response.UserErrorReportResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
-import com.project.hearmeout_backend.user_service.dto.response.UserQuestionResponseDTO;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -70,10 +70,10 @@ public class UserController {
 
   // add pagination and sorting (from recent to older)
   @Operation(
-      summary = "Get user questions",
+      summary = "Get user error reports",
       description =
           """
-          Retrieves a list of all questions asked by the specified user.
+          Retrieves a list of all error reports asked by the specified user.
 
           **Access Control**
           - Authentication: Required
@@ -84,25 +84,25 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @GetMapping("/questions")
+  @GetMapping("/error-reports")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
-  public ResponseEntity<@NonNull PagedResponse<UserQuestionResponseDTO>> userQuestions(
+  public ResponseEntity<@NonNull PagedResponse<UserErrorReportResponseDTO>> userErrorReports(
       @PathVariable String username,
       @RequestParam(defaultValue = "5") int limit,
       @RequestParam(defaultValue = "0") int offset)
       throws UserNotFoundException {
-    PagedResponse<UserQuestionResponseDTO> userQuestions =
-        userServiceImpl.getUserQuestions(username, limit, offset);
+    PagedResponse<UserErrorReportResponseDTO> userQuestions =
+        userServiceImpl.getUserErrorReports(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(userQuestions);
   }
 
   // add pagination and sorting (from recent to older)
   @Operation(
-      summary = "Get user answers",
+      summary = "Get user solutions",
       description =
           """
-          Retrieves a list of all answers provided by the specified user.
+          Retrieves a list of all solutions provided by the specified user.
 
           **Access Control**
           - Authentication: Required
@@ -113,15 +113,15 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @GetMapping("/answers")
+  @GetMapping("/solutions")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
-  public ResponseEntity<@NonNull PagedResponse<UserAnswerResponseDTO>> userAnswers(
+  public ResponseEntity<@NonNull PagedResponse<UserAnswerResponseDTO>> userSolutions(
       @PathVariable String username,
       @RequestParam(defaultValue = "5") int limit,
       @RequestParam(defaultValue = "0") int offset)
       throws UserNotFoundException {
     PagedResponse<UserAnswerResponseDTO> userAnswer =
-        userServiceImpl.getUserAnswers(username, limit, offset);
+        userServiceImpl.getUserSolutions(username, limit, offset);
 
     return ResponseEntity.status(HttpStatus.OK).body(userAnswer);
   }

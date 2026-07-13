@@ -1,6 +1,7 @@
 package com.project.hearmeout_backend.post_service.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class TagResponseDTO {
   @Schema(description = "The unique identifier of the tag")
-  private Long tagId;
+  private UUID tagId;
 
   @Schema(description = "The concise name of the tag")
   private String name;
@@ -20,6 +21,6 @@ public class TagResponseDTO {
   @Schema(description = "A brief description explaining the tag's purpose")
   private String description;
 
-  @Schema(description = "Count of questions that used this tag")
-  private Long usageCount;
+  @Schema(description = "Count of error reports that used this tag")
+  private int usageCount;
 }

@@ -5,6 +5,7 @@ import com.project.hearmeout_backend.user_service.dto.response.UserDetailRespons
 import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
 import com.project.hearmeout_backend.user_service.model.User;
 import java.util.Optional;
+import java.util.UUID;
 import org.jspecify.annotations.NullMarked;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Repository;
 
 @NullMarked
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface UserRepository extends JpaRepository<User, UUID> {
 
   boolean existsByUsername(String username);
 
@@ -46,7 +47,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             FROM User u
             WHERE u.id = :id
             """)
-  Optional<HomeUserProfileResponseDTO> getHomeUserProfileById(@Param("id") Long id);
+  Optional<HomeUserProfileResponseDTO> getHomeUserProfileById(@Param("id") UUID id);
 
   boolean existsByUsernameOrEmail(String username, String email);
 

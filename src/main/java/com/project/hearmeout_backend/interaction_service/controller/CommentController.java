@@ -3,17 +3,18 @@ package com.project.hearmeout_backend.interaction_service.controller;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.CommentNotFoundException;
-import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.interaction_service.dto.request.CommentRequestDTO;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.interaction_service.service.implementation.CommentServiceImpl;
+import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -55,7 +56,7 @@ public class CommentController {
   public ResponseEntity<@NonNull String> postComment(
       @Valid @RequestBody CommentRequestDTO commentRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails)
-      throws UserNotFoundException, PostNotFoundException {
+      throws UserNotFoundException {
     commentServiceImpl.createNewComment(commentRequestDTO, userDetails.getUserId());
 
     return ResponseEntity.status(HttpStatus.CREATED).body("Comment was added successfully");
@@ -65,22 +66,21 @@ public class CommentController {
       summary = "Get comments for a post",
       description =
           """
-          Retrieves paginated comments for a specific post (question or answer).
+          Retrieves paginated comments for a specific post (error report or solution).
           """)
   @GetMapping("")
   @PreAuthorize("permitAll()")
   public ResponseEntity<@NonNull PagedResponse<CommentResponseDTO>> getComments(
-      @RequestParam Long postId,
+      @RequestParam UUID parentId,
+      @RequestParam PostType parentType,
       @RequestParam(defaultValue = "5") int limit,
       @RequestParam(defaultValue = "0") int offset,
-      @AuthenticationPrincipal CustomUserDetails userDetails)
-      throws PostNotFoundException {
+      @AuthenticationPrincipal CustomUserDetails userDetails) {
 
-    Long userId = userDetails == null ? null : userDetails.getUserId();
     String username = userDetails == null ? null : userDetails.getUsername();
 
     return ResponseEntity.status(HttpStatus.OK)
-        .body(commentServiceImpl.getPostComments(postId, limit, offset, username));
+        .body(commentServiceImpl.getComments(parentId, parentType, limit, offset, username));
   }
 
   @Operation(
@@ -100,7 +100,7 @@ public class CommentController {
   })
   @DeleteMapping("/{commentId}")
   public ResponseEntity<@NonNull String> deleteComment(
-      @PathVariable Long commentId, @AuthenticationPrincipal CustomUserDetails userDetails)
+      @PathVariable UUID commentId, @AuthenticationPrincipal CustomUserDetails userDetails)
       throws CommentNotFoundException {
     commentServiceImpl.removeComment(commentId, userDetails.getUserId());
 
@@ -124,7 +124,7 @@ public class CommentController {
   })
   @PutMapping("/{commentId}")
   public ResponseEntity<@NonNull String> updateComment(
-      @PathVariable Long commentId,
+      @PathVariable UUID commentId,
       @RequestBody CommentRequestDTO commentRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails)
       throws CommentNotFoundException {

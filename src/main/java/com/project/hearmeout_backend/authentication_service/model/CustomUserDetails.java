@@ -3,6 +3,7 @@ package com.project.hearmeout_backend.authentication_service.model;
 import com.project.hearmeout_backend.user_service.dto.response.UserDetailResponseDTO;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NullMarked;
@@ -31,7 +32,7 @@ public class CustomUserDetails implements UserDetails {
     return user.getEmail();
   }
 
-  public Long getUserId() {
+  public UUID getUserId() {
     return user.getUserId();
   }
 
