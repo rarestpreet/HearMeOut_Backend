@@ -29,7 +29,7 @@ public class WebSecurityConfig {
   private final JwtFilter jwtFilter;
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) {
+  public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
     return httpSecurity
         .cors(Customizer.withDefaults())
         .csrf(AbstractHttpConfigurer::disable)
@@ -72,7 +72,8 @@ public class WebSecurityConfig {
   }
 
   @Bean
-  public AuthenticationManager authManager(AuthenticationConfiguration authConfig) {
+  public AuthenticationManager authManager(AuthenticationConfiguration authConfig)
+      throws Exception {
     return authConfig.getAuthenticationManager();
   }
 }

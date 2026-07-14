@@ -1,5 +1,6 @@
 package com.project.hearmeout_backend.notification_service.infra;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -11,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
 
 @Slf4j
 @Component

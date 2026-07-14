@@ -4,6 +4,7 @@ import com.project.hearmeout_backend.common_lib.dto.PageData;
 import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.common_lib.exception.CommentNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
+import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.interaction_service.dto.request.CommentRequestDTO;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
@@ -11,6 +12,8 @@ import com.project.hearmeout_backend.interaction_service.mapper.CommentMapper;
 import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
 import com.project.hearmeout_backend.post_service.model.enums.PostType;
+import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
+import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
@@ -31,6 +34,8 @@ public class CommentServiceImpl {
   private final UserServiceImpl userServiceImpl;
   private final CommentRepository commentRepo;
   private final UserRepository userRepo;
+  private final ErrorReportRepository errorReportRepo;
+  private final SolutionRepository solutionRepo;
 
   public PagedResponse<CommentResponseDTO> getComments(
       UUID parentId, PostType parentType, int limit, int offset, String username) {
@@ -68,6 +73,17 @@ public class CommentServiceImpl {
   @Transactional
   public void createNewComment(CommentRequestDTO commentRequestDTO, UUID userId)
       throws UserNotFoundException {
+    if (commentRequestDTO.getParentType() == PostType.ERROR_REPORT) {
+      if (!errorReportRepo.existsById(commentRequestDTO.getParentId())) {
+        throw new PostNotFoundException(
+            "Error report not found: " + commentRequestDTO.getParentId());
+      }
+    } else if (commentRequestDTO.getParentType() == PostType.SOLUTION) {
+      if (!solutionRepo.existsById(commentRequestDTO.getParentId())) {
+        throw new PostNotFoundException("Solution not found: " + commentRequestDTO.getParentId());
+      }
+    }
+
     User author = userServiceImpl.checkAndGetUserByUserId(userId);
 
     Comment newComment = CommentMapper.toCommentEntity(commentRequestDTO, author);

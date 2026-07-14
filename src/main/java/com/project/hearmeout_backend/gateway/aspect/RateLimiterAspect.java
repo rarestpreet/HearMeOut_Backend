@@ -55,7 +55,7 @@ public class RateLimiterAspect {
     int loginRequestCount =
         Integer.parseInt(
             Objects.requireNonNullElse(
-                redisOperator.opsForValue().get("login_request_count$".concat(request.getEmail())),
+                redisOperator.opsForValue().get("login_request_count:".concat(request.getEmail())),
                 "0"));
 
     if (loginRequestCount == rateLimiter.requestAllowed()) {
@@ -72,7 +72,7 @@ public class RateLimiterAspect {
   private void validateEmailVerificationOtpRequest(Object[] args) {
     CustomUserDetails currUser = (CustomUserDetails) args[0];
 
-    if (redisOperator.opsForValue().get("email_verify_cooldown$".concat(currUser.getUsername()))
+    if (redisOperator.opsForValue().get("email_verify_cooldown:".concat(currUser.getUsername()))
         != null) {
       throw new InvalidOperationException(
           "Please wait few seconds before requesting new otp for email verification");
@@ -82,7 +82,7 @@ public class RateLimiterAspect {
   private void validatePasswordResetOtpRequest(Object[] args) {
     PasswordResetOtpRequestDTO currUser = (PasswordResetOtpRequestDTO) args[0];
 
-    if (redisOperator.opsForValue().get("pass_reset_cooldown$".concat(currUser.getEmail()))
+    if (redisOperator.opsForValue().get("pass_reset_cooldown:".concat(currUser.getEmail()))
         != null) {
       throw new InvalidOperationException(
           "Please wait few seconds before requesting new otp for password reset");

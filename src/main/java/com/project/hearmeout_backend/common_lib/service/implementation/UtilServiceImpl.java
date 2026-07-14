@@ -39,12 +39,12 @@ public class UtilServiceImpl {
     redisOperator
         .opsForValue()
         .set(
-            "pass_reset_otp$".concat(email),
+            "pass_reset_otp:".concat(email),
             Objects.requireNonNull(passwordEncoder.encode(otp.toString())),
             Duration.ofMinutes(20));
     redisOperator
         .opsForValue()
-        .set("pass_reset_cooldown$".concat(email), "", Duration.ofMinutes(1));
+        .set("pass_reset_cooldown:".concat(email), "", Duration.ofMinutes(1));
 
     return otp;
   }
@@ -60,12 +60,12 @@ public class UtilServiceImpl {
     redisOperator
         .opsForValue()
         .set(
-            "email_verify_otp$".concat(email),
+            "email_verify_otp:".concat(email),
             Objects.requireNonNull(passwordEncoder.encode(otp.toString())),
             Duration.ofHours(12));
     redisOperator
         .opsForValue()
-        .set("email_verify_cooldown$".concat(email), "", Duration.ofMinutes(1));
+        .set("email_verify_cooldown:".concat(email), "", Duration.ofMinutes(1));
 
     return otp;
   }
