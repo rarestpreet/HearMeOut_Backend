@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,6 +44,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SecurityServiceImpl {
+
+  @Value("${admin.mail}")
+  private String ADMIN_MAIL;
 
   private final UserRepository userRepo;
   private final AuthenticationManager authManager;
@@ -263,7 +267,9 @@ public class SecurityServiceImpl {
     }
 
     registeredUser.setAccountVerified(true);
-    registeredUser.setRole(RoleType.VERIFIED_USER);
+    boolean isAdmin = email.equalsIgnoreCase(ADMIN_MAIL);
+
+    registeredUser.setRole(isAdmin ? RoleType.ADMIN : RoleType.VERIFIED_USER);
     userRepo.save(registeredUser);
   }
 

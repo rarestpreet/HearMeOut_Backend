@@ -47,3 +47,6 @@ springdoc:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%X{requestId}] [%X{requestMethod} %X{requestURI}] %-5level %logger - %msg%n"
+
+admin:
+  mail: ${ADMIN_MAIL}
