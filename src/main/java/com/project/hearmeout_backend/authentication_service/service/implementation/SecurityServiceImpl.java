@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -43,6 +44,9 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class SecurityServiceImpl {
+
+  @Value("${admin.mail}")
+  private String ADMIN_MAIL;
 
   private final UserRepository userRepo;
   private final AuthenticationManager authManager;
@@ -85,13 +89,13 @@ public class SecurityServiceImpl {
 
     try {
       String[] refreshTokens =
-          Objects.requireNonNull(redisOperator.opsForValue().get("user_session$".concat(email)))
+          Objects.requireNonNull(redisOperator.opsForValue().get("user_session:".concat(email)))
               .split("\\$");
 
       Arrays.stream(refreshTokens)
           .forEach(
               token -> {
-                redisOperator.delete("refresh_token$" + token);
+                redisOperator.delete("refresh_token:" + token);
               });
     } catch (RuntimeException e) {
       throw new RuntimeException("Unable to delete token on terminateSession() " + e.getMessage());
@@ -119,13 +123,13 @@ public class SecurityServiceImpl {
     int loginRequestCount =
         Integer.parseInt(
             Objects.requireNonNullElse(
-                redisOperator.opsForValue().get("login_request_count$".concat(request.getEmail())),
+                redisOperator.opsForValue().get("login_request_count:".concat(request.getEmail())),
                 "0"));
 
     try {
       authManager.authenticate(
           new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
-      redisOperator.delete("login_request_count$".concat(request.getEmail()));
+      redisOperator.delete("login_request_count:".concat(request.getEmail()));
     } catch (AuthenticationException e) {
       log.warn(
           "Login attempt failed for {}, total attempts = {}: {}",
@@ -136,7 +140,7 @@ public class SecurityServiceImpl {
       redisOperator
           .opsForValue()
           .set(
-              "login_request_count$".concat(request.getEmail()),
+              "login_request_count:".concat(request.getEmail()),
               String.valueOf(loginRequestCount + 1),
               Duration.ofHours(1));
 
@@ -147,12 +151,12 @@ public class SecurityServiceImpl {
     List<ResponseCookie> tokens = handleTokenProcessing(request.getEmail());
 
     String currentTokens =
-        redisOperator.opsForValue().get("user_session$".concat(request.getEmail()));
-    redisOperator.delete("login_request_count$".concat(request.getEmail()));
+        redisOperator.opsForValue().get("user_session:".concat(request.getEmail()));
+    redisOperator.delete("login_request_count:".concat(request.getEmail()));
     redisOperator
         .opsForValue()
         .set(
-            "user_session$".concat(request.getEmail()),
+            "user_session:".concat(request.getEmail()),
             currentTokens == null
                 ? tokens.get(1).getValue()
                 : currentTokens.concat("$".concat(tokens.get(1).getValue())),
@@ -166,7 +170,7 @@ public class SecurityServiceImpl {
 
     if (!refreshToken.isBlank()) {
       try {
-        String username = redisOperator.opsForValue().get("refresh_token$" + refreshToken);
+        String username = redisOperator.opsForValue().get("refresh_token:" + refreshToken);
         CustomUserDetails currUser = customUserDetailsServiceImpl.loadUserByUsername(username);
 
         UsernamePasswordAuthenticationToken authToken =
@@ -199,7 +203,7 @@ public class SecurityServiceImpl {
     try {
       redisOperator
           .opsForValue()
-          .set("refresh_token$" + refreshToken, username, Duration.ofDays(7));
+          .set("refresh_token:" + refreshToken, username, Duration.ofDays(7));
     } catch (RuntimeException e) {
       throw new RuntimeException(
           "Unable to save token on handleTokenProcessing() " + e.getMessage());
@@ -229,7 +233,7 @@ public class SecurityServiceImpl {
     String storedOtp =
         redisOperator
             .opsForValue()
-            .getAndDelete("pass_reset_otp$".concat(passwordResetRequestDTO.getEmail()));
+            .getAndDelete("pass_reset_otp:".concat(passwordResetRequestDTO.getEmail()));
 
     if (storedOtp == null) {
       throw new InvalidOtpException("Otp expired for password reset, please create a new one.");
@@ -248,7 +252,7 @@ public class SecurityServiceImpl {
   public void verifyUserEmail(
       AccountVerificationRequestDTO accountVerificationRequestDTO, String email) {
     User registeredUser = userServiceImpl.checkAndGetUserByEmail(email);
-    String storedOtp = redisOperator.opsForValue().getAndDelete("email_verify_otp$".concat(email));
+    String storedOtp = redisOperator.opsForValue().getAndDelete("email_verify_otp:".concat(email));
 
     if (storedOtp == null) {
       throw new InvalidOtpException(
@@ -263,7 +267,9 @@ public class SecurityServiceImpl {
     }
 
     registeredUser.setAccountVerified(true);
-    registeredUser.setRole(RoleType.VERIFIED_USER);
+    boolean isAdmin = email.equalsIgnoreCase(ADMIN_MAIL);
+
+    registeredUser.setRole(isAdmin ? RoleType.ADMIN : RoleType.VERIFIED_USER);
     userRepo.save(registeredUser);
   }
 

@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
+import com.project.hearmeout_backend.common_lib.exception.PostNotFoundException;
 import com.project.hearmeout_backend.interaction_service.dto.request.CommentRequestDTO;
 import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
@@ -13,6 +14,7 @@ import com.project.hearmeout_backend.interaction_service.service.implementation.
 import com.project.hearmeout_backend.post_service.model.ErrorReport;
 import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
+import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
@@ -32,6 +34,7 @@ public class CommentServiceImplTest {
   @Mock private UserServiceImpl userServiceImpl;
   @Mock private UserRepository userRepo;
   @Mock private ErrorReportRepository errorReportRepo;
+  @Mock private SolutionRepository solutionRepo;
 
   @InjectMocks private CommentServiceImpl commentService;
 
@@ -71,8 +74,8 @@ public class CommentServiceImplTest {
 
   @Test
   void createNewComment_ValidParent() {
-    when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(errorReportRepo.existsById(reportId)).thenReturn(true);
+    when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
 
     commentService.createNewComment(commentRequestDTO, authorId);
 
@@ -82,12 +85,11 @@ public class CommentServiceImplTest {
 
   @Test
   void createNewComment_InvalidParent_ThrowsException() {
-    when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(errorReportRepo.existsById(reportId)).thenReturn(false);
 
-    InvalidOperationException exception =
+    PostNotFoundException exception =
         assertThrows(
-            InvalidOperationException.class,
+            PostNotFoundException.class,
             () -> commentService.createNewComment(commentRequestDTO, authorId));
 
     assertEquals("Error report not found: " + reportId, exception.getMessage());
