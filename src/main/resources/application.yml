@@ -7,7 +7,7 @@ spring:
   application:
     name: HearMeOut_Backend
   profiles:
-    active: ${SPRING_ACTIVE_PROFILE}
+    active: ${SPRING_PROFILES_ACTIVE}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
