@@ -1,7 +1,7 @@
 package com.project.hearmeout_backend.user_service.model;
 
 import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
-import com.project.hearmeout_backend.gateway.model.BaseModel;
+import com.project.hearmeout_backend.common_lib.model.BaseModel;
 import com.project.hearmeout_backend.interaction_service.model.Comment;
 import com.project.hearmeout_backend.interaction_service.model.Vote;
 import com.project.hearmeout_backend.post_service.model.ErrorReport;
@@ -27,7 +27,7 @@ public class User extends BaseModel {
   @Column(nullable = false, unique = true, length = 50)
   private String email;
 
-  @Column(nullable = false, length = 20)
+  @Column(nullable = false)
   private String password;
 
   @Builder.Default private int reputation = 0;

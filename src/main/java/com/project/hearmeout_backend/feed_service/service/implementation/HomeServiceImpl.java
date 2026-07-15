@@ -74,7 +74,7 @@ public class HomeServiceImpl {
     if (userId == null) {
       return HomeUserProfileResponseDTO.builder()
           .username(null)
-          .userNavigationId(null)
+          .navigationId(null)
           .accountVerified(false)
           .role(null)
           .build();
