@@ -6,6 +6,7 @@ import com.project.hearmeout_backend.post_service.model.Tag;
 import java.util.List;
 import java.util.UUID;
 import org.jspecify.annotations.NullMarked;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -35,7 +36,7 @@ public interface TagRepository extends JpaRepository<Tag, UUID> {
           )
           FROM Tag t
       """)
-  List<TagResponseDTO> findAllTagsDTO(Pageable pageable);
+  Page<TagResponseDTO> findAllTagsDTO(Pageable pageable);
 
   @Modifying
   @Query(

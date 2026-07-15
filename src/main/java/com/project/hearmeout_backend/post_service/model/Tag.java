@@ -1,6 +1,6 @@
 package com.project.hearmeout_backend.post_service.model;
 
-import com.project.hearmeout_backend.gateway.model.BaseModel;
+import com.project.hearmeout_backend.common_lib.model.BaseModel;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
