@@ -129,13 +129,15 @@ public class ErrorReportServiceImpl {
                           .filter(c -> c.getParentId().equals(solution.getId()))
                           .map(
                               c ->
-                                  new CommentResponseDTO(
-                                      c.getCommentId(),
-                                      c.getBody(),
-                                      c.getAuthorUsername(),
-                                      c.getParentId(),
-                                      c.getUpdatedAt(),
-                                      c.getAuthorUsername().equals(currUsername)))
+                                  CommentResponseDTO.builder()
+                                      .commentId(c.getCommentId())
+                                      .body(c.getBody())
+                                      .authorUsername(c.getAuthorUsername())
+                                      .parentId(c.getParentId())
+                                      .updatedAt(c.getUpdatedAt())
+                                      .operable(c.getAuthorUsername().equals(currUsername))
+                                      .type(c.getType())
+                                      .build())
                           .toList();
 
                   return SolutionResponseDTO.builder()
@@ -150,6 +152,14 @@ public class ErrorReportServiceImpl {
                       .hasMoreComments(false)
                       .score(solution.getScore())
                       .operable(solution.getAuthorUsername().equals(currUsername))
+                      .language(solution.getLanguage())
+                      .languageVersion(solution.getLanguageVersion())
+                      .framework(solution.getFramework())
+                      .frameworkVersion(solution.getFrameworkVersion())
+                      .os(solution.getOs())
+                      .osVersion(solution.getOsVersion())
+                      .probableCause(solution.getProbableCause())
+                      .codeChange(solution.getCodeChange())
                       .build();
                 })
             .toList();
@@ -171,13 +181,15 @@ public class ErrorReportServiceImpl {
         commentsPage.getContent().stream()
             .map(
                 c ->
-                    new CommentResponseDTO(
-                        c.getCommentId(),
-                        c.getBody(),
-                        c.getAuthorUsername(),
-                        c.getParentId(),
-                        c.getUpdatedAt(),
-                        c.getAuthorUsername().equals(currUsername)))
+                    CommentResponseDTO.builder()
+                        .commentId(c.getCommentId())
+                        .body(c.getBody())
+                        .authorUsername(c.getAuthorUsername())
+                        .parentId(c.getParentId())
+                        .updatedAt(c.getUpdatedAt())
+                        .operable(c.getAuthorUsername().equals(currUsername))
+                        .type(c.getType())
+                        .build())
             .toList();
 
     return ErrorReportResponseDTO.builder()
@@ -195,6 +207,20 @@ public class ErrorReportServiceImpl {
         .status(reportResponse.getStatus())
         .score(reportResponse.getScore())
         .operable(reportResponse.getAuthorUsername().equals(currUsername))
+        .language(reportResponse.getLanguage())
+        .languageVersion(reportResponse.getLanguageVersion())
+        .framework(reportResponse.getFramework())
+        .frameworkVersion(reportResponse.getFrameworkVersion())
+        .os(reportResponse.getOs())
+        .osVersion(reportResponse.getOsVersion())
+        .errorType(reportResponse.getErrorType())
+        .reproductionSteps(reportResponse.getReproductionSteps())
+        .repositoryUrl(reportResponse.getRepositoryUrl())
+        .branch(reportResponse.getBranch())
+        .commitHash(reportResponse.getCommitHash())
+        .filePath(reportResponse.getFilePath())
+        .relevantCode(reportResponse.getRelevantCode())
+        .relevantLog(reportResponse.getRelevantLog())
         .build();
   }
 

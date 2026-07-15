@@ -128,13 +128,15 @@ public class SolutionServiceImpl {
                           .filter(c -> c.getParentId().equals(solution.getId()))
                           .map(
                               c ->
-                                  new CommentResponseDTO(
-                                      c.getCommentId(),
-                                      c.getBody(),
-                                      c.getAuthorUsername(),
-                                      c.getParentId(),
-                                      c.getUpdatedAt(),
-                                      c.getAuthorUsername().equals(currUsername)))
+                                  CommentResponseDTO.builder()
+                                      .commentId(c.getCommentId())
+                                      .body(c.getBody())
+                                      .authorUsername(c.getAuthorUsername())
+                                      .parentId(c.getParentId())
+                                      .updatedAt(c.getUpdatedAt())
+                                      .operable(c.getAuthorUsername().equals(currUsername))
+                                      .type(c.getType())
+                                      .build())
                           .toList();
 
                   return SolutionResponseDTO.builder()
