@@ -3,8 +3,13 @@ package com.project.hearmeout_backend.service.implementation;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.project.hearmeout_backend.common_lib.event_dto.PasswordResetOtpEvent;
+import com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
 import com.project.hearmeout_backend.common_lib.service.implementation.UtilServiceImpl;
+import com.project.hearmeout_backend.notification_service.config.CustomRabbitTemplate;
+import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
@@ -35,6 +40,8 @@ public class UtilServiceImplTest {
 
   @Mock private ValueOperations<String, String> valueOperations;
 
+  @Mock private CustomRabbitTemplate rabbitTemplate;
+
   @Spy @InjectMocks private UtilServiceImpl utilService;
 
   private Map<String, User> userList;
@@ -52,7 +59,7 @@ public class UtilServiceImplTest {
 
   @ParameterizedTest
   @ValueSource(strings = {"test1@gmail.com", "test2@gmail.com", "test4@gmail.com"})
-  public void handlePasswordResetOtp(String email) {
+  public void handlePasswordResetOtp(String email) throws JsonProcessingException {
     // Arrange
     boolean userExists = userList.containsKey(email);
     when(userRepo.existsByEmail(email)).thenReturn(userExists);
@@ -72,17 +79,20 @@ public class UtilServiceImplTest {
     when(passwordEncoder.encode(anyString())).thenReturn("encodedOtp");
 
     // Act
-    Integer generatedOtp = utilService.handlePasswordResetOtp(email);
+    utilService.handlePasswordResetOtp(email);
 
     // Assert
-    assertEquals(otp, generatedOtp);
-
     verify(redisOperator, atLeastOnce()).opsForValue();
+    verify(rabbitTemplate, times(1))
+        .send(
+            eq(RabbitMQConfig.EMAIL_EXCHANGE),
+            eq(RabbitMQConfig.PASSWORD_RESET_EMAIL_ROUTING_KEY),
+            any(PasswordResetOtpEvent.class));
   }
 
   @ParameterizedTest
   @ValueSource(strings = {"test1@gmail.com", "test2@gmail.com", "test4@gmail.com"})
-  public void handleAccountVerificationOtp(String email) {
+  public void handleAccountVerificationOtp(String email) throws JsonProcessingException {
     // Arrange
     User registeredUser = userList.get(email);
 
@@ -102,11 +112,14 @@ public class UtilServiceImplTest {
     when(passwordEncoder.encode(anyString())).thenReturn("encodedOtp");
 
     // Act
-    Integer generatedOtp = utilService.handleAccountVerificationOtp(email);
+    utilService.handleAccountVerificationOtp(email);
 
     // Assert
-    assertEquals(otp, generatedOtp);
-
     verify(redisOperator, atLeastOnce()).opsForValue();
+    verify(rabbitTemplate, times(1))
+        .send(
+            eq(RabbitMQConfig.EMAIL_EXCHANGE),
+            eq(RabbitMQConfig.VERIFICATION_EMAIL_ROUTING_KEY),
+            any(VerificationOtpEvent.class));
   }
 }

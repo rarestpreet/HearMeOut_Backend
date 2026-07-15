@@ -1,4 +1,4 @@
-package com.project.hearmeout_backend.gateway.model;
+package com.project.hearmeout_backend.common_lib.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;

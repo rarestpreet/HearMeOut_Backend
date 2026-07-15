@@ -19,9 +19,9 @@ public class OpenAPIConfig {
         .servers(
             List.of(
                 new Server()
-                    .url("https://hearmeout-backend-kbw4.onrender.com/api")
+                    .url("https://hearmeout-backend-kbw4.onrender.com/api/v1")
                     .description("production stage"),
-                new Server().url("http://localhost:8080/api").description("development stage")))
+                new Server().url("http://localhost:8080/api/v1").description("development stage")))
         .components(
             new Components()
                 .addSecuritySchemes(
