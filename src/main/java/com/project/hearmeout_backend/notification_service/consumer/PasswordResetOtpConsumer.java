@@ -2,7 +2,6 @@ package com.project.hearmeout_backend.notification_service.consumer;
 
 import com.project.hearmeout_backend.authentication_service.service.implementation.EmailServiceImpl;
 import com.project.hearmeout_backend.common_lib.event_dto.PasswordResetOtpEvent;
-import com.project.hearmeout_backend.common_lib.service.implementation.UtilServiceImpl;
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import com.project.hearmeout_backend.notification_service.infra.ConsumerRetryDispatcher;
 import com.rabbitmq.client.Channel;
@@ -21,7 +20,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PasswordResetOtpConsumer {
 
-  private final UtilServiceImpl utilService;
   private final EmailServiceImpl emailService;
   private final ConsumerRetryDispatcher retryDispatcher;
   private final RedisTemplate<String, String> redisTemplate;
@@ -47,8 +45,7 @@ public class PasswordResetOtpConsumer {
         return;
       }
 
-      Integer otp = utilService.handlePasswordResetOtp(payload.email());
-      emailService.sendPasswordResetMail(payload.email(), otp);
+      emailService.sendPasswordResetMail(payload.email(), payload.otp());
 
       redisTemplate.delete(messageId);
 

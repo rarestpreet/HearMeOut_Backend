@@ -1,14 +1,11 @@
 package com.project.hearmeout_backend.authentication_service.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.hearmeout_backend.authentication_service.dto.request.AccountVerificationRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.LoginRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetRequestDTO;
 import com.project.hearmeout_backend.authentication_service.dto.request.RegisterRequestDTO;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.authentication_service.service.implementation.SecurityServiceImpl;
-import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
-import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
 import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,8 +44,7 @@ public class SecurityController {
           "Registers a new user with the provided details. Fails if the username or email is already taken.")
   @PostMapping("register")
   public ResponseEntity<@NonNull String> registerUser(
-      @Valid @RequestBody RegisterRequestDTO registerRequestDTO)
-      throws UserAlreadyExistException, EmailAlreadyExistException, JsonProcessingException {
+      @Valid @RequestBody RegisterRequestDTO registerRequestDTO) throws Exception {
     securityServiceImpl.createNewUser(registerRequestDTO);
 
     return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully");
@@ -169,7 +165,6 @@ public class SecurityController {
           "Validates the refresh token and issues a new access token for an authenticated user without requiring them to log in again.")
   @GetMapping("refresh-token")
   public ResponseEntity<@NonNull String> refreshToken(HttpServletRequest request) {
-    log.info("number of cookies {}", request.getCookies().length);
     ResponseCookie cookie = securityServiceImpl.refreshAuthenticationTokens(request.getCookies());
 
     return ResponseEntity.status(HttpStatus.OK)

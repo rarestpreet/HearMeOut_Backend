@@ -9,7 +9,6 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 
-// notification_service/consumer/PublisherDLQListener.java
 @Slf4j
 @Component
 @RequiredArgsConstructor
