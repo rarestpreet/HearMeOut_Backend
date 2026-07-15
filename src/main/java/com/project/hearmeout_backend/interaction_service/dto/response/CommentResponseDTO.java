@@ -1,6 +1,7 @@
 package com.project.hearmeout_backend.interaction_service.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.project.hearmeout_backend.interaction_service.model.enums.CommentType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -30,13 +31,22 @@ public class CommentResponseDTO {
   @Schema(description = "Whether the current user can edit or delete this comment")
   private boolean operable;
 
+  @Schema(description = "Type of comment")
+  private CommentType type;
+
   // Constructor for JPA projection
   public CommentResponseDTO(
-      UUID commentId, String body, String authorUsername, UUID parentId, LocalDateTime updatedAt) {
+      UUID commentId,
+      String body,
+      String authorUsername,
+      UUID parentId,
+      LocalDateTime updatedAt,
+      CommentType type) {
     this.commentId = commentId;
     this.body = body;
     this.authorUsername = authorUsername;
     this.parentId = parentId;
     this.updatedAt = updatedAt;
+    this.type = type;
   }
 }

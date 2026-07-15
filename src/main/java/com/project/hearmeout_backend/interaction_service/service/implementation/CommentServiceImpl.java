@@ -38,7 +38,7 @@ public class CommentServiceImpl {
   private final SolutionRepository solutionRepo;
 
   public PagedResponse<CommentResponseDTO> getComments(
-      UUID parentId, PostType parentType, int limit, int offset, String username) {
+      UUID parentId, PostType parentType, int limit, int offset, String curUsername) {
     int page = offset / limit;
     Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
 
@@ -49,13 +49,15 @@ public class CommentServiceImpl {
         commentsPage.getContent().stream()
             .map(
                 c ->
-                    new CommentResponseDTO(
-                        c.getCommentId(),
-                        c.getBody(),
-                        c.getAuthorUsername(),
-                        c.getParentId(),
-                        c.getUpdatedAt(),
-                        c.getAuthorUsername().equals(username)))
+                    CommentResponseDTO.builder()
+                        .commentId(c.getCommentId())
+                        .body(c.getBody())
+                        .authorUsername(c.getAuthorUsername())
+                        .parentId(c.getParentId())
+                        .updatedAt(c.getUpdatedAt())
+                        .operable(c.getAuthorUsername().equals(curUsername))
+                        .type(c.getType())
+                        .build())
             .toList();
 
     return PagedResponse.<CommentResponseDTO>builder()
