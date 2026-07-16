@@ -3,6 +3,9 @@ package com.project.hearmeout_backend.post_service.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
+import com.project.hearmeout_backend.post_service.model.enums.Framework;
+import com.project.hearmeout_backend.post_service.model.enums.OperatingSystem;
+import com.project.hearmeout_backend.post_service.model.enums.ProgrammingLanguage;
 import com.project.hearmeout_backend.post_service.model.enums.SolutionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -48,6 +51,15 @@ public class SolutionResponseDTO {
   @Schema(description = "Whether the current user can edit or delete this solution")
   private boolean operable;
 
+  private ProgrammingLanguage language;
+  private String languageVersion;
+  private Framework framework;
+  private String frameworkVersion;
+  private OperatingSystem os;
+  private String osVersion;
+  private String probableCause;
+  private String codeChange;
+
   // Constructor for JPA projection
   public SolutionResponseDTO(
       UUID id,
@@ -55,12 +67,28 @@ public class SolutionResponseDTO {
       String explanation,
       int score,
       LocalDateTime updatedAt,
-      SolutionStatus status) {
+      SolutionStatus status,
+      ProgrammingLanguage language,
+      String languageVersion,
+      Framework framework,
+      String frameworkVersion,
+      OperatingSystem os,
+      String osVersion,
+      String probableCause,
+      String codeChange) {
     this.id = id;
     this.authorUsername = authorUsername;
     this.explanation = explanation;
     this.score = score;
     this.updatedAt = updatedAt;
     this.status = status;
+    this.language = language;
+    this.languageVersion = languageVersion;
+    this.framework = framework;
+    this.frameworkVersion = frameworkVersion;
+    this.os = os;
+    this.osVersion = osVersion;
+    this.probableCause = probableCause;
+    this.codeChange = codeChange;
   }
 }

@@ -128,7 +128,7 @@ public class HomeServiceImplTest {
 
     // Assert
     assertNull(result.getUsername());
-    assertNull(result.getUserNavigationId());
+    assertNull(result.getNavigationId());
     assertNull(result.getRole());
   }
 
@@ -150,7 +150,7 @@ public class HomeServiceImplTest {
     // Arrange
     UUID validId = user1Id;
     HomeUserProfileResponseDTO currUser =
-        HomeUserProfileResponseDTO.builder().userNavigationId(validId).username("test1").build();
+        HomeUserProfileResponseDTO.builder().navigationId(validId).username("test1").build();
 
     when(userRepo.getHomeUserProfileById(validId)).thenReturn(Optional.of(currUser));
 

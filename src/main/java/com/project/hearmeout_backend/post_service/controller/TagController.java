@@ -1,5 +1,6 @@
 package com.project.hearmeout_backend.post_service.controller;
 
+import com.project.hearmeout_backend.common_lib.dto.PagedResponse;
 import com.project.hearmeout_backend.post_service.dto.request.TagCreationRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.request.TagModificationRequestDTO;
 import com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO;
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NullMarked;
@@ -35,9 +35,9 @@ public class TagController {
       summary = "Get all tags",
       description = "Retrieves a paginated list of all available tags in the system.")
   @GetMapping("")
-  public ResponseEntity<List<TagResponseDTO>> tagList(
-      @RequestParam(defaultValue = "0") int pageNum) {
-    return ResponseEntity.status(HttpStatus.OK).body(tagServiceImpl.getAllTags(pageNum));
+  public ResponseEntity<PagedResponse<TagResponseDTO>> tagList(
+      @RequestParam(defaultValue = "5") int limit, @RequestParam(defaultValue = "0") int offset) {
+    return ResponseEntity.status(HttpStatus.OK).body(tagServiceImpl.getAllTags(limit, offset));
   }
 
   @Operation(

@@ -18,7 +18,7 @@ public class HomeUserProfileResponseDTO {
 
   @Schema(
       description = "The unique identifier of the user, used for navigating to their full profile")
-  private UUID userNavigationId;
+  private UUID navigationId;
 
   @Schema(description = "Indicates whether the user has verified their email account")
   private boolean accountVerified;

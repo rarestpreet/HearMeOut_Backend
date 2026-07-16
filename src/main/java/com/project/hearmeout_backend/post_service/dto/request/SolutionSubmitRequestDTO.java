@@ -1,7 +1,11 @@
 package com.project.hearmeout_backend.post_service.dto.request;
 
+import com.project.hearmeout_backend.post_service.model.enums.Framework;
+import com.project.hearmeout_backend.post_service.model.enums.OperatingSystem;
+import com.project.hearmeout_backend.post_service.model.enums.ProgrammingLanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,26 +27,23 @@ public class SolutionSubmitRequestDTO {
   @Schema(description = "Suggested code changes to fix the error")
   private String codeChange;
 
-  @NotBlank(message = "Language is required")
-  @Size(max = 20)
+  @NotNull(message = "Language is required")
   @Schema(description = "Programming language")
-  private String language;
+  private ProgrammingLanguage language;
 
   @Size(max = 10)
   @Schema(description = "Language version")
   private String languageVersion;
 
-  @Size(max = 20)
   @Schema(description = "Framework used")
-  private String framework;
+  private Framework framework;
 
   @Size(max = 10)
   @Schema(description = "Framework version")
   private String frameworkVersion;
 
-  @Size(max = 20)
   @Schema(description = "Operating system")
-  private String os;
+  private OperatingSystem os;
 
   @Size(max = 10)
   @Schema(description = "OS version")

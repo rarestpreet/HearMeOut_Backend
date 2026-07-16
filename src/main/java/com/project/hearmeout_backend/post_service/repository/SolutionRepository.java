@@ -30,7 +30,9 @@ public interface SolutionRepository extends JpaRepository<Solution, UUID> {
   @Query(
       """
           SELECT new com.project.hearmeout_backend.post_service.dto.response.SolutionResponseDTO(
-              s.id, s.author.username, s.explanation, s.score, s.updatedAt, s.status
+              s.id, s.author.username, s.explanation, s.score, s.updatedAt, s.status,
+              s.language, s.languageVersion, s.framework, s.frameworkVersion, s.os, s.osVersion,
+              s.probableCause, s.codeChange
           )
           FROM Solution s
           WHERE s.errorReport.id = :errorReportId

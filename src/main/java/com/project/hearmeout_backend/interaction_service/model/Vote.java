@@ -1,6 +1,6 @@
 package com.project.hearmeout_backend.interaction_service.model;
 
-import com.project.hearmeout_backend.gateway.model.BaseModel;
+import com.project.hearmeout_backend.common_lib.model.BaseModel;
 import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
 import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.user_service.model.User;

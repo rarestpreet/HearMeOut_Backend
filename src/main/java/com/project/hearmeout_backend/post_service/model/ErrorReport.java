@@ -40,7 +40,7 @@ public class ErrorReport extends Post {
   @Column(length = 200)
   private String filePath;
 
-  @Column(columnDefinition = "TEXT", nullable = false)
+  @Column(columnDefinition = "TEXT")
   private String relevantCode;
 
   @Column(columnDefinition = "TEXT")

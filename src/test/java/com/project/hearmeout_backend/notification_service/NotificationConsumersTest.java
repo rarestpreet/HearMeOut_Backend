@@ -12,7 +12,6 @@ import com.project.hearmeout_backend.authentication_service.service.implementati
 import com.project.hearmeout_backend.common_lib.event_dto.PasswordResetOtpEvent;
 import com.project.hearmeout_backend.common_lib.event_dto.UserRegisteredEvent;
 import com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent;
-import com.project.hearmeout_backend.common_lib.service.implementation.UtilServiceImpl;
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -51,7 +50,6 @@ public class NotificationConsumersTest {
   @Autowired private ObjectMapper objectMapper;
 
   @Mock private EmailServiceImpl emailService;
-  @Mock private UtilServiceImpl utilService;
 
   @Mock private RedisTemplate<String, String> redisTemplate;
   @Mock private ValueOperations<String, String> valueOperations;
@@ -82,10 +80,8 @@ public class NotificationConsumersTest {
 
   @Test
   void testVerificationOtpConsumer() throws JsonProcessingException {
-    VerificationOtpEvent payload = new VerificationOtpEvent("verify@example.com");
+    VerificationOtpEvent payload = new VerificationOtpEvent("verify@example.com", 123456);
     String jsonPayload = objectMapper.writeValueAsString(payload);
-
-    when(utilService.handleAccountVerificationOtp("verify@example.com")).thenReturn(123456);
 
     Message message =
         MessageBuilder.withBody(jsonPayload.getBytes())
@@ -103,10 +99,8 @@ public class NotificationConsumersTest {
 
   @Test
   void testPasswordResetOtpConsumer() throws JsonProcessingException {
-    PasswordResetOtpEvent payload = new PasswordResetOtpEvent("reset@example.com");
+    PasswordResetOtpEvent payload = new PasswordResetOtpEvent("reset@example.com", 654321);
     String jsonPayload = objectMapper.writeValueAsString(payload);
-
-    when(utilService.handlePasswordResetOtp("reset@example.com")).thenReturn(654321);
 
     Message message =
         MessageBuilder.withBody(jsonPayload.getBytes())

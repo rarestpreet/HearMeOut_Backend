@@ -33,6 +33,7 @@ services:
     container_name: rabbitmq
     ports:
       - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -49,16 +50,12 @@ services:
     container_name: hearmeout-backend
     ports:
       - "8080:8080"
+    env_file:
+      - env_file/.env
     environment:
       PORT: 8080
-      SPRING_ACTIVE_PROFILE: docker
+      SPRING_PROFILES_ACTIVE: docker
       DB_PASS: mysecretpassword
-      SPRING_DATA_REDIS_HOST: redis
-      SPRING_DATA_REDIS_PORT: 6379
-      RABBITMQ_HOST: rabbitmq
-      SECRET_KEY: "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970" # HMAC-SHA256 signature secret
-      MAIL_USER: ""
-      MAIL_PASS: ""
     depends_on:
       mysql:
         condition: service_healthy

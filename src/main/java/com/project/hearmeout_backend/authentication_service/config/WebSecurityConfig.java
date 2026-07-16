@@ -38,7 +38,7 @@ public class WebSecurityConfig {
                 request
                     .requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
-                    .requestMatchers(HttpMethod.GET, "/post/*")
+                    .requestMatchers(HttpMethod.GET, "/error-report/*")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/")
                     .permitAll()

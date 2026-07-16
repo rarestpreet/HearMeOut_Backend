@@ -3,11 +3,9 @@ package com.project.hearmeout_backend.authentication_service.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetOtpRequestDTO;
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
-import com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent;
+import com.project.hearmeout_backend.common_lib.service.implementation.UtilServiceImpl;
 import com.project.hearmeout_backend.gateway.annotation.RateLimiter;
 import com.project.hearmeout_backend.gateway.model.enums.RateLimits;
-import com.project.hearmeout_backend.notification_service.config.CustomRabbitTemplate;
-import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -35,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
     description = "Endpoints for sending verification and password reset emails")
 public class EmailController {
 
-  private final CustomRabbitTemplate rabbitTemplate;
+  private final UtilServiceImpl utilService;
 
   @Operation(
       summary = "Send account verification OTP",
@@ -62,10 +60,7 @@ public class EmailController {
   public ResponseEntity<@NonNull String> sendAccountVerificationOtp(
       @AuthenticationPrincipal CustomUserDetails userDetails) throws JsonProcessingException {
 
-    rabbitTemplate.send(
-        RabbitMQConfig.EMAIL_EXCHANGE,
-        RabbitMQConfig.VERIFICATION_EMAIL_ROUTING_KEY,
-        new VerificationOtpEvent(userDetails.getUsername()));
+    utilService.handleAccountVerificationOtp(userDetails.getUsername());
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }
@@ -90,11 +85,7 @@ public class EmailController {
   @PreAuthorize("!hasAuthority('ADMIN')")
   public ResponseEntity<@NonNull String> sendResetPasswordOtp(
       @Valid @RequestBody PasswordResetOtpRequestDTO requestDTO) throws JsonProcessingException {
-
-    rabbitTemplate.send(
-        RabbitMQConfig.EMAIL_EXCHANGE,
-        RabbitMQConfig.PASSWORD_RESET_EMAIL_ROUTING_KEY,
-        new VerificationOtpEvent(requestDTO.getEmail()));
+    utilService.handlePasswordResetOtp(requestDTO.getEmail());
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verification mail sent successfully");
   }

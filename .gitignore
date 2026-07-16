@@ -38,3 +38,5 @@ src/main/java/com/project/hearmeout_backend/controller/TestController.java
 src/main/java/com/project/hearmeout_backend/service/TestService.java
 src/main/java/com/project/hearmeout_backend/dto/response/test_response/UserProfileDTO.java
 backend_workflow.drawio
+
+TEST_CASE_COVERAGE_PLAN.md

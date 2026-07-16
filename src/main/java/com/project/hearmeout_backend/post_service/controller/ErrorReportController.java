@@ -16,12 +16,14 @@ import jakarta.validation.Valid;
 import java.util.UUID;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
 @RequestMapping("/error-report")
 @RequiredArgsConstructor
@@ -69,6 +71,7 @@ public class ErrorReportController {
       @RequestParam(defaultValue = "0") int offset,
       @AuthenticationPrincipal CustomUserDetails userDetails)
       throws PostNotFoundException {
+    log.info("errorReportId:{}", errorReportId);
     UUID userId = userDetails == null ? new UUID(0, 0) : userDetails.getUserId();
     String username = userDetails == null ? "" : userDetails.getUsername();
 

@@ -31,7 +31,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   @Query(
       """
           SELECT new com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO(
-              c.id, c.body, c.author.username, c.parentId, c.updatedAt
+              c.id, c.body, c.author.username, c.parentId, c.updatedAt, c.type
           )
           FROM Comment c
           WHERE c.parentId = :parentId AND c.parentType = :parentType

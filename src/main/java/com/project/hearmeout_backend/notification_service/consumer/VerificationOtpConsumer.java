@@ -2,7 +2,6 @@ package com.project.hearmeout_backend.notification_service.consumer;
 
 import com.project.hearmeout_backend.authentication_service.service.implementation.EmailServiceImpl;
 import com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent;
-import com.project.hearmeout_backend.common_lib.service.implementation.UtilServiceImpl;
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import com.project.hearmeout_backend.notification_service.infra.ConsumerRetryDispatcher;
 import com.rabbitmq.client.Channel;
@@ -23,7 +22,6 @@ public class VerificationOtpConsumer {
 
   private final EmailServiceImpl emailService;
   private final ConsumerRetryDispatcher retryDispatcher;
-  private final UtilServiceImpl utilService;
   private final RedisTemplate<String, String> redisTemplate;
 
   @RabbitListener(queues = RabbitMQConfig.VERIFICATION_EMAIL_QUEUE, ackMode = "MANUAL")
@@ -47,8 +45,7 @@ public class VerificationOtpConsumer {
         return;
       }
 
-      Integer otp = utilService.handleAccountVerificationOtp(payload.email());
-      emailService.sendAccountVerificationMail(payload.email(), otp);
+      emailService.sendAccountVerificationMail(payload.email(), payload.otp());
 
       channel.basicAck(deliveryTag, false);
       log.info("[CONSUMER] Successfully processed. messageId={}", messageId);

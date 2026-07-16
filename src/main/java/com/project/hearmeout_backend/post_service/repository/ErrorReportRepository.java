@@ -52,9 +52,11 @@ public interface ErrorReportRepository extends JpaRepository<ErrorReport, UUID> 
   @Query(
       """
           SELECT new com.project.hearmeout_backend.post_service.dto.response.ErrorReportResponseDTO(
-              e.id, e.author.username, e.title, e.description, e.score, e.updatedAt, e.status
-          )
-          FROM ErrorReport e
+          e.id, e.author.username, e.title, e.description, e.score, e.updatedAt, e.status,
+          e.language, e.languageVersion, e.framework, e.frameworkVersion, e.os, e.osVersion,
+          e.errorType, e.reproductionSteps, e.repositoryUrl, e.branch, e.commitHash, e.filePath, e.relevantCode, e.relevantLog
+      )
+      FROM ErrorReport e
           WHERE e.id = :errorReportId
       """)
   Optional<ErrorReportResponseDTO> findErrorReportDetailsDTO(

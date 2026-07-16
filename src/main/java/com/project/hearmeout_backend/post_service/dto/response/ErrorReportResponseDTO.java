@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
 import com.project.hearmeout_backend.post_service.model.enums.ErrorReportStatus;
+import com.project.hearmeout_backend.post_service.model.enums.Framework;
+import com.project.hearmeout_backend.post_service.model.enums.OperatingSystem;
+import com.project.hearmeout_backend.post_service.model.enums.ProgrammingLanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -59,6 +62,21 @@ public class ErrorReportResponseDTO {
   @Schema(description = "Whether the current user can edit or delete this error report")
   private boolean operable;
 
+  private ProgrammingLanguage language;
+  private String languageVersion;
+  private Framework framework;
+  private String frameworkVersion;
+  private OperatingSystem os;
+  private String osVersion;
+  private String errorType;
+  private String reproductionSteps;
+  private String repositoryUrl;
+  private String branch;
+  private String commitHash;
+  private String filePath;
+  private String relevantCode;
+  private String relevantLog;
+
   // Constructor for JPA projection (fields available directly from DB query)
   public ErrorReportResponseDTO(
       UUID id,
@@ -67,7 +85,21 @@ public class ErrorReportResponseDTO {
       String description,
       int score,
       LocalDateTime updatedAt,
-      ErrorReportStatus status) {
+      ErrorReportStatus status,
+      ProgrammingLanguage language,
+      String languageVersion,
+      Framework framework,
+      String frameworkVersion,
+      OperatingSystem os,
+      String osVersion,
+      String errorType,
+      String reproductionSteps,
+      String repositoryUrl,
+      String branch,
+      String commitHash,
+      String filePath,
+      String relevantCode,
+      String relevantLog) {
     this.id = id;
     this.authorUsername = authorUsername;
     this.title = title;
@@ -75,5 +107,19 @@ public class ErrorReportResponseDTO {
     this.score = score;
     this.updatedAt = updatedAt;
     this.status = status;
+    this.language = language;
+    this.languageVersion = languageVersion;
+    this.framework = framework;
+    this.frameworkVersion = frameworkVersion;
+    this.os = os;
+    this.osVersion = osVersion;
+    this.errorType = errorType;
+    this.reproductionSteps = reproductionSteps;
+    this.repositoryUrl = repositoryUrl;
+    this.branch = branch;
+    this.commitHash = commitHash;
+    this.filePath = filePath;
+    this.relevantCode = relevantCode;
+    this.relevantLog = relevantLog;
   }
 }
