@@ -1,12 +1,8 @@
 package com.project.hearmeout_backend.post_service.dto.request;
 
-import com.project.hearmeout_backend.post_service.model.enums.Framework;
-import com.project.hearmeout_backend.post_service.model.enums.OperatingSystem;
-import com.project.hearmeout_backend.post_service.model.enums.ProgrammingLanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
@@ -59,23 +55,24 @@ public class ErrorReportSubmitRequestDTO {
   @Schema(description = "Relevant log output or stack trace")
   private String relevantLog;
 
-  @NotNull(message = "Language is required")
-  @Schema(description = "Programming language (e.g., Java, Python)")
-  private ProgrammingLanguage language;
+  @NotBlank(message = "Language is required")
+  @Size(max = 100)
+  @Schema(description = "Programming language (e.g., JavaScript, Python 3.11)")
+  private String language;
 
   @Size(max = 10)
   @Schema(description = "Language version (e.g., 17, 3.11)")
   private String languageVersion;
 
   @Schema(description = "Framework used (e.g., Spring Boot, Django)")
-  private Framework framework;
+  private String framework;
 
   @Size(max = 10)
   @Schema(description = "Framework version")
   private String frameworkVersion;
 
   @Schema(description = "Operating system (e.g., Windows, Linux)")
-  private OperatingSystem os;
+  private String os;
 
   @Size(max = 10)
   @Schema(description = "OS version")

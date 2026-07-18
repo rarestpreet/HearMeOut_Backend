@@ -23,6 +23,9 @@ public class FeedErrorReportResponseDTO {
   @Schema(description = "The title of the error report")
   private String title;
 
+  @Schema(description = "The description of the error report")
+  private String description;
+
   @Schema(description = "The net vote score")
   private int score;
 
@@ -43,6 +46,7 @@ public class FeedErrorReportResponseDTO {
       UUID navigationId,
       String authorUsername,
       String title,
+      String description,
       int score,
       LocalDateTime updatedAt,
       ErrorReportStatus status,
@@ -50,6 +54,7 @@ public class FeedErrorReportResponseDTO {
     this.navigationId = navigationId;
     this.authorUsername = authorUsername;
     this.title = title;
+    this.description = description;
     this.score = score;
     this.updatedAt = updatedAt;
     this.status = status;

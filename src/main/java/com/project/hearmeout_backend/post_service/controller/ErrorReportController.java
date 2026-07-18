@@ -73,7 +73,7 @@ public class ErrorReportController {
       throws PostNotFoundException {
     log.info("errorReportId:{}", errorReportId);
     UUID userId = userDetails == null ? new UUID(0, 0) : userDetails.getUserId();
-    String username = userDetails == null ? "" : userDetails.getUsername();
+    String username = userDetails == null ? "" : userDetails.getName();
 
     return ResponseEntity.status(HttpStatus.OK)
         .body(

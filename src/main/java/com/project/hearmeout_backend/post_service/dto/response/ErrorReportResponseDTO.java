@@ -4,9 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
 import com.project.hearmeout_backend.post_service.model.enums.ErrorReportStatus;
-import com.project.hearmeout_backend.post_service.model.enums.Framework;
-import com.project.hearmeout_backend.post_service.model.enums.OperatingSystem;
-import com.project.hearmeout_backend.post_service.model.enums.ProgrammingLanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,6 +20,9 @@ public class ErrorReportResponseDTO {
 
   @Schema(description = "The username of the author")
   private String authorUsername;
+
+  @Schema(description = "The full name of the author")
+  private String authorFullName;
 
   @Schema(description = "The title of the error report")
   private String title;
@@ -62,11 +62,11 @@ public class ErrorReportResponseDTO {
   @Schema(description = "Whether the current user can edit or delete this error report")
   private boolean operable;
 
-  private ProgrammingLanguage language;
+  private String language;
   private String languageVersion;
-  private Framework framework;
+  private String framework;
   private String frameworkVersion;
-  private OperatingSystem os;
+  private String os;
   private String osVersion;
   private String errorType;
   private String reproductionSteps;
@@ -81,16 +81,17 @@ public class ErrorReportResponseDTO {
   public ErrorReportResponseDTO(
       UUID id,
       String authorUsername,
+      String authorFullName,
       String title,
       String description,
       int score,
       LocalDateTime updatedAt,
       ErrorReportStatus status,
-      ProgrammingLanguage language,
+      String language,
       String languageVersion,
-      Framework framework,
+      String framework,
       String frameworkVersion,
-      OperatingSystem os,
+      String os,
       String osVersion,
       String errorType,
       String reproductionSteps,
@@ -102,6 +103,7 @@ public class ErrorReportResponseDTO {
       String relevantLog) {
     this.id = id;
     this.authorUsername = authorUsername;
+    this.authorFullName = authorFullName;
     this.title = title;
     this.description = description;
     this.score = score;

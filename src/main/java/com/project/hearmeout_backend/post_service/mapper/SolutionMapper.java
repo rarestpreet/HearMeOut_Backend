@@ -2,6 +2,9 @@ package com.project.hearmeout_backend.post_service.mapper;
 
 import com.project.hearmeout_backend.post_service.dto.request.SolutionSubmitRequestDTO;
 import com.project.hearmeout_backend.post_service.model.ErrorReport;
+import com.project.hearmeout_backend.post_service.model.Framework;
+import com.project.hearmeout_backend.post_service.model.OperatingSystem;
+import com.project.hearmeout_backend.post_service.model.ProgrammingLanguage;
 import com.project.hearmeout_backend.post_service.model.Solution;
 import com.project.hearmeout_backend.post_service.model.enums.SolutionStatus;
 import com.project.hearmeout_backend.user_service.model.User;
@@ -9,7 +12,12 @@ import com.project.hearmeout_backend.user_service.model.User;
 public class SolutionMapper {
 
   public static Solution toEntity(
-      SolutionSubmitRequestDTO dto, ErrorReport errorReport, User author) {
+      SolutionSubmitRequestDTO dto,
+      ErrorReport errorReport,
+      User author,
+      ProgrammingLanguage language,
+      Framework framework,
+      OperatingSystem os) {
     Solution solution =
         Solution.builder()
             .errorReport(errorReport)
@@ -20,11 +28,11 @@ public class SolutionMapper {
             .build();
 
     solution.setAuthor(author);
-    solution.setLanguage(dto.getLanguage());
+    solution.setLanguage(language);
     solution.setLanguageVersion(dto.getLanguageVersion());
-    solution.setFramework(dto.getFramework());
+    solution.setFramework(framework);
     solution.setFrameworkVersion(dto.getFrameworkVersion());
-    solution.setOs(dto.getOs());
+    solution.setOs(os);
     solution.setOsVersion(dto.getOsVersion());
 
     return solution;

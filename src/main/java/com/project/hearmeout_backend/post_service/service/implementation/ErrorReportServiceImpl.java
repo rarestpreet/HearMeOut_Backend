@@ -15,10 +15,16 @@ import com.project.hearmeout_backend.post_service.dto.response.SolutionResponseD
 import com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO;
 import com.project.hearmeout_backend.post_service.mapper.ErrorReportMapper;
 import com.project.hearmeout_backend.post_service.model.ErrorReport;
+import com.project.hearmeout_backend.post_service.model.Framework;
+import com.project.hearmeout_backend.post_service.model.OperatingSystem;
+import com.project.hearmeout_backend.post_service.model.ProgrammingLanguage;
 import com.project.hearmeout_backend.post_service.model.Tag;
 import com.project.hearmeout_backend.post_service.model.enums.ErrorReportStatus;
 import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
+import com.project.hearmeout_backend.post_service.repository.FrameworkRepository;
+import com.project.hearmeout_backend.post_service.repository.OperatingSystemRepository;
+import com.project.hearmeout_backend.post_service.repository.ProgrammingLanguageRepository;
 import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.post_service.repository.TagRepository;
 import com.project.hearmeout_backend.user_service.model.User;
@@ -48,6 +54,9 @@ public class ErrorReportServiceImpl {
   private final VoteRepository voteRepo;
   private final CommentRepository commentRepo;
   private final UserRepository userRepo;
+  private final ProgrammingLanguageRepository languageRepo;
+  private final FrameworkRepository frameworkRepo;
+  private final OperatingSystemRepository osRepo;
 
   public ErrorReport checkAndGetErrorReport(UUID errorReportId) throws PostNotFoundException {
     return errorReportRepo
@@ -69,7 +78,39 @@ public class ErrorReportServiceImpl {
     author.setReputation(author.getReputation() + 4);
     userRepo.save(author);
 
-    ErrorReport newReport = ErrorReportMapper.toEntity(dto, author, tags);
+    ProgrammingLanguage language =
+        languageRepo
+            .findByNameIgnoreCase(dto.getLanguage())
+            .orElseGet(
+                () ->
+                    languageRepo.save(
+                        ProgrammingLanguage.builder()
+                            .name(dto.getLanguage().toUpperCase())
+                            .build()));
+
+    Framework framework = null;
+    if (dto.getFramework() != null && !dto.getFramework().isBlank()) {
+      framework =
+          frameworkRepo
+              .findByNameIgnoreCase(dto.getFramework())
+              .orElseGet(
+                  () ->
+                      frameworkRepo.save(
+                          Framework.builder().name(dto.getFramework().toUpperCase()).build()));
+    }
+
+    OperatingSystem os = null;
+    if (dto.getOs() != null && !dto.getOs().isBlank()) {
+      os =
+          osRepo
+              .findByNameIgnoreCase(dto.getOs())
+              .orElseGet(
+                  () ->
+                      osRepo.save(
+                          OperatingSystem.builder().name(dto.getOs().toUpperCase()).build()));
+    }
+
+    ErrorReport newReport = ErrorReportMapper.toEntity(dto, author, tags, language, framework, os);
     newReport.setAuthor(author);
     errorReportRepo.save(newReport);
 
@@ -221,6 +262,7 @@ public class ErrorReportServiceImpl {
         .filePath(reportResponse.getFilePath())
         .relevantCode(reportResponse.getRelevantCode())
         .relevantLog(reportResponse.getRelevantLog())
+        .updatedAt(reportResponse.getUpdatedAt())
         .build();
   }
 
@@ -268,11 +310,43 @@ public class ErrorReportServiceImpl {
     report.setFilePath(dto.getFilePath());
     report.setRelevantCode(dto.getRelevantCode());
     report.setRelevantLog(dto.getRelevantLog());
-    report.setLanguage(dto.getLanguage());
+    ProgrammingLanguage language =
+        languageRepo
+            .findByNameIgnoreCase(dto.getLanguage())
+            .orElseGet(
+                () ->
+                    languageRepo.save(
+                        ProgrammingLanguage.builder()
+                            .name(dto.getLanguage().toUpperCase())
+                            .build()));
+
+    Framework framework = null;
+    if (dto.getFramework() != null && !dto.getFramework().isBlank()) {
+      framework =
+          frameworkRepo
+              .findByNameIgnoreCase(dto.getFramework())
+              .orElseGet(
+                  () ->
+                      frameworkRepo.save(
+                          Framework.builder().name(dto.getFramework().toUpperCase()).build()));
+    }
+
+    OperatingSystem os = null;
+    if (dto.getOs() != null && !dto.getOs().isBlank()) {
+      os =
+          osRepo
+              .findByNameIgnoreCase(dto.getOs())
+              .orElseGet(
+                  () ->
+                      osRepo.save(
+                          OperatingSystem.builder().name(dto.getOs().toUpperCase()).build()));
+    }
+
+    report.setLanguage(language);
     report.setLanguageVersion(dto.getLanguageVersion());
-    report.setFramework(dto.getFramework());
+    report.setFramework(framework);
     report.setFrameworkVersion(dto.getFrameworkVersion());
-    report.setOs(dto.getOs());
+    report.setOs(os);
     report.setOsVersion(dto.getOsVersion());
     report.setTags(tags);
     report.markUpdatedAt();

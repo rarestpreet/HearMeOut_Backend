@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -232,5 +233,21 @@ public class GlobalExceptionHandler {
             .build();
 
     return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(response);
+  }
+
+  @ExceptionHandler(AuthorizationDeniedException.class)
+  public ResponseEntity<@NonNull ExceptionResponseDTO> handleAuthorizationDeniedException(
+      AuthorizationDeniedException ex) {
+    log.warn("Received request from unauthorized client: \n", ex);
+
+    ExceptionResponseDTO response =
+        ExceptionResponseDTO.builder()
+            .status(401)
+            .error("Unauthorized request")
+            .message(ex.getMessage())
+            .timestamp(LocalDateTime.now())
+            .build();
+
+    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
   }
 }

@@ -31,10 +31,13 @@ public interface SolutionRepository extends JpaRepository<Solution, UUID> {
       """
           SELECT new com.project.hearmeout_backend.post_service.dto.response.SolutionResponseDTO(
               s.id, s.author.username, s.explanation, s.score, s.updatedAt, s.status,
-              s.language, s.languageVersion, s.framework, s.frameworkVersion, s.os, s.osVersion,
+              l.name, s.languageVersion, f.name, s.frameworkVersion, o.name, s.osVersion,
               s.probableCause, s.codeChange
           )
           FROM Solution s
+          LEFT JOIN s.language l
+          LEFT JOIN s.framework f
+          LEFT JOIN s.os o
           WHERE s.errorReport.id = :errorReportId
       """)
   Page<SolutionResponseDTO> findSolutionsByErrorReportId(

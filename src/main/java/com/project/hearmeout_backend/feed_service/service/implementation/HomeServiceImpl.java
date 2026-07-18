@@ -49,6 +49,7 @@ public class HomeServiceImpl {
                       .score(post.getScore())
                       .status(post.getStatus())
                       .title(post.getTitle())
+                      .description(post.getDescription())
                       .tags(tags)
                       .navigationId(post.getNavigationId())
                       .authorUsername(post.getAuthorUsername())

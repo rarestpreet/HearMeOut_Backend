@@ -15,11 +15,17 @@ import com.project.hearmeout_backend.post_service.dto.request.SolutionSubmitRequ
 import com.project.hearmeout_backend.post_service.dto.response.SolutionResponseDTO;
 import com.project.hearmeout_backend.post_service.mapper.SolutionMapper;
 import com.project.hearmeout_backend.post_service.model.ErrorReport;
+import com.project.hearmeout_backend.post_service.model.Framework;
+import com.project.hearmeout_backend.post_service.model.OperatingSystem;
+import com.project.hearmeout_backend.post_service.model.ProgrammingLanguage;
 import com.project.hearmeout_backend.post_service.model.Solution;
 import com.project.hearmeout_backend.post_service.model.enums.ErrorReportStatus;
 import com.project.hearmeout_backend.post_service.model.enums.PostType;
 import com.project.hearmeout_backend.post_service.model.enums.SolutionStatus;
 import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
+import com.project.hearmeout_backend.post_service.repository.FrameworkRepository;
+import com.project.hearmeout_backend.post_service.repository.OperatingSystemRepository;
+import com.project.hearmeout_backend.post_service.repository.ProgrammingLanguageRepository;
 import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
 import com.project.hearmeout_backend.user_service.model.User;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
@@ -46,6 +52,9 @@ public class SolutionServiceImpl {
   private final VoteRepository voteRepo;
   private final CommentRepository commentRepo;
   private final UserRepository userRepo;
+  private final ProgrammingLanguageRepository languageRepo;
+  private final FrameworkRepository frameworkRepo;
+  private final OperatingSystemRepository osRepo;
 
   public Solution checkAndGetSolution(UUID solutionId) throws PostNotFoundException {
     return solutionRepo
@@ -78,7 +87,40 @@ public class SolutionServiceImpl {
 
     errorReport.setStatus(ErrorReportStatus.IN_PROGRESS);
 
-    Solution newSolution = SolutionMapper.toEntity(dto, errorReport, author);
+    ProgrammingLanguage language =
+        languageRepo
+            .findByNameIgnoreCase(dto.getLanguage())
+            .orElseGet(
+                () ->
+                    languageRepo.save(
+                        ProgrammingLanguage.builder()
+                            .name(dto.getLanguage().toUpperCase())
+                            .build()));
+
+    Framework framework = null;
+    if (dto.getFramework() != null && !dto.getFramework().isBlank()) {
+      framework =
+          frameworkRepo
+              .findByNameIgnoreCase(dto.getFramework())
+              .orElseGet(
+                  () ->
+                      frameworkRepo.save(
+                          Framework.builder().name(dto.getFramework().toUpperCase()).build()));
+    }
+
+    OperatingSystem os = null;
+    if (dto.getOs() != null && !dto.getOs().isBlank()) {
+      os =
+          osRepo
+              .findByNameIgnoreCase(dto.getOs())
+              .orElseGet(
+                  () ->
+                      osRepo.save(
+                          OperatingSystem.builder().name(dto.getOs().toUpperCase()).build()));
+    }
+
+    Solution newSolution =
+        SolutionMapper.toEntity(dto, errorReport, author, language, framework, os);
     newSolution.setAuthor(author);
     solutionRepo.save(newSolution);
   }
@@ -266,11 +308,43 @@ public class SolutionServiceImpl {
     solution.setProbableCause(dto.getProbableCause());
     solution.setExplanation(dto.getExplanation());
     solution.setCodeChange(dto.getCodeChange());
-    solution.setLanguage(dto.getLanguage());
+    ProgrammingLanguage language =
+        languageRepo
+            .findByNameIgnoreCase(dto.getLanguage())
+            .orElseGet(
+                () ->
+                    languageRepo.save(
+                        ProgrammingLanguage.builder()
+                            .name(dto.getLanguage().toUpperCase())
+                            .build()));
+
+    Framework framework = null;
+    if (dto.getFramework() != null && !dto.getFramework().isBlank()) {
+      framework =
+          frameworkRepo
+              .findByNameIgnoreCase(dto.getFramework())
+              .orElseGet(
+                  () ->
+                      frameworkRepo.save(
+                          Framework.builder().name(dto.getFramework().toUpperCase()).build()));
+    }
+
+    OperatingSystem os = null;
+    if (dto.getOs() != null && !dto.getOs().isBlank()) {
+      os =
+          osRepo
+              .findByNameIgnoreCase(dto.getOs())
+              .orElseGet(
+                  () ->
+                      osRepo.save(
+                          OperatingSystem.builder().name(dto.getOs().toUpperCase()).build()));
+    }
+
+    solution.setLanguage(language);
     solution.setLanguageVersion(dto.getLanguageVersion());
-    solution.setFramework(dto.getFramework());
+    solution.setFramework(framework);
     solution.setFrameworkVersion(dto.getFrameworkVersion());
-    solution.setOs(dto.getOs());
+    solution.setOs(os);
     solution.setOsVersion(dto.getOsVersion());
     solution.markUpdatedAt();
 

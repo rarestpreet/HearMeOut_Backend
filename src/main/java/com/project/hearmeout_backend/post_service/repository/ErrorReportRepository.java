@@ -32,7 +32,7 @@ public interface ErrorReportRepository extends JpaRepository<ErrorReport, UUID> 
   @Query(
       """
           SELECT new com.project.hearmeout_backend.feed_service.dto.response.FeedErrorReportResponseDTO(
-              e.id, e.author.username, e.title, e.score, e.updatedAt, e.status, e.viewCount
+              e.id, e.author.username, e.title, e.description, e.score, e.updatedAt, e.status, e.viewCount
           )
           FROM ErrorReport e
           WHERE e.author.id != :userId
@@ -43,7 +43,7 @@ public interface ErrorReportRepository extends JpaRepository<ErrorReport, UUID> 
   @Query(
       """
           SELECT new com.project.hearmeout_backend.feed_service.dto.response.FeedErrorReportResponseDTO(
-              e.id, e.author.username, e.title, e.score, e.updatedAt, e.status, e.viewCount
+              e.id, e.author.username, e.title, e.description, e.score, e.updatedAt, e.status, e.viewCount
           )
           FROM ErrorReport e
       """)
@@ -52,11 +52,14 @@ public interface ErrorReportRepository extends JpaRepository<ErrorReport, UUID> 
   @Query(
       """
           SELECT new com.project.hearmeout_backend.post_service.dto.response.ErrorReportResponseDTO(
-          e.id, e.author.username, e.title, e.description, e.score, e.updatedAt, e.status,
-          e.language, e.languageVersion, e.framework, e.frameworkVersion, e.os, e.osVersion,
+          e.id, e.author.username, e.author.fullName, e.title, e.description, e.score, e.updatedAt, e.status,
+          l.name, e.languageVersion, f.name, e.frameworkVersion, o.name, e.osVersion,
           e.errorType, e.reproductionSteps, e.repositoryUrl, e.branch, e.commitHash, e.filePath, e.relevantCode, e.relevantLog
       )
       FROM ErrorReport e
+      LEFT JOIN e.language l
+      LEFT JOIN e.framework f
+      LEFT JOIN e.os o
           WHERE e.id = :errorReportId
       """)
   Optional<ErrorReportResponseDTO> findErrorReportDetailsDTO(

@@ -3,9 +3,6 @@ package com.project.hearmeout_backend.post_service.dto.response;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.project.hearmeout_backend.interaction_service.dto.response.CommentResponseDTO;
 import com.project.hearmeout_backend.interaction_service.model.enums.VoteType;
-import com.project.hearmeout_backend.post_service.model.enums.Framework;
-import com.project.hearmeout_backend.post_service.model.enums.OperatingSystem;
-import com.project.hearmeout_backend.post_service.model.enums.ProgrammingLanguage;
 import com.project.hearmeout_backend.post_service.model.enums.SolutionStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.time.LocalDateTime;
@@ -51,11 +48,11 @@ public class SolutionResponseDTO {
   @Schema(description = "Whether the current user can edit or delete this solution")
   private boolean operable;
 
-  private ProgrammingLanguage language;
+  private String language;
   private String languageVersion;
-  private Framework framework;
+  private String framework;
   private String frameworkVersion;
-  private OperatingSystem os;
+  private String os;
   private String osVersion;
   private String probableCause;
   private String codeChange;
@@ -68,11 +65,11 @@ public class SolutionResponseDTO {
       int score,
       LocalDateTime updatedAt,
       SolutionStatus status,
-      ProgrammingLanguage language,
+      String language,
       String languageVersion,
-      Framework framework,
+      String framework,
       String frameworkVersion,
-      OperatingSystem os,
+      String os,
       String osVersion,
       String probableCause,
       String codeChange) {

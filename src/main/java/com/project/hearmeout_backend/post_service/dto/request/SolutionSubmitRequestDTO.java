@@ -1,8 +1,5 @@
 package com.project.hearmeout_backend.post_service.dto.request;
 
-import com.project.hearmeout_backend.post_service.model.enums.Framework;
-import com.project.hearmeout_backend.post_service.model.enums.OperatingSystem;
-import com.project.hearmeout_backend.post_service.model.enums.ProgrammingLanguage;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -29,21 +26,21 @@ public class SolutionSubmitRequestDTO {
 
   @NotNull(message = "Language is required")
   @Schema(description = "Programming language")
-  private ProgrammingLanguage language;
+  private String language;
 
   @Size(max = 10)
   @Schema(description = "Language version")
   private String languageVersion;
 
   @Schema(description = "Framework used")
-  private Framework framework;
+  private String framework;
 
   @Size(max = 10)
   @Schema(description = "Framework version")
   private String frameworkVersion;
 
   @Schema(description = "Operating system")
-  private OperatingSystem os;
+  private String os;
 
   @Size(max = 10)
   @Schema(description = "OS version")
