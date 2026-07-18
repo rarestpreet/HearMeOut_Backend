@@ -16,7 +16,9 @@ import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistExcept
 import com.project.hearmeout_backend.notification_service.config.CustomRabbitTemplate;
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import com.project.hearmeout_backend.user_service.mapper.UserMapper;
+import com.project.hearmeout_backend.user_service.model.Profession;
 import com.project.hearmeout_backend.user_service.model.User;
+import com.project.hearmeout_backend.user_service.repository.ProfessionRepository;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import jakarta.servlet.http.Cookie;
@@ -24,7 +26,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
@@ -45,10 +46,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class SecurityServiceImpl {
 
-  @Value("${admin.mail}")
-  private String ADMIN_MAIL;
-
   private final UserRepository userRepo;
+  private final ProfessionRepository professionRepo;
   private final AuthenticationManager authManager;
   private final BCryptPasswordEncoder passwordEncoder;
   private final HttpServletRequest httpServletRequest;
@@ -58,6 +57,9 @@ public class SecurityServiceImpl {
   private final StringRedisTemplate redisOperator;
   private final CustomUserDetailsServiceImpl customUserDetailsServiceImpl;
   private final CustomRabbitTemplate rabbitTemplate;
+
+  @Value("${admin.mail}")
+  private String ADMIN_MAIL;
 
   @Transactional
   public void createNewUser(RegisterRequestDTO registerRequestDTO)
@@ -71,6 +73,20 @@ public class SecurityServiceImpl {
         UserMapper.toProfileEntity(
             registerRequestDTO, passwordEncoder.encode(registerRequestDTO.getPassword()));
 
+    if (registerRequestDTO.getProfession() != null
+        && !registerRequestDTO.getProfession().isBlank()) {
+      Profession profession =
+          professionRepo
+              .findByNameIgnoreCase(registerRequestDTO.getProfession())
+              .orElseGet(
+                  () ->
+                      professionRepo.save(
+                          Profession.builder()
+                              .name(registerRequestDTO.getProfession().toUpperCase())
+                              .build()));
+      user.setProfession(profession);
+    }
+
     userRepo.save(user);
     log.info("Successfully created new user account for email: {}", registerRequestDTO.getEmail());
 
@@ -80,7 +96,7 @@ public class SecurityServiceImpl {
         new UserRegisteredEvent(registerRequestDTO.getEmail(), registerRequestDTO.getUsername()));
   }
 
-  public List<ResponseCookie> terminateSession(String email) {
+  public List<ResponseCookie> terminateSession(String email, Cookie[] cookies) {
     HttpSession session = httpServletRequest.getSession(false);
     if (session != null) {
       session.invalidate();
@@ -88,17 +104,14 @@ public class SecurityServiceImpl {
     SecurityContextHolder.getContext().setAuthentication(null);
 
     try {
-      String[] refreshTokens =
-          Objects.requireNonNull(redisOperator.opsForValue().get("user_session:".concat(email)))
-              .split("\\$");
-
-      Arrays.stream(refreshTokens)
-          .forEach(
-              token -> {
-                redisOperator.delete("refresh_token:" + token);
-              });
+      String token = extractToken(cookies);
+      redisOperator.delete("refresh_token:" + token);
+      if (email != null && !token.isBlank()) {
+        redisOperator.opsForList().remove("user_session:" + email, 1, token);
+      }
     } catch (RuntimeException e) {
-      throw new RuntimeException("Unable to delete token on terminateSession() " + e.getMessage());
+      throw new RuntimeException(
+          "Unable to delete token on terminateSession() " + e.getMessage() + "\n" + e.getCause());
     }
     log.info("Terminated user session for {}", email);
 
@@ -150,17 +163,10 @@ public class SecurityServiceImpl {
 
     List<ResponseCookie> tokens = handleTokenProcessing(request.getEmail());
 
-    String currentTokens =
-        redisOperator.opsForValue().get("user_session:".concat(request.getEmail()));
-    redisOperator.delete("login_request_count:".concat(request.getEmail()));
     redisOperator
-        .opsForValue()
-        .set(
-            "user_session:".concat(request.getEmail()),
-            currentTokens == null
-                ? tokens.get(1).getValue()
-                : currentTokens.concat("$".concat(tokens.get(1).getValue())),
-            Duration.ofHours(1));
+        .opsForList()
+        .rightPush("user_session:".concat(request.getEmail()), tokens.get(1).getValue());
+    redisOperator.delete("login_request_count:".concat(request.getEmail()));
 
     return tokens;
   }

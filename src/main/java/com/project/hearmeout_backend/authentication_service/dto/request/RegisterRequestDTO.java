@@ -31,4 +31,16 @@ public class RegisterRequestDTO {
   @Email(message = "Email must be a valid email address")
   @Schema(description = "The unique email address for the user")
   private String email;
+
+  @NotBlank(message = "Full Name is required")
+  @Length(max = 100, message = "Full Name must be less than 100 characters")
+  @Schema(description = "The full name of the user")
+  private String fullName;
+
+  @Length(max = 255, message = "Bio must be less than 255 characters")
+  @Schema(description = "A short biography about the user", nullable = true)
+  private String bio;
+
+  @Schema(description = "The user's profession", nullable = true)
+  private String profession;
 }

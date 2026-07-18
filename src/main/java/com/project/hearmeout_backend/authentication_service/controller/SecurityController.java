@@ -69,9 +69,9 @@ public class SecurityController {
   @PreAuthorize("isFullyAuthenticated()")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> logoutUser(
-      @AuthenticationPrincipal CustomUserDetails currUser) {
+      @AuthenticationPrincipal CustomUserDetails currUser, HttpServletRequest request) {
     List<ResponseCookie> clearedCookie =
-        securityServiceImpl.terminateSession(currUser.getUsername());
+        securityServiceImpl.terminateSession(currUser.getUsername(), request.getCookies());
 
     return ResponseEntity.status(HttpStatus.OK)
         .header(
@@ -119,11 +119,13 @@ public class SecurityController {
   @PreAuthorize("!hasAuthority('ADMIN')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> resetPassword(
-      @Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO) {
+      @Valid @RequestBody PasswordResetRequestDTO passwordResetRequestDTO,
+      HttpServletRequest request) {
     securityServiceImpl.modifyUserPassword(passwordResetRequestDTO);
 
     List<ResponseCookie> clearedCookie =
-        securityServiceImpl.terminateSession(passwordResetRequestDTO.getEmail());
+        securityServiceImpl.terminateSession(
+            passwordResetRequestDTO.getEmail(), request.getCookies());
 
     return ResponseEntity.status(HttpStatus.OK)
         .header(
