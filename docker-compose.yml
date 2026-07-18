@@ -1,14 +1,15 @@
 services:
-  mysql:
-    image: mysql:latest
-    container_name: mysql
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres
     ports:
-      - "3306:3306"
+      - "5432:5432"
     environment:
-      MYSQL_DATABASE: hearmeout
-      MYSQL_ROOT_PASSWORD: mysecretpassword
+      POSTGRES_DB: hearmeout
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: mysecretpassword
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pmysecretpassword"]
+      test: ["CMD-SHELL", "pg_isready -U root -d hearmeout"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -57,7 +58,7 @@ services:
       SPRING_PROFILES_ACTIVE: docker
       DB_PASS: mysecretpassword
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
