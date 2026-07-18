@@ -17,6 +17,15 @@ public class UserProfileResponseDTO {
   @Schema(description = "The public username of the user")
   private String username;
 
+  @Schema(description = "The full name of the user")
+  private String fullName;
+
+  @Schema(description = "The biography of the user")
+  private String bio;
+
+  @Schema(description = "The profession of the user")
+  private String profession;
+
   @Schema(
       description =
           "The email address of the user (may be hidden or partial depending on privacy settings)")
@@ -48,7 +57,10 @@ public class UserProfileResponseDTO {
       int reputation,
       LocalDateTime createdAt,
       boolean isAccountVerified,
-      boolean isAccountTerminated) {
+      boolean isAccountTerminated,
+      String fullName,
+      String bio,
+      String profession) {
     this.userId = userId;
     this.username = username;
     this.email = email;
@@ -56,6 +68,9 @@ public class UserProfileResponseDTO {
     this.createdAt = createdAt;
     this.isAccountVerified = isAccountVerified;
     this.isAccountTerminated = isAccountTerminated;
+    this.fullName = fullName;
+    this.bio = bio;
+    this.profession = profession;
     this.isOperable = false;
   }
 }

@@ -7,6 +7,7 @@ import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistExcep
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
 import com.project.hearmeout_backend.common_lib.exception.UserNotFoundException;
+import com.project.hearmeout_backend.common_lib.utils.StringFormatter;
 import com.project.hearmeout_backend.interaction_service.repository.CommentRepository;
 import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
 import com.project.hearmeout_backend.post_service.repository.SolutionRepository;
@@ -15,7 +16,9 @@ import com.project.hearmeout_backend.user_service.dto.response.UserAnswerRespons
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserErrorReportResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO;
+import com.project.hearmeout_backend.user_service.model.Profession;
 import com.project.hearmeout_backend.user_service.model.User;
+import com.project.hearmeout_backend.user_service.repository.ProfessionRepository;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import java.util.Objects;
 import java.util.UUID;
@@ -34,6 +37,7 @@ public class UserServiceImpl {
   private final ErrorReportRepository errorReportRepo;
   private final SolutionRepository solutionRepo;
   private final CommentRepository commentRepo;
+  private final ProfessionRepository professionRepo;
 
   public UserProfileResponseDTO getUserProfile(String username, UUID currUserId)
       throws UserNotFoundException {
@@ -52,6 +56,9 @@ public class UserServiceImpl {
         .isOperable(profileResponse.getUserId().equals(currUserId))
         .isAccountVerified(profileResponse.isAccountVerified())
         .isAccountTerminated(profileResponse.isAccountTerminated())
+        .fullName(profileResponse.getFullName())
+        .bio(profileResponse.getBio())
+        .profession(profileResponse.getProfession())
         .build();
   }
 
@@ -189,8 +196,27 @@ public class UserServiceImpl {
       }
     }
 
-    if (!isEmailUpdateRequested && !isUsernameUpdateRequested) {
-      return false;
+    if (requestDTO.getFullName() != null && !requestDTO.getFullName().isBlank()) {
+      currUser.setFullName(StringFormatter.capitalizeWords(requestDTO.getFullName()));
+    }
+
+    if (requestDTO.getBio() != null) {
+      currUser.setBio(requestDTO.getBio());
+    }
+
+    if (requestDTO.getProfession() != null && !requestDTO.getProfession().isBlank()) {
+      Profession profession =
+          professionRepo
+              .findByNameIgnoreCase(requestDTO.getProfession())
+              .orElseGet(
+                  () ->
+                      professionRepo.save(
+                          Profession.builder()
+                              .name(requestDTO.getProfession().toUpperCase())
+                              .build()));
+      currUser.setProfession(profession);
+    } else if (requestDTO.getProfession() != null && requestDTO.getProfession().isBlank()) {
+      currUser.setProfession(null); // allow clearing profession
     }
 
     currUser.markUpdatedAt(isEmailUpdateRequested, isUsernameUpdateRequested);

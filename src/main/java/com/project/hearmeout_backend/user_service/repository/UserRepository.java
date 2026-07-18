@@ -32,9 +32,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
   @Query(
       """
             SELECT new com.project.hearmeout_backend.user_service.dto.response.UserProfileResponseDTO(
-                u.id, u.username, u.email, u.reputation, u.createdAt, u.isAccountVerified, u.isAccountTerminated
+                u.id, u.username, u.email, u.reputation, u.createdAt, u.isAccountVerified, u.isAccountTerminated,
+                u.fullName, u.bio, p.name
             )
             FROM User u
+            LEFT JOIN u.profession p
             WHERE u.username = :username
             """)
   Optional<UserProfileResponseDTO> getUserProfileByUsername(@Param("username") String username);

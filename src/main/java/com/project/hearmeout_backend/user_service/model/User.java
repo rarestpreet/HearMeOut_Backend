@@ -38,6 +38,16 @@ public class User extends BaseModel {
 
   private RoleType role;
 
+  @Column(length = 100)
+  private String fullName;
+
+  @Column(length = 255)
+  private String bio;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "profession_id")
+  private Profession profession;
+
   @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
   @Builder.Default
   private List<ErrorReport> errorReports = new ArrayList<>();

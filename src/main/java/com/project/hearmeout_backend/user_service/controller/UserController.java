@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.NonNull;
@@ -175,14 +176,15 @@ public class UserController {
   public ResponseEntity<@NonNull String> updateUserProfile(
       @PathVariable String username,
       @Valid @RequestBody UserProfileModificationRequestDTO userProfileModificationRequestDTO,
-      @AuthenticationPrincipal CustomUserDetails currUser)
+      @AuthenticationPrincipal CustomUserDetails currUser,
+      HttpServletRequest request)
       throws UserNotFoundException, EmailAlreadyExistException, UserAlreadyExistException {
     boolean emailChanged =
         userServiceImpl.updateUserDetails(userProfileModificationRequestDTO, currUser.getUserId());
 
     if (emailChanged) {
       List<ResponseCookie> clearedCookie =
-          securityServiceImpl.terminateSession(currUser.getUsername());
+          securityServiceImpl.terminateSession(currUser.getUsername(), request.getCookies());
 
       return ResponseEntity.status(HttpStatus.OK)
           .header(
@@ -213,12 +215,14 @@ public class UserController {
   @DeleteMapping("")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   public ResponseEntity<@NonNull String> deleteUser(
-      @PathVariable String username, @AuthenticationPrincipal CustomUserDetails currUser)
+      @PathVariable String username,
+      @AuthenticationPrincipal CustomUserDetails currUser,
+      HttpServletRequest request)
       throws UserNotFoundException {
     userServiceImpl.terminateUserAccount(currUser.getUserId());
 
     List<ResponseCookie> clearedCookie =
-        securityServiceImpl.terminateSession(currUser.getUsername());
+        securityServiceImpl.terminateSession(currUser.getUsername(), request.getCookies());
 
     return ResponseEntity.status(HttpStatus.OK)
         .header(
