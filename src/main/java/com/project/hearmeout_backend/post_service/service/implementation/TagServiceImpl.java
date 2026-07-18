@@ -41,6 +41,27 @@ public class TagServiceImpl {
         .build();
   }
 
+  @Transactional(readOnly = true)
+  public PagedResponse<com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO>
+      getAllTagsAdmin(int limit, int offset) {
+    int page = offset / limit;
+    Pageable pageable = PageRequest.of(Math.max(page, 0), limit);
+
+    Page<com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO> tagPage =
+        tagRepo.findAllTagsDTOAdmin(pageable);
+    return PagedResponse
+        .<com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO>builder()
+        .data(tagPage.getContent())
+        .pageData(
+            PageData.builder()
+                .hasMore(tagPage.hasNext())
+                .total(tagPage.getTotalElements())
+                .offset(offset)
+                .limit(limit)
+                .build())
+        .build();
+  }
+
   @Transactional
   public void createNewTag(TagCreationRequestDTO tag) {
     tagRepo.save(TagMapper.toTagEntity(tag));

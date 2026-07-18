@@ -41,16 +41,44 @@ public class TagController {
   }
 
   @Operation(
+      summary = "Get all tags for admins",
+      description =
+          """
+      Retrieves a paginated list of all available tags in the system including their approval status.
+
+      **Access Control**
+      - Authentication: Required
+      - Allowed Roles: ADMIN
+      - Denied Roles: VERIFIED_USER, USER, GUEST
+      """)
+  @ApiResponses({
+    @ApiResponse(responseCode = "200", description = "Tags retrieved successfully"),
+    @ApiResponse(responseCode = "401", description = "Authentication required"),
+    @ApiResponse(responseCode = "403", description = "Access denied — ADMIN role required")
+  })
+  @PreAuthorize("isFullyAuthenticated() && hasAuthority('ADMIN')")
+  @SecurityRequirement(name = "bearerAuth")
+  @GetMapping("/admin")
+  public ResponseEntity<
+          PagedResponse<
+              com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO>>
+      adminTagList(
+          @RequestParam(defaultValue = "5") int limit,
+          @RequestParam(defaultValue = "0") int offset) {
+    return ResponseEntity.status(HttpStatus.OK).body(tagServiceImpl.getAllTagsAdmin(limit, offset));
+  }
+
+  @Operation(
       summary = "Create a tag",
       description =
           """
-          Creates a new tag. Only users with ADMIN authority can perform this action.
+      Creates a new tag. Only users with ADMIN authority can perform this action.
 
-          **Access Control**
-          - Authentication: Required
-          - Allowed Roles: ADMIN
-          - Denied Roles: VERIFIED_USER, USER, GUEST
-          """)
+      **Access Control**
+      - Authentication: Required
+      - Allowed Roles: ADMIN
+      - Denied Roles: VERIFIED_USER, USER, GUEST
+      """)
   @ApiResponses({
     @ApiResponse(responseCode = "200", description = "Tag created successfully"),
     @ApiResponse(responseCode = "400", description = "Validation failed"),
@@ -70,13 +98,13 @@ public class TagController {
       summary = "Update a tag",
       description =
           """
-          Updates an existing tag's name and/or description. Only users with ADMIN authority can perform this action. Supports partial updates — only non-null fields are applied.
+      Updates an existing tag's name and/or description. Only users with ADMIN authority can perform this action. Supports partial updates — only non-null fields are applied.
 
-          **Access Control**
-          - Authentication: Required
-          - Allowed Roles: ADMIN
-          - Denied Roles: VERIFIED_USER, USER, GUEST
-          """)
+      **Access Control**
+      - Authentication: Required
+      - Allowed Roles: ADMIN
+      - Denied Roles: VERIFIED_USER, USER, GUEST
+      """)
   @ApiResponses({
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
@@ -97,13 +125,13 @@ public class TagController {
       summary = "Delete a tag",
       description =
           """
-          Permanently removes a tag from the system. Only users with ADMIN authority can perform this action.
+      Permanently removes a tag from the system. Only users with ADMIN authority can perform this action.
 
-          **Access Control**
-          - Authentication: Required
-          - Allowed Roles: ADMIN
-          - Denied Roles: VERIFIED_USER, USER, GUEST
-          """)
+      **Access Control**
+      - Authentication: Required
+      - Allowed Roles: ADMIN
+      - Denied Roles: VERIFIED_USER, USER, GUEST
+      """)
   @ApiResponses({
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")

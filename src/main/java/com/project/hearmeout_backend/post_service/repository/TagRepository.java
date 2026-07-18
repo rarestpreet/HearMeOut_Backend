@@ -20,39 +20,51 @@ public interface TagRepository extends JpaRepository<Tag, UUID> {
 
   @Query(
       """
-          SELECT new com.project.hearmeout_backend.post_service.dto.response.ReportTagResponseDTO(
-              t.id, t.name, t.description
-          )
-          FROM ErrorReport e
-          JOIN e.tags t
-          WHERE e.id = :errorReportId
-      """)
+                SELECT new com.project.hearmeout_backend.post_service.dto.response.ReportTagResponseDTO(
+                    t.id, t.name, t.description
+                )
+                FROM ErrorReport e
+                JOIN e.tags t
+                WHERE e.id = :errorReportId
+            """)
   List<ReportTagResponseDTO> findTagsByErrorReportId(@Param("errorReportId") UUID errorReportId);
 
   @Query(
       """
-          SELECT new com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO(
-              t.id, t.name, t.description, t.usageCount
-          )
-          FROM Tag t
-      """)
+                SELECT new com.project.hearmeout_backend.post_service.dto.response.TagResponseDTO(
+                    t.id, t.name, t.description, t.usageCount
+                )
+                FROM Tag t
+                ORDER BY t.usageCount DESC
+            """)
   Page<TagResponseDTO> findAllTagsDTO(Pageable pageable);
+
+  @Query(
+      """
+                SELECT new com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO(
+                    t.id, t.name, t.description, t.usageCount, t.isApproved
+                )
+                FROM Tag t
+                ORDER BY t.usageCount DESC
+            """)
+  Page<com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO>
+      findAllTagsDTOAdmin(Pageable pageable);
 
   @Modifying
   @Query(
       """
-         UPDATE Tag t
-         SET t.usageCount = t.usageCount + 1
-        WHERE t.id IN :tagIds
-      """)
+               UPDATE Tag t
+               SET t.usageCount = t.usageCount + 1
+              WHERE t.id IN :tagIds
+            """)
   void incrementUsageCount(@Param("tagIds") List<UUID> tagIds);
 
   @Modifying
   @Query(
       """
-         UPDATE Tag t
-         SET t.usageCount = t.usageCount - 1
-        WHERE t.id IN :tagIds
-      """)
+               UPDATE Tag t
+               SET t.usageCount = t.usageCount - 1
+              WHERE t.id IN :tagIds
+            """)
   void decrementUsageCount(@Param("tagIds") List<UUID> tagIds);
 }

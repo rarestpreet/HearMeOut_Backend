@@ -1,6 +1,6 @@
 package com.project.hearmeout_backend.post_service.model;
 
-import com.project.hearmeout_backend.common_lib.model.BaseModel;
+import com.project.hearmeout_backend.common_lib.model.BaseDictionary;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -11,19 +11,25 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Tag extends BaseModel {
-
-  @Column(nullable = false, unique = true, length = 30)
-  private String name;
+public class Tag extends BaseDictionary {
 
   @Column(length = 200)
   private String description;
 
-  @Builder.Default private int usageCount = 0;
+  @Builder
+  public Tag(
+      String name,
+      int usageCount,
+      boolean isApproved,
+      String description,
+      List<ErrorReport> errorReports) {
+    super(name, usageCount, isApproved);
+    this.description = description;
+    if (errorReports != null) {
+      this.errorReports = errorReports;
+    }
+  }
 
   @ManyToMany(mappedBy = "tags")
-  @Builder.Default
   private List<ErrorReport> errorReports = new ArrayList<>();
 }
