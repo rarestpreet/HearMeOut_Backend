@@ -15,23 +15,25 @@ import com.project.hearmeout_backend.common_lib.event_dto.VerificationOtpEvent;
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
+@ActiveProfiles("test")
 public class NotificationConsumersTest {
 
   @Container
@@ -49,14 +51,15 @@ public class NotificationConsumersTest {
   @Autowired private RabbitTemplate rabbitTemplate;
   @Autowired private ObjectMapper objectMapper;
 
-  @Mock private EmailServiceImpl emailService;
+  @MockitoBean private EmailServiceImpl emailService;
 
-  @Mock private RedisTemplate<String, String> redisTemplate;
-  @Mock private ValueOperations<String, String> valueOperations;
+  @MockitoBean private StringRedisTemplate stringRedisTemplate;
+
+  @MockitoBean private ValueOperations<String, String> valueOperations;
 
   @BeforeEach
   void setUp() {
-    when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
     when(valueOperations.setIfAbsent(anyString(), anyString(), any())).thenReturn(true);
   }
 
@@ -68,6 +71,8 @@ public class NotificationConsumersTest {
     Message message =
         MessageBuilder.withBody(jsonPayload.getBytes())
             .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+            .setMessageId(java.util.UUID.randomUUID().toString())
+            .setHeader("__TypeId__", UserRegisteredEvent.class.getName())
             .build();
 
     // Act
@@ -86,6 +91,8 @@ public class NotificationConsumersTest {
     Message message =
         MessageBuilder.withBody(jsonPayload.getBytes())
             .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+            .setMessageId(java.util.UUID.randomUUID().toString())
+            .setHeader("__TypeId__", VerificationOtpEvent.class.getName())
             .build();
 
     // Act
@@ -105,6 +112,8 @@ public class NotificationConsumersTest {
     Message message =
         MessageBuilder.withBody(jsonPayload.getBytes())
             .setContentType(MessageProperties.CONTENT_TYPE_JSON)
+            .setMessageId(java.util.UUID.randomUUID().toString())
+            .setHeader("__TypeId__", PasswordResetOtpEvent.class.getName())
             .build();
 
     // Act

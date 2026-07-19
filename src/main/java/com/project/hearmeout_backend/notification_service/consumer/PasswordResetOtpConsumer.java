@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 
@@ -22,7 +22,7 @@ public class PasswordResetOtpConsumer {
 
   private final EmailServiceImpl emailService;
   private final ConsumerRetryDispatcher retryDispatcher;
-  private final RedisTemplate<String, String> redisTemplate;
+  private final StringRedisTemplate redisTemplate;
 
   @RabbitListener(queues = RabbitMQConfig.PASSWORD_RESET_EMAIL_QUEUE, ackMode = "MANUAL")
   public void consume(Message message, Channel channel, @Payload PasswordResetOtpEvent payload)
