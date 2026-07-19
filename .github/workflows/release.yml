@@ -1,6 +1,7 @@
 name: HearMeOut Release & Deploy
 
 on:
+  workflow_dispatch:
   release:
     types: [published] # trigger when you publish a Release in GitHub UI
 
