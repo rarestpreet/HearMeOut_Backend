@@ -1,0 +1,11 @@
+@echo off
+setlocal
+
+echo Running Spotless...
+
+call mvn spotless:apply
+if errorlevel 1 exit /b 1
+
+git add -A
+
+exit /b 0
