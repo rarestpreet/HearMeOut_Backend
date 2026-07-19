@@ -53,6 +53,15 @@ jobs:
     needs: build-and-push # only runs after image is pushed
 
     steps:
+      - name: Copy docker-compose.prod.yml to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/opt/hearmeout"
+
       - name: Pull & Run on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
