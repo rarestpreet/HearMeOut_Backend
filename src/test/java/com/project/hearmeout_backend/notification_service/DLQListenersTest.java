@@ -11,18 +11,22 @@ import com.project.hearmeout_backend.notification_service.consumer.PublisherDLQL
 import com.rabbitmq.client.Channel;
 import java.io.IOException;
 import org.junit.jupiter.api.Test;
-import org.mockito.Spy;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
+@ActiveProfiles("test")
 public class DLQListenersTest {
 
   @Container
@@ -40,8 +44,10 @@ public class DLQListenersTest {
   @Autowired private RabbitTemplate rabbitTemplate;
   @Autowired private ObjectMapper objectMapper;
 
-  @Spy private ConsumerDLQListener consumerDLQListener;
-  @Spy private PublisherDLQListener publisherDLQListener;
+  @MockitoSpyBean private ConsumerDLQListener consumerDLQListener;
+  @MockitoSpyBean private PublisherDLQListener publisherDLQListener;
+
+  @MockitoBean private StringRedisTemplate stringRedisTemplate;
 
   @Test
   void testConsumerDLQListener() throws IOException {
@@ -60,7 +66,7 @@ public class DLQListenersTest {
         RabbitMQConfig.PUBLISHER_CONFIRM_DLQ_QUEUE, "confirm dead payload");
 
     // Assert
-    verify(publisherDLQListener, timeout(5000).times(1)).onReturnDLQ(any(), any());
+    verify(publisherDLQListener, timeout(5000).times(1)).onConfirmDLQ(any(), any());
   }
 
   @Test

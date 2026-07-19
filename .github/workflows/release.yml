@@ -1,0 +1,114 @@
+name: HearMeOut Release & Deploy
+
+on:
+  release:
+    types: [published] # trigger when you publish a Release in GitHub UI
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/rarestpreet/hearmeout
+
+jobs:
+  build-and-push:
+    name: Build & Push Image to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write # needed to push to ghcr.io
+
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract image metadata (tag from release)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}   # e.g. v1.2.3 → 1.2.3
+            type=raw,value=latest             # always update :latest too
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    needs: build-and-push # only runs after image is pushed
+
+    steps:
+      - name: Pull & Run on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+
+            cd /opt/hearmeout
+
+            # Authenticate Docker on EC2 to pull from GHCR
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io -u rarestpreet --password-stdin
+
+            # Pull the new image (tag set by release, fallback to latest)
+            IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+            docker pull ghcr.io/rarestpreet/hearmeout:${IMAGE_TAG:-latest}
+
+            # Pass IMAGE_TAG so docker-compose.prod.yml picks the right tag
+            export IMAGE_TAG="${IMAGE_TAG:-latest}"
+            export DB_PASS=$(grep DB_PASS .env | cut -d '=' -f2)
+
+            # Restart ONLY the backend container (postgres/redis/rabbitmq keep running)
+            docker compose -f docker-compose.prod.yml up -d --no-deps backend
+
+            echo "Deployed hearmeout:${IMAGE_TAG} successfully"
+
+      - name: Cleanup EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            IMAGE_TAG="${{ needs.build-and-push.outputs.image_tag }}"
+
+            # Remove all hearmeout image tags except the one just deployed and 'latest'
+            echo "Removing old hearmeout image tags..."
+            docker images ghcr.io/rarestpreet/hearmeout --format "{{.Tag}}" | \
+              grep -v -E "^(${IMAGE_TAG:-latest}|latest)$" | \
+              xargs -r -I{} docker rmi ghcr.io/rarestpreet/hearmeout:{} || true
+
+            # Remove dangling/untagged image layers
+            echo "Pruning dangling images..."
+            docker image prune -f
+
+            # Remove stopped containers (running ones are untouched)
+            echo "Pruning stopped containers..."
+            docker container prune -f
+
+            # Remove unused build cache (biggest disk savings)
+            echo "Pruning build cache..."
+            docker builder prune -f
+
+            # Remove unused networks (hearmeout_net is in use, so it stays)
+            echo "Pruning unused networks..."
+            docker network prune -f
+
+            echo "EC2 cleanup complete."

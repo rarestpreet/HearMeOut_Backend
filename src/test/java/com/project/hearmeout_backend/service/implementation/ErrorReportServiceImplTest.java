@@ -8,9 +8,15 @@ import com.project.hearmeout_backend.common_lib.exception.TagNotFoundException;
 import com.project.hearmeout_backend.interaction_service.repository.VoteRepository;
 import com.project.hearmeout_backend.post_service.dto.request.ErrorReportSubmitRequestDTO;
 import com.project.hearmeout_backend.post_service.model.ErrorReport;
+import com.project.hearmeout_backend.post_service.model.Framework;
+import com.project.hearmeout_backend.post_service.model.OperatingSystem;
+import com.project.hearmeout_backend.post_service.model.ProgrammingLanguage;
 import com.project.hearmeout_backend.post_service.model.Tag;
 import com.project.hearmeout_backend.post_service.model.enums.ErrorReportStatus;
 import com.project.hearmeout_backend.post_service.repository.ErrorReportRepository;
+import com.project.hearmeout_backend.post_service.repository.FrameworkRepository;
+import com.project.hearmeout_backend.post_service.repository.OperatingSystemRepository;
+import com.project.hearmeout_backend.post_service.repository.ProgrammingLanguageRepository;
 import com.project.hearmeout_backend.post_service.repository.TagRepository;
 import com.project.hearmeout_backend.post_service.service.implementation.ErrorReportServiceImpl;
 import com.project.hearmeout_backend.user_service.model.User;
@@ -35,6 +41,9 @@ public class ErrorReportServiceImplTest {
   @Mock private UserServiceImpl userServiceImpl;
   @Mock private VoteRepository voteRepo;
   @Mock private UserRepository userRepo;
+  @Mock private ProgrammingLanguageRepository languageRepo;
+  @Mock private FrameworkRepository frameworkRepo;
+  @Mock private OperatingSystemRepository osRepo;
 
   @InjectMocks private ErrorReportServiceImpl errorReportService;
 
@@ -78,9 +87,14 @@ public class ErrorReportServiceImplTest {
     dto.setTitle("NullPointerException in Spring Boot");
     dto.setDescription("I am getting an NPE when starting the app.");
     dto.setTagIds(List.of(tag1Id, tag2Id));
+    dto.setLanguage("Java");
+
+    ProgrammingLanguage mockLanguage = ProgrammingLanguage.builder().name("JAVA").build();
 
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(tagRepo.findAllById(List.of(tag1Id, tag2Id))).thenReturn(List.of(tag1, tag2));
+    when(languageRepo.findByNameIgnoreCase("Java")).thenReturn(Optional.empty());
+    when(languageRepo.save(any(ProgrammingLanguage.class))).thenReturn(mockLanguage);
 
     // Act
     errorReportService.submitErrorReport(dto, authorId);
@@ -99,6 +113,7 @@ public class ErrorReportServiceImplTest {
     dto.setTitle("NullPointerException in Spring Boot");
     dto.setDescription("I am getting an NPE when starting the app.");
     dto.setTagIds(List.of(tag1Id, fakeTagId));
+    dto.setLanguage("Java");
 
     when(userServiceImpl.checkAndGetUserByUserId(authorId)).thenReturn(author);
     when(tagRepo.findAllById(List.of(tag1Id, fakeTagId)))
@@ -128,9 +143,18 @@ public class ErrorReportServiceImplTest {
     ErrorReportSubmitRequestDTO dto = new ErrorReportSubmitRequestDTO();
     dto.setTitle("Updated Title");
     dto.setTagIds(List.of(tag1Id, tag2Id));
+    dto.setLanguage("Java");
+    dto.setFramework("Spring");
+    dto.setOs("Linux");
 
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(report));
     when(tagRepo.findAllById(List.of(tag1Id, tag2Id))).thenReturn(List.of(tag1, tag2));
+    when(languageRepo.findByNameIgnoreCase("Java"))
+        .thenReturn(Optional.of(ProgrammingLanguage.builder().name("JAVA").build()));
+    when(frameworkRepo.findByNameIgnoreCase("Spring"))
+        .thenReturn(Optional.of(Framework.builder().name("SPRING").build()));
+    when(osRepo.findByNameIgnoreCase("Linux"))
+        .thenReturn(Optional.of(OperatingSystem.builder().name("LINUX").build()));
 
     // Act
     errorReportService.updateErrorReport(reportId, dto, authorId);
@@ -155,9 +179,18 @@ public class ErrorReportServiceImplTest {
     ErrorReportSubmitRequestDTO dto = new ErrorReportSubmitRequestDTO();
     dto.setTitle("Updated Title");
     dto.setTagIds(List.of(tag2Id, tag3Id));
+    dto.setLanguage("Java");
+    dto.setFramework("Spring");
+    dto.setOs("Linux");
 
     when(errorReportRepo.findById(reportId)).thenReturn(Optional.of(report));
     when(tagRepo.findAllById(List.of(tag2Id, tag3Id))).thenReturn(List.of(tag2, tag3));
+    when(languageRepo.findByNameIgnoreCase("Java"))
+        .thenReturn(Optional.of(ProgrammingLanguage.builder().name("JAVA").build()));
+    when(frameworkRepo.findByNameIgnoreCase("Spring"))
+        .thenReturn(Optional.of(Framework.builder().name("SPRING").build()));
+    when(osRepo.findByNameIgnoreCase("Linux"))
+        .thenReturn(Optional.of(OperatingSystem.builder().name("LINUX").build()));
 
     // Act
     errorReportService.updateErrorReport(reportId, dto, authorId);

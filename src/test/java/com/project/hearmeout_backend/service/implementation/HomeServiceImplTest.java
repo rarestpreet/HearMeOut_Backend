@@ -36,9 +36,7 @@ import org.springframework.data.domain.Pageable;
 public class HomeServiceImplTest {
 
   @Mock private UserRepository userRepo;
-
   @Mock private ErrorReportRepository errorReportRepo;
-
   @Mock private TagRepository tagRepo;
 
   @InjectMocks private HomeServiceImpl homeService;

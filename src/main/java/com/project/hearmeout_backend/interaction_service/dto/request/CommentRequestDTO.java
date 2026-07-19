@@ -17,7 +17,7 @@ import lombok.Setter;
 public class CommentRequestDTO {
 
   @NotBlank(message = "Comment body is required")
-  @Size(min = 20, max = 200, message = "Comment must be between 20 and 200 characters")
+  @Size(min = 20, max = 5000, message = "Comment must be between 20 and 5000 characters")
   @Schema(description = "The text content of the comment")
   private String body;
 

@@ -1,10 +1,10 @@
 name: HearMeOut CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+  push:
+    branches: ["main"]
 
 jobs:
   build:
@@ -29,6 +29,3 @@ jobs:
 
       - name: Run Spotless Check
         run: mvn spotless:check #checkstyle require custom style file
-
-      - name: Build Docker Image
-        run: docker build -t rarestpreet/hearmeout .

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
@@ -47,7 +48,7 @@ public class VoteController {
   })
   @PostMapping("/vote")
   public ResponseEntity<@NonNull String> toggleVote(
-      @RequestBody VoteRequestDTO voteRequestDTO,
+      @Valid @RequestBody VoteRequestDTO voteRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails,
       @RequestParam VoteType voteType)
       throws BadRequestException {

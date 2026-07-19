@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
@@ -35,6 +36,7 @@ public class UserProfileModificationRequestDTO {
   @Schema(description = "A short biography about the user", nullable = true)
   private String bio;
 
+  @Size(max = 50, message = "Profession must be less than 50 characters")
   @Schema(description = "The user's new profession", nullable = true)
   private String profession;
 }

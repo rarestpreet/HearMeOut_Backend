@@ -7,7 +7,7 @@ import java.time.Duration;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -18,7 +18,7 @@ public class PendingMessageStore {
   private static final String KEY_PREFIX = "publisher:pending:";
   private static final Duration TTL = Duration.ofMinutes(5);
 
-  private final RedisTemplate<String, String> redisTemplate;
+  private final StringRedisTemplate redisTemplate;
   private final ObjectMapper objectMapper;
 
   public void put(PendingMessage message) throws JsonProcessingException {

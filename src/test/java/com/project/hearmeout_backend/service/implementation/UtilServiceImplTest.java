@@ -31,15 +31,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 public class UtilServiceImplTest {
 
   @Mock private UserServiceImpl userServiceImpl;
-
   @Mock private UserRepository userRepo;
-
   @Mock private BCryptPasswordEncoder passwordEncoder;
-
   @Mock private StringRedisTemplate redisOperator;
-
   @Mock private ValueOperations<String, String> valueOperations;
-
   @Mock private CustomRabbitTemplate rabbitTemplate;
 
   @Spy @InjectMocks private UtilServiceImpl utilService;

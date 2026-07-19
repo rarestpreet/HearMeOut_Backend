@@ -2,8 +2,9 @@
 
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.0.3-6DB33F?style=flat-square&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![MySQL](https://img.shields.io/badge/MySQL-Database-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![Redis](https://img.shields.io/badge/Redis-Rate%20Limiting-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
+[![RabbitMQ](https://img.shields.io/badge/RabbitMQ-Message%20Broker-FF6600?style=flat-square&logo=rabbitmq&logoColor=white)](https://www.rabbitmq.com/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 
 **HearMeOut** is a StackOverflow-style Q&A platform backend built with Java 21 and Spring Boot. It uses a modular monolith architecture organised by feature domain, JWT-based authentication via HTTP-only cookies, Redis-powered rate limiting, email OTP flows, and auto-generated OpenAPI documentation.
@@ -26,7 +27,9 @@
 | **Rate Limiting** | AOP-driven `@RateLimiter` backed by Redis for login attempts and OTP requests |
 | **Request Logging** | Structured log output per request (request ID, method, URI, level) via `LoggingFilter` |
 | **API Documentation** | Auto-generated Swagger UI via Springdoc OpenAPI |
-| **Docker Support** | Multi-stage Dockerfile — builds a minimal production image |
+| **Input Validation** | Tight validation boundaries (Size, Min, Max, etc.) across all DTOs and Controllers |
+| **CI/CD & Deployment** | Automated GitHub Actions pipelines for push, PR, and EC2/Docker deployment (ghcr.io) |
+| **Docker Support** | Multi-stage Dockerfile and production `docker-compose.prod.yml` included |
 
 ---
 
@@ -36,12 +39,14 @@
 | :-------------------------| :-----------------------------------------------------------------|
 | Language                 | Java 21                                                          |
 | Framework                | Spring Boot 4.0.3 (WebMVC, Security, Data JPA, Validation, Mail) |
-| Primary Database         | MySQL                                                            |
+| Primary Database         | PostgreSQL                                                       |
 | Cache / Rate-limit Store | Redis 7+                                                         |
+| Message Broker           | RabbitMQ                                                         |
 | Auth                     | JJWT 0.13 — JWT stored in HTTP-only cookies                      |
 | API Docs                 | Springdoc OpenAPI 3.0.2 + Swagger UI                             |
 | Containerisation         | Docker (multi-stage build with Eclipse Temurin 21)               |
 | Build Tool               | Maven (Maven Wrapper included)                                   |
+| CI/CD                  | GitHub Actions (push, pull_request, release pipelines)           |
 | Utilities                | Lombok, Jakarta Bean Validation                                  |
 
 ---
@@ -109,7 +114,10 @@ HearMeOut_Backend/
 │       │   │   └── exception/            # Custom exception classes
 │       │   │
 │       │   ├── administration_service/   # (Upcoming) Admin controls
-│       │   └── notification_service/     # (Upcoming) Live notifications
+│       │   └── notification_service/     # Event-driven asynchronous notifications via RabbitMQ
+│       │       ├── config/               # RabbitMQ configuration and queues
+│       │       ├── consumer/             # RabbitMQ message consumers
+│       │       └── infra/                # Deduplication and persistent storage
 │       │
 │       └── resources/
 │           ├── application.yml           # Shared configuration (port, context path, mail, JWT)
@@ -140,11 +148,15 @@ Create a file at `env_file/.env` using the variable names from `env_file/env-str
 | :--- | :--- | :--- |
 | `SPRING_ACTIVE_PROFILE` | Active Spring profile (`dev` / `docker` / `prod`) | `dev` |
 | `PORT` | Port the server listens on | `8080` |
-| `DB_HOST` | MySQL host | `localhost` |
-| `DB_PORT` | MySQL port | `3306` |
-| `DB_USER` | MySQL username | `root` |
-| `DB_PASS` | MySQL password | `yourpassword` |
-| `DB_DATABASE` | MySQL database name | `hearmeout` |
+| `DB_HOST` | PostgreSQL host | `localhost` |
+| `DB_PORT` | PostgreSQL port | `5432` |
+| `DB_USER` | PostgreSQL username | `postgres` |
+| `DB_PASS` | PostgreSQL password | `yourpassword` |
+| `DB_DATABASE` | PostgreSQL database name | `hearmeout` |
+| `RABBITMQ_HOST` | RabbitMQ host | `localhost` |
+| `RABBITMQ_PORT` | RabbitMQ port | `5672` |
+| `RABBITMQ_USER` | RabbitMQ username | `guest` |
+| `RABBITMQ_PASS` | RabbitMQ password | `guest` |
 | `SECRET_KEY` | 512-bit JWT signing secret (hex/base64) | `...` |
 | `MAIL_USER` | SMTP sender email address | `you@gmail.com` |
 | `MAIL_PASS` | Gmail App Password (not your login password) | `xxxx xxxx xxxx xxxx` |
@@ -159,8 +171,9 @@ Create a file at `env_file/.env` using the variable names from `env_file/env-str
 
 - Java 21 JDK
 - Maven 3.9+ (or use the included `mvnw` / `mvnw.cmd` wrapper)
-- MySQL 8+
+- PostgreSQL 14+
 - Redis 7+ (required for rate limiting — runs on `localhost:6379` in dev)
+- RabbitMQ 3+ (required for async events)
 - Docker (optional)
 
 ---
@@ -174,12 +187,13 @@ cd HearMeOut_Backend
 
 # 2. Create your .env file
 copy env_file\env-structure env_file\.env   # Windows
-# cp env_file/env-structure env_file/.env   # Linux / macOS
+# cp env_file/.env.example env_file/.env   # Linux / macOS
 # Then open env_file/.env and fill in your values
 
-# 3. Make sure MySQL and Redis are running
-#    MySQL: create a database named 'hearmeout' if it doesn't exist
+# 3. Make sure PostgreSQL, Redis, and RabbitMQ are running
+#    PostgreSQL: create a database named 'hearmeout' if it doesn't exist
 #    Redis: start with default settings (port 6379)
+#    RabbitMQ: start with default settings (port 5672)
 
 # 4. Run via Maven Wrapper
 ./mvnw spring-boot:run          # Linux / macOS
@@ -189,14 +203,28 @@ mvnw.cmd spring-boot:run        # Windows
 The application starts at:
 
 ```
-http://localhost:8080/api/v1
+http://localhost:8080/api/v2
 ```
 
 ---
 
-### Run with Docker
+### Run with Docker Compose (Recommended for Production)
 
-The project includes a multi-stage `Dockerfile` that compiles and packages the application from source.
+The easiest way to spin up the entire application stack is via `docker-compose`. We provide a `docker-compose.prod.yml` which will spin up the backend application alongside its required dependencies (PostgreSQL, Redis, RabbitMQ).
+
+```bash
+# 1. Start all services in detached mode
+docker-compose -f docker-compose.prod.yml up -d
+
+# 2. View logs if necessary
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+---
+
+### Run Backend Only (Standalone Docker)
+
+If you already have PostgreSQL, Redis, and RabbitMQ running on your host machine, you can run just the backend container.
 
 ```bash
 # Build the image
@@ -210,7 +238,7 @@ docker run -d \
   hearmeout-backend
 ```
 
-> When running in Docker and your MySQL/Redis are on the host machine, set `DB_HOST=host.docker.internal` in your `.env` file (macOS/Windows). On Linux, use the host's bridge IP or run via `docker-compose`.
+> When running the backend container standalone and your PostgreSQL/Redis/RabbitMQ are on the host machine, set their host variables to `host.docker.internal` in your `.env` file (macOS/Windows). On Linux, use the host's bridge IP.
 
 ---
 
@@ -219,7 +247,7 @@ docker run -d \
 Once the server is running, open the interactive API documentation in your browser:
 
 ```
-http://localhost:8080/api/v1/docs
+http://localhost:8080/api/v2/docs
 ```
 
 **Quickstart flow:**
