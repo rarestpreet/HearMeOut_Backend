@@ -16,7 +16,9 @@ import com.project.hearmeout_backend.user_service.dto.request.UserProfileModific
 import com.project.hearmeout_backend.user_service.dto.response.UserAnswerResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserCommentResponseDTO;
 import com.project.hearmeout_backend.user_service.dto.response.UserErrorReportResponseDTO;
+import com.project.hearmeout_backend.user_service.model.Profession;
 import com.project.hearmeout_backend.user_service.model.User;
+import com.project.hearmeout_backend.user_service.repository.ProfessionRepository;
 import com.project.hearmeout_backend.user_service.repository.UserRepository;
 import com.project.hearmeout_backend.user_service.service.implementation.UserServiceImpl;
 import java.time.LocalDateTime;
@@ -42,6 +44,7 @@ public class UserServiceImplTest {
   @Mock private ErrorReportRepository errorReportRepo;
   @Mock private SolutionRepository solutionRepo;
   @Mock private CommentRepository commentRepo;
+  @Mock private ProfessionRepository professionRepo;
 
   @Spy @InjectMocks private UserServiceImpl userService;
 
@@ -108,12 +111,14 @@ public class UserServiceImplTest {
 
   @Test
   public void updateUserDetails_DuplicateUsername() {
+    // email changes from test1@gmail.com → test4@gmail.com, so existsByEmail is checked first
     UserProfileModificationRequestDTO requestDTO =
-        new UserProfileModificationRequestDTO("test3", "test4@gmail.com");
+        new UserProfileModificationRequestDTO("test3", "test4@gmail.com", "John Doe", "Bio", "Dev");
     User userProfile = userList.get(0);
 
     doReturn(userProfile).when(userService).checkAndGetUserByUserId(user1Id);
-    doReturn(true).when(userRepo).existsByUsername(requestDTO.getUsername());
+    doReturn(false).when(userRepo).existsByEmail(requestDTO.getEmail()); // email check passes
+    doReturn(true).when(userRepo).existsByUsername(requestDTO.getUsername()); // username is taken
 
     UserAlreadyExistException exception =
         assertThrows(
@@ -126,16 +131,21 @@ public class UserServiceImplTest {
   @Test
   public void updateUserDetails_SuccessfulUpdate() {
     UserProfileModificationRequestDTO requestDTO =
-        new UserProfileModificationRequestDTO("test4", "test4@gmail.com");
+        new UserProfileModificationRequestDTO("test4", "test4@gmail.com", "John Doe", "Bio", "Dev");
     User userProfile = userList.get(0);
+    Profession mockProfession = Profession.builder().name("DEV").build();
 
     doReturn(userProfile).when(userService).checkAndGetUserByUserId(user1Id);
     doReturn(false).when(userRepo).existsByEmail(requestDTO.getEmail());
     doReturn(false).when(userRepo).existsByUsername(requestDTO.getUsername());
+    // profession="Dev" triggers findByNameIgnoreCase (empty) then save
+    when(professionRepo.findByNameIgnoreCase("Dev")).thenReturn(Optional.empty());
+    when(professionRepo.save(any())).thenReturn(mockProfession);
 
     userService.updateUserDetails(requestDTO, user1Id);
 
     verify(userRepo).save(userProfile);
+    verify(professionRepo).save(any());
   }
 
   @Test

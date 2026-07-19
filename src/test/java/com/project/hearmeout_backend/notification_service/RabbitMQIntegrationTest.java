@@ -6,19 +6,26 @@ import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
+@ActiveProfiles("test")
 public class RabbitMQIntegrationTest {
 
   @Container
   static RabbitMQContainer rabbitMQContainer =
       new RabbitMQContainer("rabbitmq:3.11-management").withExposedPorts(5672, 15672);
+
+  @Autowired private RabbitTemplate rabbitTemplate;
+  @MockitoBean private StringRedisTemplate stringRedisTemplate;
 
   @DynamicPropertySource
   static void registerRabbitMQProperties(DynamicPropertyRegistry registry) {
@@ -27,8 +34,6 @@ public class RabbitMQIntegrationTest {
     registry.add("spring.rabbitmq.username", rabbitMQContainer::getAdminUsername);
     registry.add("spring.rabbitmq.password", rabbitMQContainer::getAdminPassword);
   }
-
-  @Autowired private RabbitTemplate rabbitTemplate;
 
   @Test
   void testRabbitMQContainerStartsAndIsReady() {
@@ -59,8 +64,10 @@ public class RabbitMQIntegrationTest {
       // unless mandatory is set.
     }
 
-    // Since setting up full MockMailServer is out of scope for a quick Testcontainer check,
-    // we primarily verify the broker integration works.
+    /**
+     * Since setting up full MockMailServer is out of scope for a quick Testcontainer check, we
+     * primarily verify the broker integration works.
+     */
     assertThat(rabbitTemplate.getConnectionFactory().createConnection().isOpen()).isTrue();
   }
 }

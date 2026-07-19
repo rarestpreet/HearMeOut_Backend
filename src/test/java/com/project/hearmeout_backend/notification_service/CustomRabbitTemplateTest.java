@@ -10,18 +10,22 @@ import com.project.hearmeout_backend.notification_service.config.CustomRabbitTem
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import com.project.hearmeout_backend.notification_service.infra.PublisherDLQPublisher;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.testcontainers.containers.RabbitMQContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest
 @Testcontainers
+@ActiveProfiles("test")
 public class CustomRabbitTemplateTest {
 
   @Container
@@ -42,7 +46,14 @@ public class CustomRabbitTemplateTest {
   @Autowired private CustomRabbitTemplate customRabbitTemplate;
   @Autowired private RabbitTemplate rabbitTemplate;
 
-  @Mock private PublisherDLQPublisher dlqPublisher;
+  @MockitoBean private PublisherDLQPublisher dlqPublisher;
+  @MockitoBean private StringRedisTemplate redisTemplate;
+  @MockitoBean private ValueOperations<String, String> valueOperations;
+
+  @org.junit.jupiter.api.BeforeEach
+  void setUp() {
+    org.mockito.Mockito.when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+  }
 
   @Test
   void testSend_ValidRouting_Success() throws JsonProcessingException {
