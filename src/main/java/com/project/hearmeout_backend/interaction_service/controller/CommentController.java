@@ -125,7 +125,7 @@ public class CommentController {
   @PutMapping("/{commentId}")
   public ResponseEntity<@NonNull String> updateComment(
       @PathVariable UUID commentId,
-      @RequestBody CommentRequestDTO commentRequestDTO,
+      @Valid @RequestBody CommentRequestDTO commentRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails)
       throws CommentNotFoundException {
     commentServiceImpl.updateCommentBody(

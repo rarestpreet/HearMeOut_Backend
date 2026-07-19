@@ -25,6 +25,7 @@ public class ErrorReportSubmitRequestDTO {
   @Schema(description = "Detailed description of the error, providing context and specifics")
   private String description;
 
+  @Size(max = 5000, message = "Reproduction steps must be at most 5000 characters")
   @Schema(description = "Steps to reproduce the error")
   private String reproductionSteps;
 
@@ -49,9 +50,11 @@ public class ErrorReportSubmitRequestDTO {
   @Schema(description = "File path where the error occurs")
   private String filePath;
 
+  @Size(max = 10000, message = "Relevant code must be at most 10000 characters")
   @Schema(description = "The relevant code snippet causing the error")
   private String relevantCode;
 
+  @Size(max = 10000, message = "Relevant log must be at most 10000 characters")
   @Schema(description = "Relevant log output or stack trace")
   private String relevantLog;
 
@@ -64,6 +67,7 @@ public class ErrorReportSubmitRequestDTO {
   @Schema(description = "Language version (e.g., 17, 3.11)")
   private String languageVersion;
 
+  @Size(max = 100, message = "Framework must be at most 100 characters")
   @Schema(description = "Framework used (e.g., Spring Boot, Django)")
   private String framework;
 
@@ -71,6 +75,7 @@ public class ErrorReportSubmitRequestDTO {
   @Schema(description = "Framework version")
   private String frameworkVersion;
 
+  @Size(max = 100, message = "OS must be at most 100 characters")
   @Schema(description = "Operating system (e.g., Windows, Linux)")
   private String os;
 
