@@ -32,8 +32,8 @@ public class JwtFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     // avoid authentication when not needed
-    if (request.getRequestURI().equals("/api/v1/auth/login")
-        || request.getRequestURI().equals("/api/v1/auth/register")) {
+    if (request.getRequestURI().equals("/api/v2/auth/login")
+        || request.getRequestURI().equals("/api/v2/auth/register")) {
       filterChain.doFilter(request, response);
 
       return;

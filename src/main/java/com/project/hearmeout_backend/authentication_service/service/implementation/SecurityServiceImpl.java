@@ -114,14 +114,14 @@ public class SecurityServiceImpl {
 
     return List.of(
         ResponseCookie.from("jwt-token", "")
-            .path("/api/v1")
+            .path("/api/v2")
             .httpOnly(true)
             .maxAge(0)
             .secure(tokenCookieProperties.isSecure())
             .sameSite(tokenCookieProperties.getSameSite())
             .build(),
         ResponseCookie.from("refresh-token", "")
-            .path("/api/v1/")
+            .path("/api/v2/")
             .httpOnly(true)
             .maxAge(0)
             .secure(tokenCookieProperties.isSecure())
@@ -183,7 +183,7 @@ public class SecurityServiceImpl {
         String jwtToken = jwtServiceImpl.generateJwtToken(username);
 
         return ResponseCookie.from("jwt-token", jwtToken)
-            .path("/api/v1")
+            .path("/api/v2")
             .httpOnly(true)
             .secure(tokenCookieProperties.isSecure())
             .sameSite(tokenCookieProperties.getSameSite())
@@ -214,14 +214,14 @@ public class SecurityServiceImpl {
 
     return List.of(
         ResponseCookie.from("jwt-token", jwtToken)
-            .path("/api/v1")
+            .path("/api/v2")
             .httpOnly(true)
             .secure(tokenCookieProperties.isSecure())
             .sameSite(tokenCookieProperties.getSameSite())
             .maxAge(Duration.ofMinutes(20))
             .build(),
         ResponseCookie.from("refresh-token", refreshToken)
-            .path("/api/v1/")
+            .path("/api/v2/")
             .httpOnly(true)
             .secure(tokenCookieProperties.isSecure())
             .sameSite(tokenCookieProperties.getSameSite())
