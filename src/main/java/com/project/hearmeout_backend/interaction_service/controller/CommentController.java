@@ -26,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/comment")
+@RequestMapping("comment")
 @RequiredArgsConstructor
 @Tag(
     name = "Comment Management",
@@ -98,7 +98,7 @@ public class CommentController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @DeleteMapping("/{commentId}")
+  @DeleteMapping("{commentId}")
   public ResponseEntity<@NonNull String> deleteComment(
       @PathVariable UUID commentId, @AuthenticationPrincipal CustomUserDetails userDetails)
       throws CommentNotFoundException {
@@ -122,7 +122,7 @@ public class CommentController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @PutMapping("/{commentId}")
+  @PutMapping("{commentId}")
   public ResponseEntity<@NonNull String> updateComment(
       @PathVariable UUID commentId,
       @Valid @RequestBody CommentRequestDTO commentRequestDTO,

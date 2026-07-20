@@ -31,7 +31,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/profile/{username}")
+@RequestMapping("profile/{username}")
 @RequiredArgsConstructor
 @Tag(
     name = "User Profile Management",
@@ -85,7 +85,7 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @GetMapping("/error-reports")
+  @GetMapping("error-reports")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
   public ResponseEntity<@NonNull PagedResponse<UserErrorReportResponseDTO>> userErrorReports(
       @PathVariable String username,
@@ -114,7 +114,7 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @GetMapping("/solutions")
+  @GetMapping("solutions")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
   public ResponseEntity<@NonNull PagedResponse<UserAnswerResponseDTO>> userSolutions(
       @PathVariable String username,
@@ -143,7 +143,7 @@ public class UserController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @GetMapping("/comments")
+  @GetMapping("comments")
   @PreAuthorize("hasAnyAuthority('ADMIN', 'VERIFIED_USER')")
   public ResponseEntity<@NonNull PagedResponse<UserCommentResponseDTO>> userComments(
       @PathVariable String username,
