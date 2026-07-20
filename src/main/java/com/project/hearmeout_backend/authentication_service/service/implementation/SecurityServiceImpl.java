@@ -9,10 +9,7 @@ import com.project.hearmeout_backend.authentication_service.dto.request.Register
 import com.project.hearmeout_backend.authentication_service.model.CustomUserDetails;
 import com.project.hearmeout_backend.authentication_service.model.enums.RoleType;
 import com.project.hearmeout_backend.common_lib.event_dto.UserRegisteredEvent;
-import com.project.hearmeout_backend.common_lib.exception.EmailAlreadyExistException;
-import com.project.hearmeout_backend.common_lib.exception.InvalidOtpException;
-import com.project.hearmeout_backend.common_lib.exception.TokenInvalidException;
-import com.project.hearmeout_backend.common_lib.exception.UserAlreadyExistException;
+import com.project.hearmeout_backend.common_lib.exception.*;
 import com.project.hearmeout_backend.notification_service.config.CustomRabbitTemplate;
 import com.project.hearmeout_backend.notification_service.config.RabbitMQConfig;
 import com.project.hearmeout_backend.user_service.mapper.UserMapper;
@@ -236,13 +233,19 @@ public class SecurityServiceImpl {
   public void modifyUserPassword(PasswordResetRequestDTO passwordResetRequestDTO) {
     User registeredUser =
         userServiceImpl.checkAndGetUserByEmail(passwordResetRequestDTO.getEmail());
-    String storedOtp =
-        redisOperator
-            .opsForValue()
-            .getAndDelete("pass_reset_otp:".concat(passwordResetRequestDTO.getEmail()));
+    String key = "pass_reset_otp:".concat(passwordResetRequestDTO.getEmail());
+
+    String storedOtp = (String) redisOperator.opsForHash().get(key, "otp_value");
 
     if (storedOtp == null) {
       throw new InvalidOtpException("Otp expired for password reset, please create a new one.");
+    }
+
+    long remaining = redisOperator.opsForHash().increment(key, "remaining_attempts", -1);
+
+    if (remaining < 0) {
+      redisOperator.delete(key);
+      throw new InvalidOperationException("Maximum attempts reached. Otp has been invalidated.");
     }
 
     if (!passwordEncoder.matches(passwordResetRequestDTO.getOtp(), storedOtp)) {
@@ -251,18 +254,28 @@ public class SecurityServiceImpl {
     }
 
     registeredUser.setPassword(passwordEncoder.encode(passwordResetRequestDTO.getNewPassword()));
+    redisOperator.delete(key);
     userRepo.save(registeredUser);
   }
 
   @Transactional
-  public void verifyUserEmail(
+  public void verifyUserAccount(
       AccountVerificationRequestDTO accountVerificationRequestDTO, String email) {
     User registeredUser = userServiceImpl.checkAndGetUserByEmail(email);
-    String storedOtp = redisOperator.opsForValue().getAndDelete("email_verify_otp:".concat(email));
+    String key = "account_verify_otp:".concat(email);
+
+    String storedOtp = (String) redisOperator.opsForHash().get(key, "otp_value");
 
     if (storedOtp == null) {
       throw new InvalidOtpException(
           "Otp expired for account verification, please create a new one.");
+    }
+
+    long remaining = redisOperator.opsForHash().increment(key, "remaining_attempts", -1);
+
+    if (remaining < 0) {
+      redisOperator.delete(key);
+      throw new InvalidOperationException("Maximum attempts reached. Otp has been invalidated.");
     }
 
     if (!passwordEncoder.matches(accountVerificationRequestDTO.getOtp(), storedOtp)) {
@@ -276,6 +289,7 @@ public class SecurityServiceImpl {
     boolean isAdmin = email.equalsIgnoreCase(ADMIN_MAIL);
 
     registeredUser.setRole(isAdmin ? RoleType.ADMIN : RoleType.VERIFIED_USER);
+    redisOperator.delete(key);
     userRepo.save(registeredUser);
   }
 

@@ -72,10 +72,10 @@ public class RateLimiterAspect {
   private void validateEmailVerificationOtpRequest(Object[] args) {
     CustomUserDetails currUser = (CustomUserDetails) args[0];
 
-    if (redisOperator.opsForValue().get("email_verify_cooldown:".concat(currUser.getUsername()))
+    if (redisOperator.opsForValue().get("account_verify_cooldown:".concat(currUser.getUsername()))
         != null) {
       throw new InvalidOperationException(
-          "Please wait few seconds before requesting new otp for email verification");
+          "Please wait few seconds before requesting new otp for account verification");
     }
   }
 
