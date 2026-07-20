@@ -23,6 +23,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -35,6 +36,7 @@ public class UtilServiceImplTest {
   @Mock private BCryptPasswordEncoder passwordEncoder;
   @Mock private StringRedisTemplate redisOperator;
   @Mock private ValueOperations<String, String> valueOperations;
+  @Mock private HashOperations<String, Object, Object> hashOperations;
   @Mock private CustomRabbitTemplate rabbitTemplate;
 
   @Spy @InjectMocks private UtilServiceImpl utilService;
@@ -71,13 +73,14 @@ public class UtilServiceImplTest {
 
     doReturn(otp).when(utilService).generateOtp();
     when(redisOperator.opsForValue()).thenReturn(valueOperations);
+    when(redisOperator.opsForHash()).thenReturn(hashOperations);
     when(passwordEncoder.encode(anyString())).thenReturn("encodedOtp");
 
     // Act
     utilService.handlePasswordResetOtp(email);
 
     // Assert
-    verify(redisOperator, atLeastOnce()).opsForValue();
+    verify(redisOperator, atLeastOnce()).opsForHash();
     verify(rabbitTemplate, times(1))
         .send(
             eq(RabbitMQConfig.EMAIL_EXCHANGE),
@@ -104,13 +107,14 @@ public class UtilServiceImplTest {
 
     doReturn(otp).when(utilService).generateOtp();
     when(redisOperator.opsForValue()).thenReturn(valueOperations);
+    when(redisOperator.opsForHash()).thenReturn(hashOperations);
     when(passwordEncoder.encode(anyString())).thenReturn("encodedOtp");
 
     // Act
     utilService.handleAccountVerificationOtp(email);
 
     // Assert
-    verify(redisOperator, atLeastOnce()).opsForValue();
+    verify(redisOperator, atLeastOnce()).opsForHash();
     verify(rabbitTemplate, times(1))
         .send(
             eq(RabbitMQConfig.EMAIL_EXCHANGE),

@@ -54,13 +54,13 @@ public class SecurityController {
       summary = "Logout user",
       description =
           """
-          Logs out the currently authenticated user by invalidating their session cookie.
+            Logs out the currently authenticated user by invalidating their session cookie.
 
-          **Access Control**
-          - Authentication: Required
-          - Allowed Roles: ADMIN, USER, VERIFIED_USER
-          - Denied Roles: GUEST
-          """)
+            **Access Control**
+            - Authentication: Required
+            - Allowed Roles: ADMIN, USER, VERIFIED_USER
+            - Denied Roles: GUEST
+            """)
   @ApiResponses({
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
@@ -104,13 +104,13 @@ public class SecurityController {
       summary = "Reset user password",
       description =
           """
-          Resets the user's password using a valid OTP and terminates their current session.
+            Resets the user's password using a valid OTP and terminates their current session.
 
-          **Access Control**
-          - Authentication: Required
-          - Allowed Roles: USER, VERIFIED_USER
-          - Denied Roles: ADMIN, GUEST
-          """)
+            **Access Control**
+            - Authentication: Required
+            - Allowed Roles: USER, VERIFIED_USER
+            - Denied Roles: ADMIN, GUEST
+            """)
   @ApiResponses({
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
@@ -139,13 +139,13 @@ public class SecurityController {
       summary = "Verify user account",
       description =
           """
-          Verifies the user's account using a valid OTP sent to their email. Requires authentication.
+            Validates user account by matching the provided OTP. sent to their email. Requires authentication.
 
-          **Access Control**
-          - Authentication: Required
-          - Allowed Roles: USER
-          - Denied Roles: VERIFIED_USER, ADMIN, GUEST
-          """)
+            **Access Control**
+            - Authentication: Required
+            - Allowed Roles: USER
+            - Denied Roles: VERIFIED_USER, ADMIN, GUEST
+            """)
   @ApiResponses({
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
@@ -156,7 +156,7 @@ public class SecurityController {
   public ResponseEntity<@NonNull String> verifyAccount(
       @Valid @RequestBody AccountVerificationRequestDTO accountVerificationRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails) {
-    securityServiceImpl.verifyUserEmail(accountVerificationRequestDTO, userDetails.getUsername());
+    securityServiceImpl.verifyUserAccount(accountVerificationRequestDTO, userDetails.getUsername());
 
     return ResponseEntity.status(HttpStatus.OK).body("Account verified successfully");
   }
