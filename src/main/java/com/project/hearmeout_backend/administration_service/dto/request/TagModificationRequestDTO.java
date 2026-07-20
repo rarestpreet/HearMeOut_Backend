@@ -1,4 +1,4 @@
-package com.project.hearmeout_backend.post_service.dto.request;
+package com.project.hearmeout_backend.administration_service.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;

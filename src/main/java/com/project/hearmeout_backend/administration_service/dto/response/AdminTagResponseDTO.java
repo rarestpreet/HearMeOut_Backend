@@ -1,4 +1,4 @@
-package com.project.hearmeout_backend.post_service.dto.response;
+package com.project.hearmeout_backend.administration_service.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.UUID;
