@@ -2,7 +2,7 @@ spring:
   datasource:
     url: jdbc:postgresql://postgres:5432/hearmeout
     username: root
-    password: ${DB_PASS:mysecretpassword}
+    password: ${DB_PASS}
     hikari:
       initialization-fail-timeout: 6000
 

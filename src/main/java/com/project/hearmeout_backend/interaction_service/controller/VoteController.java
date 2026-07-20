@@ -46,7 +46,7 @@ public class VoteController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @PostMapping("/vote")
+  @PostMapping("vote")
   public ResponseEntity<@NonNull String> toggleVote(
       @Valid @RequestBody VoteRequestDTO voteRequestDTO,
       @AuthenticationPrincipal CustomUserDetails userDetails,

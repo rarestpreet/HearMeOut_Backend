@@ -41,13 +41,13 @@ public interface TagRepository extends JpaRepository<Tag, UUID> {
 
   @Query(
       """
-                SELECT new com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO(
+                SELECT new com.project.hearmeout_backend.administration_service.dto.response.AdminTagResponseDTO(
                     t.id, t.name, t.description, t.usageCount, t.isApproved
                 )
                 FROM Tag t
                 ORDER BY t.usageCount DESC
             """)
-  Page<com.project.hearmeout_backend.post_service.dto.response.AdminTagResponseDTO>
+  Page<com.project.hearmeout_backend.administration_service.dto.response.AdminTagResponseDTO>
       findAllTagsDTOAdmin(Pageable pageable);
 
   @Modifying

@@ -55,7 +55,7 @@ services:
       - env_file/.env
     environment:
       PORT: 8080
-      SPRING_PROFILES_ACTIVE: docker
+      SPRING_PROFILES_ACTIVE: dev
       DB_PASS: mysecretpassword
       RABBITMQ_HOST: rabbitmq
       SECRET_KEY: ${SECRET_KEY}

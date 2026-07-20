@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/error-report")
+@RequestMapping("error-report")
 @RequiredArgsConstructor
 @Tag(
     name = "Error Report Management",
@@ -64,7 +64,7 @@ public class ErrorReportController {
       summary = "Get error report details",
       description =
           "Retrieves a specific error report by its ID, including solutions, comments, and tags.")
-  @GetMapping("/{errorReportId}")
+  @GetMapping("{errorReportId}")
   public ResponseEntity<@NonNull ErrorReportResponseDTO> getErrorReport(
       @PathVariable UUID errorReportId,
       @RequestParam(defaultValue = "5") int limit,
@@ -95,7 +95,7 @@ public class ErrorReportController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @PutMapping("/{errorReportId}")
+  @PutMapping("{errorReportId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> updateErrorReport(
@@ -121,7 +121,7 @@ public class ErrorReportController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @DeleteMapping("/{errorReportId}")
+  @DeleteMapping("{errorReportId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> deleteErrorReport(

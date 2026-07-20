@@ -2,11 +2,9 @@ package com.project.hearmeout_backend.authentication_service.service.implementat
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.project.hearmeout_backend.authentication_service.dto.request.AccountVerificationRequestDTO;
-import com.project.hearmeout_backend.authentication_service.dto.request.PasswordResetRequestDTO;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOperationException;
 import com.project.hearmeout_backend.common_lib.exception.InvalidOtpException;
 import com.project.hearmeout_backend.user_service.model.User;
@@ -75,7 +73,8 @@ public class SecurityServiceImplTest {
     when(hashOperations.get(key, "otp_value")).thenReturn(null);
 
     InvalidOtpException ex =
-        assertThrows(InvalidOtpException.class, () -> securityService.verifyUserAccount(dto, email));
+        assertThrows(
+            InvalidOtpException.class, () -> securityService.verifyUserAccount(dto, email));
 
     assertEquals("Otp expired for account verification, please create a new one.", ex.getMessage());
     verify(hashOperations, never()).increment(anyString(), anyString(), anyLong());
@@ -92,11 +91,13 @@ public class SecurityServiceImplTest {
     when(userServiceImpl.checkAndGetUserByEmail(email)).thenReturn(testUser);
     when(redisOperator.opsForHash()).thenReturn(hashOperations);
     when(hashOperations.get(key, "otp_value")).thenReturn(storedEncodedOtp);
-    when(hashOperations.increment(key, "remaining_attempts", -1)).thenReturn(4L); // still have attempts
+    when(hashOperations.increment(key, "remaining_attempts", -1))
+        .thenReturn(4L); // still have attempts
     when(passwordEncoder.matches("123456", storedEncodedOtp)).thenReturn(false);
 
     InvalidOtpException ex =
-        assertThrows(InvalidOtpException.class, () -> securityService.verifyUserAccount(dto, email));
+        assertThrows(
+            InvalidOtpException.class, () -> securityService.verifyUserAccount(dto, email));
 
     assertEquals("Otp for account verification 123456 is not valid", ex.getMessage());
     verify(redisOperator, never()).delete(key); // Shouldn't delete since attempts remain
@@ -113,9 +114,10 @@ public class SecurityServiceImplTest {
     when(userServiceImpl.checkAndGetUserByEmail(email)).thenReturn(testUser);
     when(redisOperator.opsForHash()).thenReturn(hashOperations);
     when(hashOperations.get(key, "otp_value")).thenReturn(storedEncodedOtp);
-    // Return -1 to simulate the 6th attempt (starting from 5, 0 is the 5th failed attempt, -1 means it dropped below 0)
+    // Return -1 to simulate the 6th attempt (starting from 5, 0 is the 5th failed attempt, -1 means
+    // it dropped below 0)
     // Wait, the logic is "if (remaining < 0) ... delete ... throw InvalidOperationException"
-    when(hashOperations.increment(key, "remaining_attempts", -1)).thenReturn(-1L); 
+    when(hashOperations.increment(key, "remaining_attempts", -1)).thenReturn(-1L);
 
     InvalidOperationException ex =
         assertThrows(

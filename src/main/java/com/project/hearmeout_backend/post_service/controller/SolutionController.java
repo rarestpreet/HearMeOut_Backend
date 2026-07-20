@@ -24,7 +24,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/solution")
+@RequestMapping("solution")
 @RequiredArgsConstructor
 @Tag(
     name = "Solution Management",
@@ -47,7 +47,7 @@ public class SolutionController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @PostMapping("/error-report/{errorReportId}")
+  @PostMapping("error-report/{errorReportId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> submitSolution(
@@ -64,7 +64,7 @@ public class SolutionController {
       summary = "Get paginated solutions for an error report",
       description =
           "Retrieves paginated solutions for a specific error report. User context is applied if authenticated.")
-  @GetMapping("/error-report/{errorReportId}")
+  @GetMapping("error-report/{errorReportId}")
   public ResponseEntity<@NonNull PagedResponse<SolutionResponseDTO>> getSolutions(
       @PathVariable UUID errorReportId,
       @RequestParam(defaultValue = "5") int limit,
@@ -92,7 +92,7 @@ public class SolutionController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @PostMapping("/toggleStatus")
+  @PostMapping("toggleStatus")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> toggleSolutionStatus(
@@ -117,7 +117,7 @@ public class SolutionController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @PutMapping("/{solutionId}")
+  @PutMapping("{solutionId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> updateSolution(
@@ -143,7 +143,7 @@ public class SolutionController {
     @ApiResponse(responseCode = "401", description = "Authentication required"),
     @ApiResponse(responseCode = "403", description = "Insufficient permissions")
   })
-  @DeleteMapping("/{solutionId}")
+  @DeleteMapping("{solutionId}")
   @PreAuthorize("isFullyAuthenticated() && hasAuthority('VERIFIED_USER')")
   @SecurityRequirement(name = "bearerAuth")
   public ResponseEntity<@NonNull String> deleteSolution(

@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/dictionary")
+@RequestMapping("dictionary")
 @RequiredArgsConstructor
 @Tag(
     name = "Dictionary API",
@@ -18,7 +18,7 @@ public class DictionaryController {
 
   private final DictionaryService dictionaryService;
 
-  @GetMapping("/{type}")
+  @GetMapping("{type}")
   @Operation(
       summary = "Get top dictionary values",
       description =
