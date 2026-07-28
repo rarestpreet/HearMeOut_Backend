@@ -82,8 +82,7 @@ services:
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      RABBITMQ_HOST: rabbitmq
+      SPRING_PROFILES_ACTIVE: prod
     depends_on:
       postgres:
         condition: service_healthy
