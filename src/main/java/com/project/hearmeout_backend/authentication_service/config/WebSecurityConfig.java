@@ -1,5 +1,6 @@
 package com.project.hearmeout_backend.authentication_service.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.hearmeout_backend.common_lib.exception.CustomAuthenticationEntryPoint;
 import com.project.hearmeout_backend.gateway.filter.JwtFilter;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +30,8 @@ public class WebSecurityConfig {
   private final JwtFilter jwtFilter;
 
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity httpSecurity, ObjectMapper objectMapper) throws Exception {
     return httpSecurity
         .cors(Customizer.withDefaults())
         .csrf(AbstractHttpConfigurer::disable)
@@ -60,7 +62,8 @@ public class WebSecurityConfig {
                     .authenticated())
         .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class)
         .logout(AbstractHttpConfigurer::disable)
-        .exceptionHandling(ex -> ex.authenticationEntryPoint(new CustomAuthenticationEntryPoint()))
+        .exceptionHandling(
+            ex -> ex.authenticationEntryPoint(new CustomAuthenticationEntryPoint(objectMapper)))
         .sessionManagement(
             session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .build();
