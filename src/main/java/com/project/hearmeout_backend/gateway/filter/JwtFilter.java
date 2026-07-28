@@ -39,29 +39,34 @@ public class JwtFilter extends OncePerRequestFilter {
       return;
     }
 
-    String token = null;
+    String jwtToken = null;
+    String refreshToken = null;
 
     if (request.getCookies() != null) {
       for (Cookie cookie : request.getCookies()) {
         if (cookie.getName().equals("jwt-token")) {
-          token = cookie.getValue();
-          break;
+          jwtToken = cookie.getValue();
+        }
+        if (cookie.getName().equals("refresh-token")) {
+          refreshToken = cookie.getValue();
         }
       }
     }
 
-    if (token == null) {
+    log.info("jwt-token: {}\nrefresh-token: {}", jwtToken, refreshToken);
+
+    if (jwtToken == null) {
       filterChain.doFilter(request, response);
 
       return;
     }
     try {
-      String username = jwtService.extractUsername(token);
+      String username = jwtService.extractUsername(jwtToken);
 
       if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
         CustomUserDetails userDetails = customUserDetailsServiceImpl.loadUserByUsername(username);
 
-        boolean isTokenValid = jwtService.isTokenValid(token, userDetails);
+        boolean isTokenValid = jwtService.isTokenValid(jwtToken, userDetails);
 
         if (isTokenValid) {
           UsernamePasswordAuthenticationToken authToken =

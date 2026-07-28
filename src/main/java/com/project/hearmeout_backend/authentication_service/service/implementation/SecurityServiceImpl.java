@@ -121,7 +121,7 @@ public class SecurityServiceImpl {
             .sameSite(tokenCookieProperties.getSameSite())
             .build(),
         ResponseCookie.from("refresh-token", "")
-            .path("/api/v2/")
+            .path("/api/v2")
             .httpOnly(true)
             .maxAge(0)
             .secure(tokenCookieProperties.isSecure())
@@ -221,7 +221,7 @@ public class SecurityServiceImpl {
             .maxAge(Duration.ofMinutes(20))
             .build(),
         ResponseCookie.from("refresh-token", refreshToken)
-            .path("/api/v2/")
+            .path("/api/v2")
             .httpOnly(true)
             .secure(tokenCookieProperties.isSecure())
             .sameSite(tokenCookieProperties.getSameSite())
