@@ -16,8 +16,13 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+      username: ${REDIS_USER}
+      password: ${REDIS_PASS}
+      ssl:
+        enabled: true
 
-cookie:
-  creation:
-    secure: true
-    same-site: None
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "mappings, health, metrics"

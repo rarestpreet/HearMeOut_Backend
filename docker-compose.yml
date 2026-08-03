@@ -55,10 +55,12 @@ services:
       - env_file/.env
     environment:
       PORT: 8080
-      SPRING_PROFILES_ACTIVE: dev
+      SPRING_PROFILES_ACTIVE: docker
       DB_PASS: mysecretpassword
       RABBITMQ_HOST: rabbitmq
-      SECRET_KEY: ${SECRET_KEY}
+      SECRET_KEY: mN6VnkZCNW5hZdWk+IEv7wyW0meh89YbLdZNMvaaR51olBPnS0QaGcTqlQAJRFYV8NyUt8UXFzxkw3Fz7E7W6dA
+      COOKIE_SECURE: false
+      COOKIE_SAMESITE: Lax
     depends_on:
       postgres:
         condition: service_healthy
@@ -67,7 +69,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/v1 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/v2/actuator/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5

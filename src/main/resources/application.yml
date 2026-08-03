@@ -24,6 +24,7 @@ spring:
           starttls:
             enable: true
   rabbitmq:
+
     host: ${RABBITMQ_HOST:localhost}
     port: ${RABBITMQ_PORT:5672}
     username: ${RABBITMQ_USER:guest}
@@ -51,3 +52,8 @@ logging:
 
 admin:
   mail: ${ADMIN_MAIL}
+
+cookie:
+  creation:
+    secure: ${COOKIE_SECURE}
+    same-site: ${COOKIE_SAMESITE}
