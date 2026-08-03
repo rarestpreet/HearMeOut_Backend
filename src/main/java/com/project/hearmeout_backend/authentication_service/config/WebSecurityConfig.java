@@ -38,6 +38,8 @@ public class WebSecurityConfig {
         .authorizeHttpRequests(
             request ->
                 request
+                    .requestMatchers("/actuator/**")
+                    .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.OPTIONS, "/**")
                     .permitAll()
                     .requestMatchers(HttpMethod.GET, "/error-report/*")

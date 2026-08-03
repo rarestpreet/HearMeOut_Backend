@@ -49,6 +49,9 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
+    environment:
+      REDIS_USER: ${REDIS_USER}
+      REDIS_PASSWORD: ${REDIS_PASS}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
