@@ -23,11 +23,11 @@ services:
   postgres-backup:
     image: postgres:15-alpine
     container_name: postgres-backup
+    environment:
+      PGPASSWORD: ${DB_PASS}
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      PGPASSWORD: ${DB_PASS}
     volumes:
       - ./backups:/backups
     entrypoint: >
@@ -49,9 +49,6 @@ services:
     container_name: redis
     ports:
       - "6379:6379"
-    environment:
-      REDIS_USER: ${REDIS_USER}
-      REDIS_PASSWORD: ${REDIS_PASS}
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
